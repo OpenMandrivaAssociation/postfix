@@ -31,7 +31,7 @@
 %endif
 
 %define pname		postfix
-%define pver		2.3.8
+%define pver		2.4.0
 # from src/global/mail_version.h
 %define releasedate	20070130
 %define rel		1
@@ -77,7 +77,7 @@
 %bcond_with multiline
 %bcond_with VDA
 %bcond_without chroot
-%bcond_without multi_instance
+%bcond_with multi_instance
 
 # Postfix requires one exlusive uid/gid and a 2nd exclusive gid for its own use.
 %define maildrop_group	postdrop
@@ -923,6 +923,4 @@ rm -rf %buildroot
 %dynmap_rm_cmd pgsql
 %endif
 %endif
-
-
 
