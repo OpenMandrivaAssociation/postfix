@@ -174,11 +174,11 @@ Requires(post): sysklogd, fileutils
 Requires(pre,post,postun,preun): rpm-helper >= 0.3
 # Requiring "ed" twice due to http://archives.mandrivalinux.com/cooker/2005-06/msg00109.php
 Requires(post): ed
-Requires:	ed
+Requires:		ed
 # ed is used in %%install
 BuildRequires: 	ed
 Requires(pre):	sed
-Requires:	sed
+Requires:		sed
 %if %alternatives
 Requires(post):		update-alternatives
 Requires(preun):	update-alternatives
