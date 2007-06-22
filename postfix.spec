@@ -34,7 +34,7 @@
 %define pver		2.4.3
 # from src/global/mail_version.h
 %define releasedate	20070130
-%define rel		1
+%define rel		2
 
 %if ! %{with experimental}
 %define distver		%pver
@@ -405,7 +405,7 @@ sed -e 's/\[\[:<:\]\]/\\</g; s/\[\[:>:\]\]/\\>/g' mantools/postlink.posix > mant
 
 %build
 %serverbuild
-CCARGS="-fstack-protector"
+CCARGS="$CFLAGS"
 AUXLIBS=
 
 %ifarch s390 s390x ppc
