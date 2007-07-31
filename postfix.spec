@@ -410,6 +410,7 @@ cp -p mantools/postlink.sed mantools/postlink.posix
 sed -e 's/\[\[:<:\]\]/\\</g; s/\[\[:>:\]\]/\\>/g' mantools/postlink.posix > mantools/postlink
 
 %build
+%serverbuild
 CCARGS="$CFLAGS"
 AUXLIBS=
 
