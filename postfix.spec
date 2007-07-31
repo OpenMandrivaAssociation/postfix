@@ -30,11 +30,17 @@
 %bcond_with parallel
 %endif
 
+%if %{mdkversion} < 200800
+%define mansuffix bz2
+%else
+%define mansuffix lzma
+%endif
+
 %define pname		postfix
-%define pver		2.4.3
+%define pver		2.4.4
 # from src/global/mail_version.h
 %define releasedate	20070130
-%define rel		2
+%define rel		1
 
 %if ! %{with experimental}
 %define distver		%pver
@@ -54,9 +60,9 @@
 %define alternatives_install_cmd update-alternatives --install %{_sbindir}/sendmail sendmail-command %{_sbindir}/sendmail.postfix 30 --slave %{_prefix}/lib/sendmail sendmail-command-in_libdir %{_sbindir}/sendmail.postfix
 
 %if %alternatives
-%define post_install_parameters	daemon_directory=%{_libdir}/postfix command_directory=%{_sbindir} queue_directory=%{queue_directory} sendmail_path=%{_sbindir}/sendmail.postfix newaliases_path=%{_bindir}/newaliases mailq_path=%{_bindir}/mailq mail_owner=postfix setgid_group=%{maildrop_group} manpage_directory=%{_mandir} readme_directory=%{_docdir}/%name-%version/README_FILES html_directory=%{_docdir}/%name-%version/html 
+%define post_install_parameters	daemon_directory=%{_libdir}/postfix command_directory=%{_sbindir} queue_directory=%{queue_directory} sendmail_path=%{_sbindir}/sendmail.postfix newaliases_path=%{_bindir}/newaliases mailq_path=%{_bindir}/mailq mail_owner=postfix setgid_group=%{maildrop_group} manpage_directory=%{_mandir} readme_directory=%{_docdir}/%name/README_FILES html_directory=%{_docdir}/%name/html 
 %else
-%define post_install_parameters	daemon_directory=%{_libdir}/postfix command_directory=%{_sbindir} queue_directory=%{queue_directory} sendmail_path=%{_sbindir}/sendmail newaliases_path=%{_bindir}/newaliases mailq_path=%{_bindir}/mailq mail_owner=postfix setgid_group=%{maildrop_group} manpage_directory=%{_mandir} readme_directory=%{_docdir}/%name-%version/README_FILES html_directory=%{_docdir}/%name-%version/html 
+%define post_install_parameters	daemon_directory=%{_libdir}/postfix command_directory=%{_sbindir} queue_directory=%{queue_directory} sendmail_path=%{_sbindir}/sendmail newaliases_path=%{_bindir}/newaliases mailq_path=%{_bindir}/mailq mail_owner=postfix setgid_group=%{maildrop_group} manpage_directory=%{_mandir} readme_directory=%{_docdir}/%name/README_FILES html_directory=%{_docdir}/%name/html 
 %endif
 
 # use bcond_with if default is disabled
@@ -222,7 +228,7 @@ completely different.
 This software was formerly known as VMailer. It was released by the end
 of 1998 as the IBM Secure Mailer. From then on it has lived on as Postfix. 
 
-PLEASE READ THE %{_defaultdocdir}/%{name}-%{version}/README.MDK FILE.
+PLEASE READ THE %{_defaultdocdir}/%{name}/README.MDK FILE.
 
 This rpm supports different build time options, to enable or disable these
 features you must rebuild the source rpm using the --with ... or --without ...
@@ -404,7 +410,6 @@ cp -p mantools/postlink.sed mantools/postlink.posix
 sed -e 's/\[\[:<:\]\]/\\</g; s/\[\[:>:\]\]/\\>/g' mantools/postlink.posix > mantools/postlink
 
 %build
-%serverbuild
 CCARGS="$CFLAGS"
 AUXLIBS=
 
@@ -511,8 +516,8 @@ done
 # rpm %%doc macro wants to take his files in buildroot
 rm -fr DOC
 mkdir DOC
-mv %buildroot%{_docdir}/%name-%version/html DOC/html
-mv %buildroot%{_docdir}/%name-%version/README_FILES DOC/README_FILES
+mv %buildroot%{_docdir}/%name/html DOC/html
+mv %buildroot%{_docdir}/%name/README_FILES DOC/README_FILES
 
 # for sasl configuration
 /bin/mkdir -p %buildroot%{_sysconfdir}/sasl2
@@ -553,7 +558,7 @@ cp man/man1/qshape.1 %buildroot%{_mandir}/man1/qshape.1
 # - Edit postfix-files to reflect this, so post-install won't get confused
 #   when called during package installation.
 ed %buildroot%{_sysconfdir}/postfix/postfix-files <<-EOF || exit 1
-	,s/\(\/man[158]\/.*\.[158]\):/\1.bz2:/
+	,s/\(\/man[158]\/.*\.[158]\):/\1.%{mansuffix}:/
 	w
 	q
 EOF
