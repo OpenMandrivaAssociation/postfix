@@ -175,8 +175,7 @@ Group:		System/Servers
 Provides:	mail-server
 Provides:	sendmail-command
 # http://archives.mandrivalinux.com/cooker/2005-06/msg01987.php
-Requires(post): chkconfig, initscripts, coreutils
-Requires(post): sysklogd, fileutils
+Requires(post): chkconfig, initscripts, sysklogd, coreutils
 Requires(pre,post,postun,preun): rpm-helper >= 0.3
 # Requiring "ed" twice due to http://archives.mandrivalinux.com/cooker/2005-06/msg00109.php
 Requires(post): ed
