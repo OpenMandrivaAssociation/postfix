@@ -237,10 +237,11 @@ Currently postfix has been built with:
 	Smtpd multiline greeting: --%{with_TXT multiline}
 	Virtual Delivery Agent: --%{with_TXT VDA}
 	Munge bare CR: --%{with_TXT barecr}
-	TLS support: --with tls %{with_TXT_tls}
-	IPV6 support: --with IPV6 %{with_TXT_ipv6}
+	TLS support: --%{with_TXT tls}
+	IPV6 support: --%{with_TXT ipv6}
 	CDB support: --%{with_TXT cdb}
 	Chroot by default: --%{with_TXT chroot}
+	Multi Instance Support: --%{with_TXT multi_instance}
 
 %if %{with dynamicmaps}
 %package -n %{libname}
