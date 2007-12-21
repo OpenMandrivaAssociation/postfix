@@ -40,7 +40,7 @@
 %define pver		2.4.6
 # from src/global/mail_version.h
 %define releasedate	20070130
-%define rel		1
+%define rel		2
 
 %if ! %{with experimental}
 %define distver		%pver
@@ -212,6 +212,7 @@ Requires(post):	%{libname} = %epoch:%version-%release
 # versionless require or we will break upgrades
 Requires(preun):	%{libname}
 %endif
+Buildroot:	%{_tmppath}/%{name}-%{version}-%{release}-root
 
 %description
 Postfix is a Mail Transport Agent (MTA), supporting LDAP, SMTP AUTH (SASL),
