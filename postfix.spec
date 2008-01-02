@@ -192,6 +192,7 @@ Conflicts:	sendmail exim qmail
 %endif
 BuildRequires:	db4-devel, gawk, perl-base, sed, ed
 BuildRequires:	html2text
+BuildRoot:	%{_tmppath}/%{name}-%{pver}-%{rel}-root
 
 %if %{with sasl}
 BuildRequires:	libsasl-devel >= 2.0
