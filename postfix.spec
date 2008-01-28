@@ -37,10 +37,10 @@
 %endif
 
 %define pname		postfix
-%define pver		2.4.6
+%define pver		2.5.0
 # from src/global/mail_version.h
 %define releasedate	20070130
-%define rel		2
+%define rel		1
 
 %if ! %{with experimental}
 %define distver		%pver
@@ -141,9 +141,9 @@ Source26:	http://jimsun.LinxNet.com/misc/header_checks.txt
 Source27:	http://jimsun.LinxNet.com/misc/body_checks.txt
 
 # Dynamic map patch taken from debian's package
-Patch0:		postfix-2.3.1-dynamicmaps.patch
+Patch0:		postfix-2.5.0-dynamicmaps.patch
 
-Patch1:		postfix-2.3.2-mdkconfig.patch
+Patch1:		postfix-2.5.0-mdkconfig.patch
 Patch2:		postfix-alternatives-mdk.patch
 Patch3:		postfix-smtp_sasl_proto.c.patch
 
@@ -502,11 +502,13 @@ rm -fr %buildroot
 
 # install postfix into the build root
 LD_LIBRARY_PATH=$PWD/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH} \
-sh postfix-install -non-interactive \
+make non-interactive-package \
 	install_root=%buildroot \
 	config_directory=%{_sysconfdir}/postfix \
 	%post_install_parameters \
 	|| exit 1
+
+mkdir -p %{buildroot}%{_localstatedir}/postfix
 
 %if %{with dynamicmaps}
 for i in lib/*.a; do
@@ -648,10 +650,11 @@ if [ "$1" -eq "2" ]; then
 fi
 
 # upgrade configuration files if necessary
-sh %{_sysconfdir}/postfix/post-install \
+%{_sbindir}/postfix \
+	set-permissions \
+	upgrade-configuration \
 	config_directory=%{_sysconfdir}/postfix \
-	%post_install_parameters \
-	upgrade-package
+	%post_install_parameters
 
 # move previous sasl configuration files to new location if applicable
 # have to go through many loops to prevent damaging user configuration
@@ -775,6 +778,8 @@ rm -rf %buildroot
 %attr(0755, root, root) %config(noreplace) %{_sysconfdir}/ppp/ip-down.d/postfix
 %attr(0755, root, root) %config(noreplace) %{_sysconfdir}/sysconfig/network-scripts/ifup.d/postfix
 %ghost %{_sysconfdir}/sysconfig/postfix
+
+%dir %attr(0700, postfix, root) %{_localstatedir}/postfix
 
 # For correct directory permissions check postfix-install script
 %dir %{queue_directory}
