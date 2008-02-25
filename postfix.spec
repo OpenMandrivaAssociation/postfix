@@ -145,7 +145,6 @@ Patch0:		postfix-2.5.0-dynamicmaps.patch
 
 Patch1:		postfix-2.5.0-mdkconfig.patch
 Patch2:		postfix-alternatives-mdk.patch
-Patch3:		postfix-smtp_sasl_proto.c.patch
 
 # Shamelessy stolen from debian
 Patch6:		postfix-2.2.4-smtpstone.patch
@@ -160,9 +159,6 @@ Patch8: ftp://ftp.wl0.org/SOURCES/postfix-2.3.2-multiline-greeting.patch
 # applied if %with vda
 # http://web.onda.com.br/nadal/
 Patch9: http://web.onda.com.br/nadal/postfix/VDA/postfix-2.3.3-vda.patch
-
-# from postfix-users ml, adapted to 2.3
-Patch10:	postfix-2.3.2-sasl_logging.patch
 
 # applied if %with multi_instance
 # originally http://www.stahl.bau.tu-bs.de/~hildeb/postfix/duchovni/multi_instance.gz
@@ -351,10 +347,6 @@ fi
 %patch2 -p1 -b .alternatives
 %endif
 
-# XXX - andreas - still needed/desired?
-# ref: http://archives.neohapsis.com/archives/postfix/2001-05/1485.html
-#%%patch3 -p1 -b .auth
-
 %patch6 -p1 -b .smtpstone 
 
 # Apply PAM Patch
@@ -371,9 +363,6 @@ fi
 %if %{with VDA}
 %patch9 -p1 -b .vda
 %endif
-
-# doesn't build yet
-#%patch10 -p1 -b .sasl_logging
 
 %if %{with multi_instance}
 %patch23 -p1 -b .multi_instance
