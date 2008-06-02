@@ -498,7 +498,7 @@ make non-interactive-package \
 	%post_install_parameters \
 	|| exit 1
 
-mkdir -p %{buildroot}%{_localstatedir}/postfix
+mkdir -p %{buildroot}%{_localstatedir}/lib/postfix
 
 %if %{with dynamicmaps}
 for i in lib/*.a; do
@@ -769,7 +769,7 @@ rm -rf %buildroot
 %attr(0755, root, root) %config(noreplace) %{_sysconfdir}/sysconfig/network-scripts/ifup.d/postfix
 %ghost %{_sysconfdir}/sysconfig/postfix
 
-%dir %attr(0700, postfix, root) %{_localstatedir}/postfix
+%dir %attr(0700, postfix, root) %{_localstatedir}/lib/postfix
 
 # For correct directory permissions check postfix-install script
 %dir %{queue_directory}
