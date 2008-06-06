@@ -40,7 +40,7 @@
 %define pver		2.5.2
 # from src/global/mail_version.h
 %define releasedate	20080507
-%define rel		1
+%define rel		2
 
 %if ! %{with experimental}
 %define distver		%pver
@@ -171,8 +171,8 @@ Group:		System/Servers
 Provides:	mail-server
 Provides:	sendmail-command
 # http://archives.mandrivalinux.com/cooker/2005-06/msg01987.php
-Requires(post): chkconfig, initscripts, sysklogd, coreutils, diffutils, gawk
-Requires: sysklogd, coreutils, diffutils, gawk
+Requires(post): chkconfig, initscripts, syslog-daemon, coreutils, diffutils, gawk
+Requires: syslog-daemon, coreutils, diffutils, gawk
 Requires(pre,post,postun,preun): rpm-helper >= 0.3
 # Requiring "ed" twice due to http://archives.mandrivalinux.com/cooker/2005-06/msg00109.php
 Requires(post): ed
