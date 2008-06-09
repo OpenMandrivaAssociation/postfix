@@ -877,8 +877,12 @@ rm -rf %buildroot
 %attr(0755, root, root) %{_libdir}/libpostfix-xsasl.so.1
 
 
+%if %mdkversion < 200900
 %post -n %{libname} -p /sbin/ldconfig
+%endif
+%if %mdkversion < 200900
 %postun -n %{libname} -p /sbin/ldconfig
+%endif
 
 %if %{with ldap}
 %files ldap
