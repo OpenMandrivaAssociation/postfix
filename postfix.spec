@@ -157,8 +157,8 @@ Patch7:		postfix-2.0.16-20030921.pam.patch
 Patch8: ftp://ftp.wl0.org/SOURCES/postfix-2.3.2-multiline-greeting.patch
 
 # applied if %with vda
-# http://web.onda.com.br/nadal/
-Patch9: http://web.onda.com.br/nadal/postfix/VDA/postfix-2.3.3-vda.patch
+# http://vda.sourceforge.net/
+Patch9: http://vda.sourceforge.net/VDA/postfix-2.5.3-vda-ng.patch.gz
 
 # applied if %with multi_instance
 # originally http://www.stahl.bau.tu-bs.de/~hildeb/postfix/duchovni/multi_instance.gz
