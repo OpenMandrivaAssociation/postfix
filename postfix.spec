@@ -96,7 +96,7 @@
 
 %if ! %{with parallel}
 Name:		%{pname}
-Version:	%{distverdot}
+Version:	2.5.5
 Release:	%mkrel %{rel}
 Conflicts:	%{pname}-experimental
 %else
