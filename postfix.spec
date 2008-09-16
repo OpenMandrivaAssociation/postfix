@@ -37,10 +37,10 @@
 %endif
 
 %define pname		postfix
-%define pver		2.5.4
+%define pver		2.5.5
 # from src/global/mail_version.h
-%define releasedate	20080814
-%define rel		1
+%define releasedate	20080902
+%define rel		2
 
 %if ! %{with experimental}
 %define distver		%pver
@@ -96,7 +96,7 @@
 
 %if ! %{with parallel}
 Name:		%{pname}
-Version:	2.5.5
+Version:	%{distverdot}
 Release:	%mkrel %{rel}
 Conflicts:	%{pname}-experimental
 %else
@@ -131,6 +131,7 @@ Source12:	postfix-bash-completion
 Source13:	http://www.seaglass.com/postfix/faq.html
 Source14:	postfix-chroot.sh
 Source15:	postfix-smtpd.conf
+Source16:	postfix-syslog-ng.conf
 
 # Simon J. Mudd stuff
 Source21:	ftp://ftp.wl0.org/postfinger/postfinger-1.30
@@ -517,6 +518,9 @@ mv %buildroot%{_docdir}/%name/README_FILES DOC/README_FILES
 /bin/mkdir -p %buildroot%{_sysconfdir}/sasl2
 cp %{SOURCE15} %buildroot%{_sysconfdir}/sasl2/smtpd.conf
 
+# syslog-ng conf for chroot script
+cp %{SOURCE16} %buildroot%{_sysconfdir}/postfix/syslog-ng.conf
+
 # This installs into the /etc/rc.d/init.d directory
 /bin/mkdir -p %buildroot%{_initrddir}
 install -c %{SOURCE3} %buildroot%{_initrddir}/postfix
@@ -761,6 +765,7 @@ rm -rf %buildroot
 %{_sysconfdir}/postfix/initial-main.cf
 %{_sysconfdir}/postfix/initial-master.cf
 %endif
+%{_sysconfdir}/postfix/syslog-ng.conf
 
 %attr(0755, root, root) %{_initrddir}/postfix
 %attr(0644, root, root) %config(noreplace) %{_sysconfdir}/pam.d/smtp
