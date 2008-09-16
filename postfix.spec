@@ -765,7 +765,7 @@ rm -rf %buildroot
 %{_sysconfdir}/postfix/initial-main.cf
 %{_sysconfdir}/postfix/initial-master.cf
 %endif
-%{_sysconfdir}/postfix/syslog-ng.conf
+%config(noreplace) %{_sysconfdir}/postfix/syslog-ng.conf
 
 %attr(0755, root, root) %{_initrddir}/postfix
 %attr(0644, root, root) %config(noreplace) %{_sysconfdir}/pam.d/smtp
