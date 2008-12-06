@@ -40,7 +40,7 @@
 %define pver		2.5.5
 # from src/global/mail_version.h
 %define releasedate	20080902
-%define rel		2
+%define rel		3
 
 %if ! %{with experimental}
 %define distver		%pver
@@ -190,7 +190,7 @@ Conflicts:	sendmail exim qmail
 %endif
 BuildRequires:	db4-devel, gawk, perl-base, sed, ed
 BuildRequires:	html2text
-BuildRoot:	%{_tmppath}/%{name}-%{pver}-%{rel}-root
+BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-buildroot
 
 %if %{with sasl}
 BuildRequires:	libsasl-devel >= 2.0
@@ -211,7 +211,7 @@ Requires(post):	%{libname} = %epoch:%version-%release
 # versionless require or we will break upgrades
 Requires(preun):	%{libname}
 %endif
-Buildroot:	%{_tmppath}/%{name}-%{version}-%{release}-root
+BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-buildroot
 
 %description
 Postfix is a Mail Transport Agent (MTA), supporting LDAP, SMTP AUTH (SASL),
