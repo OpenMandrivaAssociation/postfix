@@ -277,7 +277,7 @@ maps in Postfix.
 %package mysql
 Summary:	MYSQL map support for Postfix
 Group:		System/Servers
-BuildRequires:	MySQL-devel
+BuildRequires:	mysql-devel
 Requires:	%name = %epoch:%version-%release
 
 %description mysql
