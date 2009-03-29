@@ -37,10 +37,10 @@
 %endif
 
 %define pname		postfix
-%define pver		2.5.5
+%define pver		2.5.6
 # from src/global/mail_version.h
-%define releasedate	20080902
-%define rel		3
+%define releasedate	20090103
+%define rel		4
 
 %if ! %{with experimental}
 %define distver		%pver
@@ -96,7 +96,7 @@
 
 %if ! %{with parallel}
 Name:		%{pname}
-Version:	2.5.6
+Version:	%{distverdot}
 Release:	%mkrel %{rel}
 Conflicts:	%{pname}-experimental
 %else
@@ -316,6 +316,16 @@ This package provides support for PAM maps in Postfix.
 # dynamicmaps
 
 %prep
+%if ! %{with parallel}
+if [ %{version} != %{distverdot} ]
+%else
+if [ %{version} != %{pver} ]
+%endif
+then
+echo  do not use "mdvsys update" with postfix 1>&2
+exit 1
+fi
+
 %setup -n %{pname}-%{distver} -q
 
 %if %{with dynamicmaps}
