@@ -131,7 +131,11 @@ Source12:	postfix-bash-completion
 Source13:	http://www.seaglass.com/postfix/faq.html
 Source14:	postfix-chroot.sh
 Source15:	postfix-smtpd.conf
+%if %{mdkversion} < 200901
+Source16:	postfix-syslog-ng.200900.conf
+%else
 Source16:	postfix-syslog-ng.conf
+%endif
 
 # Simon J. Mudd stuff
 Source21:	ftp://ftp.wl0.org/postfinger/postfinger-1.30
