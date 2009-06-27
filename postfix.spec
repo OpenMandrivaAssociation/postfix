@@ -37,9 +37,9 @@
 %endif
 
 %define pname		postfix
-%define pver		2.5.7
+%define pver		2.6.2
 # from src/global/mail_version.h
-%define releasedate	20090428
+%define releasedate	20090603
 %define rel		1
 
 %if ! %{with experimental}
@@ -83,7 +83,6 @@
 %bcond_with multiline
 %bcond_with VDA
 %bcond_without chroot
-%bcond_with multi_instance
 
 # Postfix requires one exlusive uid/gid and a 2nd exclusive gid for its own use.
 %define maildrop_group	postdrop
@@ -131,11 +130,8 @@ Source12:	postfix-bash-completion
 Source13:	http://www.seaglass.com/postfix/faq.html
 Source14:	postfix-chroot.sh
 Source15:	postfix-smtpd.conf
-%if %{mdkversion} < 200901
 Source16:	postfix-syslog-ng.200900.conf
-%else
-Source16:	postfix-syslog-ng.conf
-%endif
+Source17:	postfix-syslog-ng.conf
 
 # Simon J. Mudd stuff
 Source21:	ftp://ftp.wl0.org/postfinger/postfinger-1.30
@@ -146,9 +142,9 @@ Source26:	http://jimsun.LinxNet.com/misc/header_checks.txt
 Source27:	http://jimsun.LinxNet.com/misc/body_checks.txt
 
 # Dynamic map patch taken from debian's package
-Patch0:		postfix-2.5.0-dynamicmaps.patch
+Patch0:		postfix-2.6.2-dynamicmaps.patch
 
-Patch1:		postfix-2.5.0-mdkconfig.patch
+Patch1:		postfix-2.6.2-mdkconfig.patch
 Patch2:		postfix-alternatives-mdk.patch
 
 # Shamelessy stolen from debian
@@ -163,13 +159,10 @@ Patch8: ftp://ftp.wl0.org/SOURCES/postfix-2.3.2-multiline-greeting.patch
 
 # applied if %with vda
 # http://vda.sourceforge.net/
-Patch9: http://vda.sourceforge.net/VDA/postfix-2.5.3-vda-ng.patch.gz
-
-# applied if %with multi_instance
-# originally http://www.stahl.bau.tu-bs.de/~hildeb/postfix/duchovni/multi_instance.gz
-# if you rediff this one from upstream remember to modify post-install to symlink
-# dynamicmaps.cf
-Patch23:	postfix-multi_instance.patch
+# Postfix 2.6.2-NG-64bit: SHASUM 4f3127dda766ad4637c05fe47b98d38ef2864049
+Patch9: http://vda.sourceforge.net/VDA/postfix-2.6.2-vda-ng.patch.gz
+# Postfix 2.6.2-NG-64bit: SHASUM 4f3127dda766ad4637c05fe47b98d38ef2864049
+Patch10: http://vda.sourceforge.net/VDA/postfix-2.6.2-vda-ng-64bit.patch.gz
 
 License:	IBM Public License
 Group:		System/Servers
@@ -244,7 +237,6 @@ Currently postfix has been built with:
 	IPV6 support: --%{with_TXT ipv6}
 	CDB support: --%{with_TXT cdb}
 	Chroot by default: --%{with_TXT chroot}
-	Multi Instance Support: --%{with_TXT multi_instance}
 
 %if %{with dynamicmaps}
 %package -n %{libname}
@@ -346,7 +338,8 @@ EOF
 %endif
 
 # no backup files here, otherwise they get included in %%doc
-%patch1 -p1
+%patch1 -p1 -b .mdkconfig
+find . -name \*.mdkconfig -exec rm {} \;
 mkdir -p conf/dist
 mv conf/main.cf conf/dist
 cp %{SOURCE2} conf/main.cf
@@ -378,10 +371,7 @@ fi
 
 %if %{with VDA}
 %patch9 -p1 -b .vda
-%endif
-
-%if %{with multi_instance}
-%patch23 -p1 -b .multi_instance
+%patch10 -p1 -b .vda64
 %endif
 
 install -m644 %{SOURCE10} README.MDK
@@ -533,7 +523,11 @@ mv %buildroot%{_docdir}/%name/README_FILES DOC/README_FILES
 cp %{SOURCE15} %buildroot%{_sysconfdir}/sasl2/smtpd.conf
 
 # syslog-ng conf for chroot script
+%if %{mdkversion} < 200901
 cp %{SOURCE16} %buildroot%{_sysconfdir}/postfix/syslog-ng.conf
+%else
+cp %{SOURCE17} %buildroot%{_sysconfdir}/postfix/syslog-ng.conf
+%endif
 
 # This installs into the /etc/rc.d/init.d directory
 /bin/mkdir -p %buildroot%{_initrddir}
@@ -569,7 +563,7 @@ cp man/man1/qshape.1 %buildroot%{_mandir}/man1/qshape.1
 # RPM compresses man pages automatically.
 # - Edit postfix-files to reflect this, so post-install won't get confused
 #   when called during package installation.
-ed %buildroot%{_sysconfdir}/postfix/postfix-files <<-EOF || exit 1
+ed %buildroot%{_libdir}/postfix/postfix-files <<-EOF || exit 1
 	,s/\(\/man[158]\/.*\.[158]\):/\1.%{mansuffix}:/
 	w
 	q
@@ -577,7 +571,7 @@ EOF
 
 %if %{with dynamicmaps}
 # remove files that are not in the main package
-ed %buildroot%{_sysconfdir}/postfix/postfix-files <<-EOF || exit 1
+ed %buildroot%{_libdir}/postfix/postfix-files <<-EOF || exit 1
 	g/dict_ldap.so/d
 	g/dict_pam.so/d
 	g/dict_pcre.so/d
@@ -591,27 +585,6 @@ EOF
 # remove sample_directory from main.cf (#15297)
 # the default is /etc/postfix
 sed -i "/^sample_directory/d" %{buildroot}%{_sysconfdir}/postfix/main.cf
-
-%if %{with multi_instance}
-cat > %buildroot%{_sysconfdir}/postfix/initial-main.cf << EOF
-# SAFETY CATCH
-#
-# A stock main.cf will not start automatically.
-# Comment out the setting below after changing main.cf to suit your needs.
-#
-disable_start = yes
-
-EOF
-cat %buildroot%{_sysconfdir}/postfix/main.cf >> %buildroot%{_sysconfdir}/postfix/initial-main.cf
-
-# comment inet daemons in initial-master.cf
-ed %buildroot%{_sysconfdir}/postfix/initial-master.cf <<-EOF || exit 1
-	,s/^\([^#[:space:]]\+[[:space:]]\+inet[[:space:]]\+\)/#\1/
-	w
-	q
-EOF
-%endif
-
 
 %pre
 %_pre_useradd postfix %{queue_directory} /bin/false
@@ -753,9 +726,6 @@ rm -rf %buildroot
 %defattr(-, root, root, 755)
 %dir %{_sysconfdir}/postfix
 %config(noreplace) %{_sysconfdir}/sasl2/smtpd.conf
-%{_sysconfdir}/postfix/postfix-script
-%{_sysconfdir}/postfix/post-install
-%{_sysconfdir}/postfix/postfix-files
 %config(noreplace) %{_sysconfdir}/postfix/main.cf
 # http://archives.mandrivalinux.com/cooker/2005-07/msg01109.php
 %{_sysconfdir}/postfix/main.cf.dist
@@ -774,10 +744,6 @@ rm -rf %buildroot
 %{_sysconfdir}/postfix/makedefs.out
 %if %{with dynamicmaps}
 %config(noreplace) %{_sysconfdir}/postfix/dynamicmaps.cf
-%endif
-%if %{with multi_instance}
-%{_sysconfdir}/postfix/initial-main.cf
-%{_sysconfdir}/postfix/initial-master.cf
 %endif
 %config(noreplace) %{_sysconfdir}/postfix/syslog-ng.conf
 
@@ -851,6 +817,13 @@ rm -rf %buildroot
 %attr(0755, root, root) %{_libdir}/postfix/tlsmgr
 %attr(0755, root, root) %{_libdir}/postfix/anvil
 %attr(0755, root, root) %{_libdir}/postfix/verify
+%attr(0644, root, root) %{_libdir}/postfix/postfix-script
+%attr(0644, root, root) %{_libdir}/postfix/post-install
+%attr(0644, root, root) %{_libdir}/postfix/postfix-files
+%attr(0644, root, root) %{_libdir}/postfix/main.cf
+%attr(0644, root, root) %{_libdir}/postfix/master.cf
+%attr(0755, root, root) %{_libdir}/postfix/postfix-wrapper
+%attr(0755, root, root) %{_libdir}/postfix/postmulti-script
 
 %attr(0755, root, root) %{_sbindir}/postalias
 %attr(0755, root, root) %{_sbindir}/postcat
@@ -862,6 +835,7 @@ rm -rf %buildroot
 %attr(0755, root, root) %{_sbindir}/postlock
 %attr(0755, root, root) %{_sbindir}/postlog
 %attr(0755, root, root) %{_sbindir}/postmap
+%attr(0755, root, root) %{_sbindir}/postmulti
 %attr(0755, root, root) %{_sbindir}/postsuper
 
 %attr(0755, root, root) %{_sbindir}/qmqp-sink
