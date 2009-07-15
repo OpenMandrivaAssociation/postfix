@@ -817,8 +817,8 @@ rm -rf %buildroot
 %attr(0755, root, root) %{_libdir}/postfix/tlsmgr
 %attr(0755, root, root) %{_libdir}/postfix/anvil
 %attr(0755, root, root) %{_libdir}/postfix/verify
-%attr(0644, root, root) %{_libdir}/postfix/postfix-script
-%attr(0644, root, root) %{_libdir}/postfix/post-install
+%attr(0755, root, root) %{_libdir}/postfix/postfix-script
+%attr(0755, root, root) %{_libdir}/postfix/post-install
 %attr(0644, root, root) %{_libdir}/postfix/postfix-files
 %attr(0644, root, root) %{_libdir}/postfix/main.cf
 %attr(0644, root, root) %{_libdir}/postfix/master.cf
