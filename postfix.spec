@@ -159,10 +159,10 @@ Patch8: ftp://ftp.wl0.org/SOURCES/postfix-2.3.2-multiline-greeting.patch
 
 # applied if %with vda
 # http://vda.sourceforge.net/
-# Postfix 2.6.2-NG-64bit: SHASUM 4f3127dda766ad4637c05fe47b98d38ef2864049
-Patch9: http://vda.sourceforge.net/VDA/postfix-2.6.2-vda-ng.patch.gz
-# Postfix 2.6.2-NG-64bit: SHASUM 4f3127dda766ad4637c05fe47b98d38ef2864049
-Patch10: http://vda.sourceforge.net/VDA/postfix-2.6.2-vda-ng-64bit.patch.gz
+# Postfix 2.6.5-NG: SHASUM 946770cdfe2d77a96c6652b254449ea961513081
+Patch9: http://vda.sourceforge.net/VDA/postfix-2.6.5-vda-ng.patch.gz
+# Postfix 2.6.5-NG-bigquota: SHASUM 6dfeb9a2fff44d85e9a5a28b81a84898734adfe6
+Patch10: http://vda.sourceforge.net/VDA/postfix-2.6.5-vda-ng-bigquota.patch.gz
 
 License:	IBM Public License
 Group:		System/Servers
@@ -371,7 +371,7 @@ fi
 
 %if %{with VDA}
 %patch9 -p1 -b .vda
-%patch10 -p1 -b .vda64
+%patch10 -p1 -b .vda-bigquota
 %endif
 
 install -m644 %{SOURCE10} README.MDK
