@@ -539,10 +539,17 @@ install -c %{SOURCE3} %buildroot%{_initrddir}/postfix
 install -c %{SOURCE4} %buildroot%{_sysconfdir}/pam.d/smtp
 
 mkdir -p %buildroot%{_sysconfdir}/ppp/ip-{up,down}.d
-mkdir -p %buildroot%{_sysconfdir}/sysconfig/network-scripts/ifup.d
 install -c %{SOURCE6} %buildroot%{_sysconfdir}/ppp/ip-up.d/postfix
 install -c %{SOURCE7} %buildroot%{_sysconfdir}/ppp/ip-down.d/postfix
+
+%if %mdkversion < 200701
+mkdir -p %buildroot%{_sysconfdir}/sysconfig/network-scripts/ifup.d
 install -c %{SOURCE8} %buildroot%{_sysconfdir}/sysconfig/network-scripts/ifup.d/postfix
+%else
+mkdir -p %buildroot%{_sysconfdir}/resolvconf/update-libc.d/
+install -c %{SOURCE8} %buildroot%{_sysconfdir}/resolvconf/update-libc.d/postfix
+%endif
+
 touch %buildroot%{_sysconfdir}/sysconfig/postfix
 
 # this is used by some examples (cyrus)
@@ -754,7 +761,11 @@ rm -rf %buildroot
 %attr(0644, root, root) %config(noreplace) %{_sysconfdir}/pam.d/smtp
 %attr(0755, root, root) %config(noreplace) %{_sysconfdir}/ppp/ip-up.d/postfix
 %attr(0755, root, root) %config(noreplace) %{_sysconfdir}/ppp/ip-down.d/postfix
+%if %mdkversion < 200701
 %attr(0755, root, root) %config(noreplace) %{_sysconfdir}/sysconfig/network-scripts/ifup.d/postfix
+%else
+%attr(0755, root, root) %config(noreplace) %{_sysconfdir}/resolvconf/update-libc.d/postfix
+%endif
 %ghost %{_sysconfdir}/sysconfig/postfix
 
 %dir %attr(0700, postfix, root) /var/lib/postfix
