@@ -146,6 +146,7 @@ Patch0:		postfix-2.6.2-dynamicmaps.patch
 
 Patch1:		postfix-2.6.2-mdkconfig.patch
 Patch2:		postfix-alternatives-mdk.patch
+Patch3:		postfix-2.6.5-skip_disabled.patch
 
 # Shamelessy stolen from debian
 Patch6:		postfix-2.2.4-smtpstone.patch
@@ -355,6 +356,8 @@ fi
 %if %alternatives
 %patch2 -p1 -b .alternatives
 %endif
+
+%patch3 -p1 -b .skip_disabled
 
 %patch6 -p1 -b .smtpstone 
 
