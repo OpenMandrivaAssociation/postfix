@@ -40,7 +40,7 @@
 %define pver		2.6.5
 # from src/global/mail_version.h
 %define releasedate	20090828
-%define rel		1
+%define rel		2
 
 %if ! %{with experimental}
 %define distver		%pver
@@ -60,9 +60,9 @@
 %define alternatives_install_cmd update-alternatives --install %{_sbindir}/sendmail sendmail-command %{_sbindir}/sendmail.postfix 30 --slave %{_prefix}/lib/sendmail sendmail-command-in_libdir %{_sbindir}/sendmail.postfix
 
 %if %alternatives
-%define post_install_parameters	daemon_directory=%{_libdir}/postfix command_directory=%{_sbindir} queue_directory=%{queue_directory} sendmail_path=%{_sbindir}/sendmail.postfix newaliases_path=%{_bindir}/newaliases mailq_path=%{_bindir}/mailq mail_owner=postfix setgid_group=%{maildrop_group} manpage_directory=%{_mandir} readme_directory=%{_docdir}/%name/README_FILES html_directory=%{_docdir}/%name/html 
+%define post_install_parameters	daemon_directory=%{_libdir}/postfix command_directory=%{_sbindir} queue_directory=%{queue_directory} sendmail_path=%{_sbindir}/sendmail.postfix newaliases_path=%{_bindir}/newaliases mailq_path=%{_bindir}/mailq mail_owner=postfix setgid_group=%{maildrop_group} manpage_directory=%{_mandir} readme_directory=%{_docdir}/%name/README_FILES html_directory=%{_docdir}/%name/html data_directory=/var/lib/postfix
 %else
-%define post_install_parameters	daemon_directory=%{_libdir}/postfix command_directory=%{_sbindir} queue_directory=%{queue_directory} sendmail_path=%{_sbindir}/sendmail newaliases_path=%{_bindir}/newaliases mailq_path=%{_bindir}/mailq mail_owner=postfix setgid_group=%{maildrop_group} manpage_directory=%{_mandir} readme_directory=%{_docdir}/%name/README_FILES html_directory=%{_docdir}/%name/html 
+%define post_install_parameters	daemon_directory=%{_libdir}/postfix command_directory=%{_sbindir} queue_directory=%{queue_directory} sendmail_path=%{_sbindir}/sendmail newaliases_path=%{_bindir}/newaliases mailq_path=%{_bindir}/mailq mail_owner=postfix setgid_group=%{maildrop_group} manpage_directory=%{_mandir} readme_directory=%{_docdir}/%name/README_FILES html_directory=%{_docdir}/%name/html data_directory=/var/lib/postfix
 %endif
 
 # use bcond_with if default is disabled
@@ -548,6 +548,8 @@ install -c %{SOURCE8} %buildroot%{_sysconfdir}/sysconfig/network-scripts/ifup.d/
 %else
 mkdir -p %buildroot%{_sysconfdir}/resolvconf/update-libc.d/
 install -c %{SOURCE8} %buildroot%{_sysconfdir}/resolvconf/update-libc.d/postfix
+
+mkdir -p %buildroot%{_sysconfdir}/sysconfig
 %endif
 
 touch %buildroot%{_sysconfdir}/sysconfig/postfix
@@ -658,7 +660,7 @@ for old_smtpd_conf in /etc/postfix/sasl/smtpd.conf %{_libdir}/sasl2/smtpd.conf; 
 	if [ -e ${old_smtpd_conf} ]; then
 		if ! grep -qsve '^\(#.*\|[[:space:]]*\)$' /etc/sasl2/smtpd.conf; then
 			# /etc/sasl2/smtpd.conf missing or just comments
-			if [ -s /etc/sasl2/smtpd.conf ] && [ ! -e /etc/sasl2/smtpd.conf.rpmnew -o /etc/sasl2/smtpd.conf -nt /etc/sasl2/smtpd.conf.rpmnew ];then
+			if [ -s /etc/sasl2/smtpd.conf ] && [ ! -e /etc/sasl2/smtpd.conf.rpmnew -o /etc/sasl2/smtpd.conf -nt /etc/sasl2/smtpd.conf.rpmnew ]; then
 				mv /etc/sasl2/smtpd.conf /etc/sasl2/smtpd.conf.rpmnew
 			fi
 			mv ${old_smtpd_conf} /etc/sasl2/smtpd.conf
