@@ -39,8 +39,8 @@
 %define pname		postfix
 %define pver		2.6.5
 # from src/global/mail_version.h
-%define releasedate	20090828
-%define rel		2
+%define releasedate	20090829
+%define rel		3
 
 %if ! %{with experimental}
 %define distver		%pver
