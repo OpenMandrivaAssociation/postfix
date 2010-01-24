@@ -1,7 +1,4 @@
 # compatability macros
-%{?!mkrel:%define mkrel(c:) %{-c:0.%{-c*}.}%{!?_with_unstable:%(perl -e '$_="%{1}";m/(.\*)(\\d+)$/;$rel=${2}-1;re;print "$1$rel";').%{?subrel:%subrel}%{!?subrel:1}.%{?distversion:%distversion}%{?!distversion:%(echo $[%{mdkversion}/10])}}%{?_with_unstable:%{1}}%{?distsuffix:%distsuffix}%{?!distsuffix:mdk}}
-
-%{?!_with_unstable: %{error:%(echo -e "\n\n\nYou are building package for a stable release, please see \nhttp://qa.mandriva.com/twiki/bin/view/Main/DistroSpecificReleaseTag\nif you think this is incorrect\n\n\n ")}%(sleep 2)}
 
 # Example usage: %if %{defined with_foo} && %{undefined with_bar} ...
 %define defined()  %{expand:%%{?%{1}:1}%%{!?%{1}:0}}
@@ -40,7 +37,7 @@
 %define pver		2.6.5
 # from src/global/mail_version.h
 %define releasedate	20090829
-%define rel		3
+%define rel		4
 
 %if ! %{with experimental}
 %define distver		%pver
@@ -52,18 +49,13 @@
 %define ftp_directory	experimental
 %endif
 
-# MAINTAINER, ATTENTION
-# If the alternatives scheme is ever changed, please check the
-# postfix init script as it has a fix for a previous alternatives
-# problem outlined here: http://archives.mandrivalinux.com/cooker/2005-07/msg01012.php
 %define alternatives 	1
-%define alternatives_install_cmd update-alternatives --install %{_sbindir}/sendmail sendmail-command %{_sbindir}/sendmail.postfix 30 --slave %{_prefix}/lib/sendmail sendmail-command-in_libdir %{_sbindir}/sendmail.postfix
-
 %if %alternatives
-%define post_install_parameters	daemon_directory=%{_libdir}/postfix command_directory=%{_sbindir} queue_directory=%{queue_directory} sendmail_path=%{_sbindir}/sendmail.postfix newaliases_path=%{_bindir}/newaliases mailq_path=%{_bindir}/mailq mail_owner=postfix setgid_group=%{maildrop_group} manpage_directory=%{_mandir} readme_directory=%{_docdir}/%name/README_FILES html_directory=%{_docdir}/%name/html data_directory=/var/lib/postfix
+%define sendmail-command %{_sbindir}/sendmail.postfix
 %else
-%define post_install_parameters	daemon_directory=%{_libdir}/postfix command_directory=%{_sbindir} queue_directory=%{queue_directory} sendmail_path=%{_sbindir}/sendmail newaliases_path=%{_bindir}/newaliases mailq_path=%{_bindir}/mailq mail_owner=postfix setgid_group=%{maildrop_group} manpage_directory=%{_mandir} readme_directory=%{_docdir}/%name/README_FILES html_directory=%{_docdir}/%name/html data_directory=/var/lib/postfix
+%define sendmail-command %{_sbindir}/sendmail
 %endif
+%define post_install_parameters	daemon_directory=%{_libdir}/postfix command_directory=%{_sbindir} queue_directory=%{queue_directory} sendmail_path=%{sendmail-command} newaliases_path=%{_bindir}/newaliases mailq_path=%{_bindir}/mailq mail_owner=postfix setgid_group=%{maildrop_group} manpage_directory=%{_mandir} readme_directory=%{_docdir}/%name/README_FILES html_directory=%{_docdir}/%name/html data_directory=/var/lib/postfix
 
 # use bcond_with if default is disabled
 # use bcond_without if default is enabled
@@ -77,9 +69,6 @@
 %bcond_without tls
 %bcond_without ipv6
 %bcond_with cdb
-# XXX - andreas - currently (pfix 2.2.4) not applying
-# and no new version was found
-#bcond_with pam
 %bcond_with multiline
 %bcond_with VDA
 %bcond_without chroot
@@ -111,12 +100,6 @@ URL:		http://www.postfix.org/
 Source0: 	ftp://ftp.porcupine.org/mirrors/postfix-release/%{ftp_directory}/%{pname}-%{distver}.tar.gz
 Source1: 	ftp://ftp.porcupine.org/mirrors/postfix-release/%{ftp_directory}/%{pname}-%{distver}.tar.gz.sig
 Source2: 	postfix-main.cf
-# MAINTAINER, ATTENTION
-# If the alternatives scheme is ever changed, please check the postfix
-# init script as it has a fix for a previous alternatives problem outlined here:
-# http://archives.mandrivalinux.com/cooker/2005-07/msg01012.php
-# Also, this init script recreates /usr/bin/rmail if needed:
-# http://archives.mandrivalinux.com/cooker/2005-07/msg01691.php
 Source3: 	postfix-etc-init.d-postfix
 Source4:	postfix-etc-pam.d-smtp
 Source5:	postfix-aliases
@@ -189,6 +172,10 @@ Conflicts:	sendmail exim qmail
 BuildRequires:	db4-devel, gawk, perl-base, sed, ed
 BuildRequires:	html2text
 BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-buildroot
+%if %{mdkversion} > 201000
+# syslog-ng before this version needed a different chroot script, which was bug-prone
+Conflicts:	syslog-ng < 3.1-0.beta2.2
+%endif
 
 %if %{with sasl}
 BuildRequires:	libsasl-devel >= 2.0
@@ -529,7 +516,9 @@ cp %{SOURCE15} %buildroot%{_sysconfdir}/sasl2/smtpd.conf
 %if %{mdkversion} < 200901
 cp %{SOURCE16} %buildroot%{_sysconfdir}/postfix/syslog-ng.conf
 %else
+%if %{mdkversion} < 201001
 cp %{SOURCE17} %buildroot%{_sysconfdir}/postfix/syslog-ng.conf
+%endif
 %endif
 
 # This installs into the /etc/rc.d/init.d directory
@@ -601,32 +590,6 @@ sed -i "/^sample_directory/d" %{buildroot}%{_sysconfdir}/postfix/main.cf
 %pre
 %_pre_useradd postfix %{queue_directory} /bin/false
 %_pre_groupadd %{maildrop_group} postfix
-if [ -e /var/lib/rpm/alternatives/mta ]; then
-	/usr/sbin/update-alternatives --remove mta %{_sbindir}/sendmail.postfix
-	echo
-	echo "============================================================================"
-	echo "WARNING"
-	echo
-	echo "The old \"mta-*\" alternatives have been removed."
-	echo "After this upgrade, postfix may be partially broken due to an incorrect"
-	echo "triggerpostun in previous packages. If there is no %{_bindir}/mailq,"
-	echo "for example, then this is the case and you should keep reading."
-	echo
-	echo "To partially fix the problem, please restart the service after this"
-	echo "upgrade is finished (even if it was already restarted during the upgrade)."
-	echo
-	echo "The init script will correct most of the broken symbolic links, but the"
-	echo "following manpages will not be accessible: mailq(1), newaliases(1) and"
-	echo "aliases(5)."
-	echo
-	echo "A reinstallation of the postfix package (or any further upgrade) will fix"
-	echo "all issues."
-	echo
-	echo "See the http://archives.mandrivalinux.com/cooker/2005-07/msg01012.php thread"
-	echo "for a more detailed explanation."
-	echo "============================================================================"
-	echo
-fi
 # disable chroot of spawn service in /etc/sysconfig/postfix, but do it only once and only if user did not
 # modify /etc/sysconfig/postfix manually
 if grep -qs "^NEVER_CHROOT_PROGRAM='^(proxymap|local|pipe|virtual)$'$" /etc/sysconfig/postfix; then
@@ -637,7 +600,7 @@ fi
 	
 %post
 # we don't have these maps anymore as separate packages/plugins:
-# cidr, tcp and sdbm
+# cidr, tcp and sdbm (2007.0)
 if [ "$1" -eq "2" ]; then
 	sed -i "/^cidr/d;/^sdbm/d;/^tcp/d" %{_sysconfdir}/postfix/dynamicmaps.cf
 fi
@@ -651,6 +614,7 @@ fi
 
 # move previous sasl configuration files to new location if applicable
 # have to go through many loops to prevent damaging user configuration
+# this changed around 2007.0 so it should go away soon
 saslpath=`postconf -h smtpd_sasl_path`
 if [ "${saslpath}" != "${saslpath##*:}" -o "${saslpath}" != "${saslpath##*/usr/lib}" ]; then
 	postconf -e smtpd_sasl_path=smtpd
@@ -680,11 +644,10 @@ fi
 %_post_service postfix
 
 %if %alternatives
-%{alternatives_install_cmd}
+/usr/sbin/update-alternatives --install %{_sbindir}/sendmail sendmail-command %{sendmail-command} 30 --slave %{_prefix}/lib/sendmail sendmail-command-in_libdir %{sendmail-command}
 %endif
 
-
-%triggerin -- glibc setup nss_ldap nss_db samba-winbind nss_wins samba2-winbind nss_wins2 samba3-winbind nss_wins3
+%triggerin -- glibc setup nss_ldap nss_db nss_wins nss_mdns
 # Generate chroot jails on the fly when needed things are installed/upgraded
 %{_sbindir}/postfix-chroot.sh -q update
 
@@ -719,7 +682,7 @@ done
 
 if [ $1 = 0 ]; then
 %if %alternatives
-	/usr/sbin/update-alternatives --remove sendmail-command %{_sbindir}/sendmail.postfix
+	/usr/sbin/update-alternatives --remove sendmail-command %{sendmail-command}
 %endif
 
 	# Clean up chroot environment and spool directory
@@ -757,7 +720,9 @@ rm -rf %buildroot
 %if %{with dynamicmaps}
 %config(noreplace) %{_sysconfdir}/postfix/dynamicmaps.cf
 %endif
+%if %{mdkversion} < 201001
 %config(noreplace) %{_sysconfdir}/postfix/syslog-ng.conf
+%endif
 
 %attr(0755, root, root) %{_initrddir}/postfix
 %attr(0644, root, root) %config(noreplace) %{_sysconfdir}/pam.d/smtp
@@ -863,11 +828,7 @@ rm -rf %buildroot
 %attr(0755, root, root) %{_sbindir}/postfix-chroot.sh
 %attr(0755, root, root) %{_sbindir}/qshape
 
-%if %alternatives
-%attr(0755, root, root) %{_sbindir}/sendmail.postfix
-%else
-%attr(0755, root, root) %{_sbindir}/sendmail
-%endif
+%attr(0755, root, root) %{sendmail-command}
 %attr(0755, root, root) %{_bindir}/mailq
 %attr(0755, root, root) %{_bindir}/newaliases
 %attr(0755, root, root) %{_bindir}/rmail
@@ -888,8 +849,7 @@ rm -rf %buildroot
 
 %if %mdkversion < 200900
 %post -n %{libname} -p /sbin/ldconfig
-%endif
-%if %mdkversion < 200900
+
 %postun -n %{libname} -p /sbin/ldconfig
 %endif
 
