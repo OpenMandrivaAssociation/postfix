@@ -68,7 +68,7 @@
 %bcond_without sasl
 %bcond_without tls
 %bcond_without ipv6
-%bcond_with cdb
+%bcond_without cdb
 %bcond_with multiline
 %bcond_with VDA
 %bcond_without chroot
