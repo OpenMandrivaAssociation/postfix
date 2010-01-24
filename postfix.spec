@@ -51,11 +51,11 @@
 
 %define alternatives 	1
 %if %alternatives
-%define sendmail-command %{_sbindir}/sendmail.postfix
+%define sendmail_command %{_sbindir}/sendmail.postfix
 %else
-%define sendmail-command %{_sbindir}/sendmail
+%define sendmail_command %{_sbindir}/sendmail
 %endif
-%define post_install_parameters	daemon_directory=%{_libdir}/postfix command_directory=%{_sbindir} queue_directory=%{queue_directory} sendmail_path=%{sendmail-command} newaliases_path=%{_bindir}/newaliases mailq_path=%{_bindir}/mailq mail_owner=postfix setgid_group=%{maildrop_group} manpage_directory=%{_mandir} readme_directory=%{_docdir}/%name/README_FILES html_directory=%{_docdir}/%name/html data_directory=/var/lib/postfix
+%define post_install_parameters	daemon_directory=%{_libdir}/postfix command_directory=%{_sbindir} queue_directory=%{queue_directory} sendmail_path=%{sendmail_command} newaliases_path=%{_bindir}/newaliases mailq_path=%{_bindir}/mailq mail_owner=postfix setgid_group=%{maildrop_group} manpage_directory=%{_mandir} readme_directory=%{_docdir}/%name/README_FILES html_directory=%{_docdir}/%name/html data_directory=/var/lib/postfix
 
 # use bcond_with if default is disabled
 # use bcond_without if default is enabled
@@ -644,7 +644,7 @@ fi
 %_post_service postfix
 
 %if %alternatives
-/usr/sbin/update-alternatives --install %{_sbindir}/sendmail sendmail-command %{sendmail-command} 30 --slave %{_prefix}/lib/sendmail sendmail-command-in_libdir %{sendmail-command}
+/usr/sbin/update-alternatives --install %{_sbindir}/sendmail sendmail-command %{sendmail_command} 30 --slave %{_prefix}/lib/sendmail sendmail-command-in_libdir %{sendmail_command}
 %endif
 
 %triggerin -- glibc setup nss_ldap nss_db nss_wins nss_mdns
@@ -682,7 +682,7 @@ done
 
 if [ $1 = 0 ]; then
 %if %alternatives
-	/usr/sbin/update-alternatives --remove sendmail-command %{sendmail-command}
+	/usr/sbin/update-alternatives --remove sendmail-command %{sendmail_command}
 %endif
 
 	# Clean up chroot environment and spool directory
@@ -828,7 +828,7 @@ rm -rf %buildroot
 %attr(0755, root, root) %{_sbindir}/postfix-chroot.sh
 %attr(0755, root, root) %{_sbindir}/qshape
 
-%attr(0755, root, root) %{sendmail-command}
+%attr(0755, root, root) %{sendmail_command}
 %attr(0755, root, root) %{_bindir}/mailq
 %attr(0755, root, root) %{_bindir}/newaliases
 %attr(0755, root, root) %{_bindir}/rmail
