@@ -37,7 +37,7 @@
 %define pver		2.6.5
 # from src/global/mail_version.h
 %define releasedate	20090829
-%define rel		3.1
+%define rel		4
 
 %if ! %{with experimental}
 %define distver		%pver
@@ -195,6 +195,8 @@ Requires:	%{libname} = %epoch:%version-%release
 Requires(post):	%{libname} = %epoch:%version-%release
 # versionless require or we will break upgrades
 Requires(preun):	%{libname}
+# we dont, actually
+Requires(postun):	%{libname}
 %endif
 BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-buildroot
 
