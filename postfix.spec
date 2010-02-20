@@ -1,4 +1,4 @@
-# compatability macros
+# compatibility macros
 
 # Example usage: %if %{defined with_foo} && %{undefined with_bar} ...
 %define defined()  %{expand:%%{?%{1}:1}%%{!?%{1}:0}}
@@ -34,10 +34,10 @@
 %endif
 
 %define pname		postfix
-%define pver		2.6.5
+%define pver		2.7.0
 # from src/global/mail_version.h
-%define releasedate	20090829
-%define rel		5
+%define releasedate	20100213
+%define rel		1
 
 %if ! %{with experimental}
 %define distver		%pver
@@ -78,8 +78,16 @@
 %define queue_directory	%{_var}/spool/postfix
 
 %if %{with dynamicmaps}
-%define dynmap_add_cmd() FILE=%{_sysconfdir}/postfix/dynamicmaps.cf; if ! grep -q "^%{1}[[:space:]]" ${FILE}; then echo "%{1}	%{_libdir}/postfix/dict_%{1}.so	dict_%{1}_open" >> ${FILE}; fi
-%define dynmap_rm_cmd() FILE=%{_sysconfdir}/postfix/dynamicmaps.cf; if [ $1 = 0 -a -s $FILE ]; then  cp -p ${FILE} ${FILE}.$$; grep -v "^%{1}[[:space:]]" ${FILE}.$$ > ${FILE}; rm -f ${FILE}.$$; fi
+# if we are building dynamicmaps optional maps will always be built
+%global with_ldap 1
+%global with_mysql 1
+%global with_pgsql 1
+%global with_pcre 1
+%global with_cdb 1
+
+# Macro: %{dynmap_add_cmd <name> [<soname>] [-m]}
+%define dynmap_add_cmd(m) FILE=%{_sysconfdir}/postfix/dynamicmaps.cf; if ! grep -q "^%{1}[[:space:]]" ${FILE}; then echo "%{1}	%{_libdir}/postfix/dict_%{?2:%{2}}%{?!2:%{1}}.so	dict_%{1}_open%{-m:	mkmap_%{1}_open}" >> ${FILE}; fi;
+%define dynmap_rm_cmd() FILE=%{_sysconfdir}/postfix/dynamicmaps.cf; if [ $1 = 0 -a -s $FILE ]; then  cp -p ${FILE} ${FILE}.$$; grep -v "^%{1}[[:space:]]" ${FILE}.$$ > ${FILE}; rm -f ${FILE}.$$; fi;
 %endif
 
 %if ! %{with parallel}
@@ -125,11 +133,16 @@ Source26:	http://jimsun.LinxNet.com/misc/header_checks.txt
 Source27:	http://jimsun.LinxNet.com/misc/body_checks.txt
 
 # Dynamic map patch taken from debian's package
-Patch0:		postfix-2.6.2-dynamicmaps.patch
+Patch0:		postfix-2.7.0-dynamicmaps.patch
 
-Patch1:		postfix-2.6.2-mdkconfig.patch
+Patch1:		postfix-2.7.0-mdkconfig.patch
 Patch2:		postfix-alternatives-mdk.patch
-Patch3:		postfix-2.6.5-skip_disabled.patch
+
+# dbupgrade patch patch split from dynamicmaps one
+Patch3:		postfix-2.7.0-dbupgrade.patch
+
+# sdbm patch patch split from dynamicmaps one
+Patch4:		postfix-2.7.0-sdbm.patch
 
 # Shamelessy stolen from debian
 Patch6:		postfix-2.2.4-smtpstone.patch
@@ -141,7 +154,7 @@ Patch7:		postfix-2.0.16-20030921.pam.patch
 # applied if %with multiline
 Patch8: ftp://ftp.wl0.org/SOURCES/postfix-2.3.2-multiline-greeting.patch
 
-# applied if %with vda
+# applied if %with VDA
 # http://vda.sourceforge.net/
 # Postfix 2.6.5-NG: SHASUM 946770cdfe2d77a96c6652b254449ea961513081
 Patch9: http://vda.sourceforge.net/VDA/postfix-2.6.5-vda-ng.patch.gz
@@ -156,20 +169,14 @@ Provides:	sendmail-command
 Requires(post): chkconfig, initscripts, syslog-daemon, coreutils, diffutils, gawk
 Requires: syslog-daemon, coreutils, diffutils, gawk
 Requires(pre,post,postun,preun): rpm-helper >= 0.3
-# Requiring "ed" twice due to http://archives.mandrivalinux.com/cooker/2005-06/msg00109.php
-Requires(post): ed
-Requires:		ed
-# ed is used in %%install
-BuildRequires: 	ed
-Requires(pre):	sed
+Requires(pre,post):	sed
 Requires:		sed
 %if %alternatives
-Requires(post):		update-alternatives
-Requires(preun):	update-alternatives
+Requires(post,preun):		update-alternatives
 %else
 Conflicts:	sendmail exim qmail
 %endif
-BuildRequires:	db4-devel, gawk, perl-base, sed, ed
+BuildRequires:	db4-devel, gawk, perl-base, sed
 BuildRequires:	html2text
 BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-buildroot
 %if %{mdkversion} > 201000
@@ -185,10 +192,6 @@ BuildRequires:	libsasl-devel >= 2.0
 BuildRequires:	openssl-devel >= 0.9.7
 %endif
 
-%if %{with cdb}
-BuildRequires: libtinycdb-devel
-%endif
-
 %if %{with dynamicmaps}
 %define libname %mklibname postfix 1
 Requires:	%{libname} = %epoch:%version-%release
@@ -197,7 +200,27 @@ Requires(post):	%{libname} = %epoch:%version-%release
 Requires(preun):	%{libname}
 # we dont, actually
 Requires(postun):	%{libname}
+%else
+%if %{with ldap}
+BuildRequires:	openldap-devel >= 2.1
 %endif
+%if %{with pcre}
+BuildRequires:	pcre-devel
+%endif
+%if %{with mysql}
+BuildRequires:	mysql-devel
+%endif
+%if %{with pgsql}
+BuildRequires:	postgresql-devel >= 8.1.4
+%endif
+%if %{with pam}
+BuildRequires:	pam-devel
+%endif
+%if %{with cdb}
+BuildRequires: libtinycdb-devel
+%endif
+%endif
+# dynamicmaps
 BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-buildroot
 
 %description
@@ -298,6 +321,16 @@ Requires:	%name = %epoch:%version-%release
 This package provides support for PAM maps in Postfix.
 %endif
 
+%if %{with cdb}
+%package cdb
+Summary:	CDB map support for Postfix
+Group:		System/Servers
+BuildRequires:	libtinycdb-devel
+Requires:	%name = %epoch:%version-%release
+
+%description cdb
+This package provides support for CDB maps in Postfix.
+%endif
 %endif
 # dynamicmaps
 
@@ -314,17 +347,21 @@ fi
 
 %setup -n %{pname}-%{distver} -q
 
+releasedate=$(eval echo `echo MAIL_RELEASE_DATE | cpp -P -imacros src/global/mail_version.h`)
+pver=$(eval echo `echo MAIL_VERSION_NUMBER | cpp -P -imacros src/global/mail_version.h`)
+if [ "${pver}" != "%{pver}" -o "${releasedate}" != "%{releasedate}" ]; then
+echo version mismatch between source and spec file
+echo MAIL_VERSION_NUMBER="${pver}" spec="%{pver}"
+echo MAIL_RELEASE_DATE="${releasedate}" spec="%{releasedate}"
+exit 1
+fi
+
 %if %{with dynamicmaps}
 %patch0 -p1 -b .dynamic 
-cat > conf/dynamicmaps.cf <<EOF
-# Postfix dynamic maps configuration file.
-#
-# The first match found is the one that is used.  Wildcards are not
-# supported.
-#
-#type  location of .so file            name of open function
-#====  =============================   =====================
-EOF
+# ugly hack for 32/64 arches
+if [ %{_lib} != lib ]; then
+	sed -i -e 's@^/usr/lib/@%{_libdir}/@' conf/postfix-files
+fi
 %endif
 
 # no backup files here, otherwise they get included in %%doc
@@ -335,18 +372,16 @@ mv conf/main.cf conf/dist
 cp %{SOURCE2} conf/main.cf
 # ugly hack for 32/64 arches
 if [ %{_lib} != lib ]; then
-	ed conf/main.cf <<-EOF || exit 1
-	,s/\/lib\//\/%{_lib}\//g
-	w
-	q
-EOF
+	sed -i -e "s@/lib/@/%{_lib}@g" conf/main.cf
 fi
 
 %if %alternatives
 %patch2 -p1 -b .alternatives
 %endif
 
-%patch3 -p1 -b .skip_disabled
+%patch3 -p1 -b .dbupgrade
+
+%patch4 -p1 -b .sdbm 
 
 %patch6 -p1 -b .smtpstone 
 
@@ -364,6 +399,8 @@ fi
 %if %{with VDA}
 %patch9 -p1 -b .vda
 %patch10 -p1 -b .vda-bigquota
+# vda patch does not add documentation to postfix-files
+sed -i.vda -e '/readme_directory\/UUCP_README/a$readme_directory/VDA_README:f:root:-:644' conf/postfix-files
 %endif
 
 install -m644 %{SOURCE10} README.MDK
@@ -398,17 +435,20 @@ cp -p mantools/postlink.sed mantools/postlink.posix
 sed -e 's/\[\[:<:\]\]/\\</g; s/\[\[:>:\]\]/\\>/g' mantools/postlink.posix > mantools/postlink
 
 %build
+%define _disable_ld_no_undefined 1
 %serverbuild
-CCARGS="$CFLAGS"
-AUXLIBS=
+OPT="$RPM_OPT_FLAGS"
+DEBUG=
+CCARGS=
+AUXLIBS="%{?ldflags:%ldflags}"
 
 %ifarch s390 s390x ppc
-CCARGS="${CCARGS} -fsigned-char"
+OPT="${OPT} -fsigned-char"
 %endif
 
 %if %{with dynamicmaps}
 # the patch is mixed with SDBM support :(
-  CCARGS="${CCARGS} -DHAS_SDBM -DHAS_DLOPEN -DHAS_SHL_LOAD"
+  CCARGS="${CCARGS} -DHAS_SDBM -DHAS_DLOPEN"
 %endif
 
 %if %{with ldap}
@@ -448,17 +488,19 @@ CCARGS="${CCARGS} -fsigned-char"
 %endif
 %if %{with cdb}
   CCARGS="${CCARGS} -DHAS_CDB"
+%if ! %{with dynamicmaps}
   AUXLIBS="${AUXLIBS} -lcdb"
+%endif
 %endif
 %if %{with pam}
   CCARGS="${CCARGS} -DHAS_PAM"
 %endif
 
-export CCARGS AUXLIBS
+export CCARGS AUXLIBS OPT DEBUG
 make -f Makefile.init makefiles
 
-unset CCARGS AUXLIBS
-make DEBUG="" OPT="$RPM_OPT_FLAGS"
+unset CCARGS AUXLIBS DEBUG OPT
+make
 make manpages
 
 %if %{with dynamicmaps}
@@ -566,28 +608,16 @@ cp man/man1/qshape.1 %buildroot%{_mandir}/man1/qshape.1
 # RPM compresses man pages automatically.
 # - Edit postfix-files to reflect this, so post-install won't get confused
 #   when called during package installation.
-ed %buildroot%{_libdir}/postfix/postfix-files <<-EOF || exit 1
-	,s/\(\/man[158]\/.*\.[158]\):/\1.%{mansuffix}:/
-	w
-	q
-EOF
+sed -i -e "s@\(/man[158]/.*\.[158]\):@\1.%{mansuffix}:@" %buildroot%{_libdir}/postfix/postfix-files
 
 %if %{with dynamicmaps}
 # remove files that are not in the main package
-ed %buildroot%{_libdir}/postfix/postfix-files <<-EOF || exit 1
-	g/dict_ldap.so/d
-	g/dict_pam.so/d
-	g/dict_pcre.so/d
-	g/dict_mysql.so/d
-	g/dict_pgsql.so/d
-	w
-	q
-EOF
+sed -i -e "/dict_.*\.so/d" %buildroot%{_libdir}/postfix/postfix-files
 %endif
 
 # remove sample_directory from main.cf (#15297)
 # the default is /etc/postfix
-sed -i "/^sample_directory/d" %{buildroot}%{_sysconfdir}/postfix/main.cf
+sed -i -e "/^sample_directory/d" %{buildroot}%{_sysconfdir}/postfix/main.cf
 
 %pre
 %_pre_useradd postfix %{queue_directory} /bin/false
@@ -683,10 +713,6 @@ done
 %_preun_service postfix
 
 if [ $1 = 0 ]; then
-%if %alternatives
-	/usr/sbin/update-alternatives --remove sendmail-command %{sendmail_command}
-%endif
-
 	# Clean up chroot environment and spool directory
 	%{_sbindir}/postfix-chroot.sh -q remove
 	cd %{queue_directory} && queue_directory_remove || true
@@ -695,6 +721,9 @@ fi
 %postun
 %_postun_userdel postfix
 %_postun_groupdel %{maildrop_group}
+%if %alternatives
+	[ ! -e %{sendmail_command} ] && /usr/sbin/update-alternatives --remove sendmail-command %{sendmail_command}
+%endif
 
 %clean
 rm -rf %buildroot
@@ -899,5 +928,14 @@ rm -rf %buildroot
 %postun pgsql
 %dynmap_rm_cmd pgsql
 %endif
+%endif
+
+%if %{with cdb}
+%files cdb
+%attr(755, root, root) %{_libdir}/postfix/dict_cdb.so
+%post cdb
+%dynmap_add_cmd cdb -m
+%postun cdb
+%dynmap_rm_cmd cdb
 %endif
 
