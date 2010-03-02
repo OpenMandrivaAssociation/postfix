@@ -37,7 +37,7 @@
 %define pver		2.7.0
 # from src/global/mail_version.h
 %define releasedate	20100213
-%define rel		2
+%define rel		3
 
 %if ! %{with experimental}
 %define distver		%pver
