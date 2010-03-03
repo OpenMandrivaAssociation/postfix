@@ -722,7 +722,9 @@ fi
 %_postun_userdel postfix
 %_postun_groupdel %{maildrop_group}
 %if %alternatives
-	[ ! -e %{sendmail_command} ] && /usr/sbin/update-alternatives --remove sendmail-command %{sendmail_command}
+if [ ! -e %{sendmail_command} ]; then
+	/usr/sbin/update-alternatives --remove sendmail-command %{sendmail_command} 
+fi
 %endif
 
 %clean
