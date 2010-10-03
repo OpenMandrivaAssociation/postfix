@@ -139,7 +139,7 @@ Patch1:		postfix-2.7.0-mdkconfig.patch
 Patch2:		postfix-alternatives-mdk.patch
 
 # dbupgrade patch patch split from dynamicmaps one
-Patch3:		postfix-2.7.0-dbupgrade.patch
+Patch3:		postfix-2.7.1-dbupgrade.patch
 
 # sdbm patch patch split from dynamicmaps one
 Patch4:		postfix-2.7.0-sdbm.patch
@@ -629,7 +629,14 @@ if grep -qs "^NEVER_CHROOT_PROGRAM='^(proxymap|local|pipe|virtual)$'$" /etc/sysc
 		perl -pi -e "s/^NEVER_CHROOT_PROGRAM=.*\$/NEVER_CHROOT_PROGRAM=\'^(proxymap|local|pipe|virtual|spawn)\\\$\'/" /etc/sysconfig/postfix
 	fi
 fi
-	
+# disable some unneeded and potentially harmful nss libraries in /etc/sysconfig/postfix, but do it only once and only if user did not
+# modify /etc/sysconfig/postfix manually
+if grep -qs "^IGNORE_NSS_LIBS='^$'$" /etc/sysconfig/postfix; then
+	if ! grep -qs "^IGNORE_NSS_LIBS='^(mdns.*|ldap|db|wins)$'$" /usr/sbin/postfix-chroot.sh; then
+		perl -pi -e "s/^IGNORE_NSS_LIBS=.*\$/IGNORE_NSS_LIBS=\'^(mdns.*|ldap|db|wins)\\\$\'/" /etc/sysconfig/postfix
+	fi
+fi
+
 %post
 # we don't have these maps anymore as separate packages/plugins:
 # cidr, tcp and sdbm (2007.0)
@@ -665,6 +672,8 @@ for old_smtpd_conf in /etc/postfix/sasl/smtpd.conf %{_libdir}/sasl2/smtpd.conf; 
 		fi
 	fi
 done
+
+%_create_ssl_certificate postfix
 
 if [ -e /etc/sysconfig/postfix ]; then
 	%{_sbindir}/postfix-chroot.sh -q update
