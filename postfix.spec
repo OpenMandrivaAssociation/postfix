@@ -37,7 +37,7 @@
 %define pver		2.7.3
 # from src/global/mail_version.h
 %define releasedate	20110303
-%define rel		3
+%define rel		4
 
 %if ! %{with experimental}
 %define distver		%pver
@@ -176,7 +176,7 @@ Requires(post,preun):		update-alternatives
 %else
 Conflicts:	sendmail exim qmail
 %endif
-BuildRequires:	db4-devel, gawk, perl-base, sed
+BuildRequires:	db-devel, gawk, perl-base, sed
 BuildRequires:	html2text
 BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-buildroot
 %if %{mdkversion} > 201000
