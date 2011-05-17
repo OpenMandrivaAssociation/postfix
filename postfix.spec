@@ -34,7 +34,7 @@
 %endif
 
 %define pname		postfix
-%define pver		2.7.4
+%define pver		2.8.3
 # from src/global/mail_version.h
 %define releasedate	20110509
 %define rel		1
@@ -133,13 +133,13 @@ Source26:	http://jimsun.LinxNet.com/misc/header_checks.txt
 Source27:	http://jimsun.LinxNet.com/misc/body_checks.txt
 
 # Dynamic map patch taken from debian's package
-Patch0:		postfix-2.7.0-dynamicmaps.patch
+Patch0:		postfix-2.8.3-dynamicmaps.diff
 
-Patch1:		postfix-2.7.0-mdkconfig.patch
+Patch1:		postfix-2.8.3-mdkconfig.diff
 Patch2:		postfix-alternatives-mdk.patch
 
 # dbupgrade patch patch split from dynamicmaps one
-Patch3:		postfix-2.7.1-dbupgrade.patch
+Patch3:		postfix-2.8.3-dbupgrade.diff
 
 # sdbm patch patch split from dynamicmaps one
 Patch4:		postfix-2.7.0-sdbm.patch
@@ -160,6 +160,8 @@ Patch8: ftp://ftp.wl0.org/SOURCES/postfix-2.3.2-multiline-greeting.patch
 Patch9: http://vda.sourceforge.net/VDA/postfix-2.6.5-vda-ng.patch.gz
 # Postfix 2.6.5-NG-bigquota: SHASUM 6dfeb9a2fff44d85e9a5a28b81a84898734adfe6
 Patch10: http://vda.sourceforge.net/VDA/postfix-2.6.5-vda-ng-bigquota.patch.gz
+
+Patch11: postfix-2.8.3-format_not_a_string_literal_and_no_format_arguments.diff
 
 License:	IBM Public License
 Group:		System/Servers
@@ -402,6 +404,8 @@ fi
 # vda patch does not add documentation to postfix-files
 sed -i.vda -e '/readme_directory\/UUCP_README/a$readme_directory/VDA_README:f:root:-:644' conf/postfix-files
 %endif
+
+%patch11 -p0 -b .format_not_a_string_literal_and_no_format_arguments
 
 install -m644 %{SOURCE10} README.MDK
 install -m644 %{SOURCE11} README.MDK.update
@@ -815,9 +819,14 @@ rm -rf %buildroot
 %doc UCE
 
 %dir %{_libdir}/postfix
+%attr(0644, root, root) %{_libdir}/postfix/main.cf
+%attr(0644, root, root) %{_libdir}/postfix/master.cf
+%attr(0644, root, root) %{_libdir}/postfix/postfix-files
+%attr(0755, root, root) %{_libdir}/postfix/anvil
 %attr(0755, root, root) %{_libdir}/postfix/bounce
 %attr(0755, root, root) %{_libdir}/postfix/cleanup
 %attr(0755, root, root) %{_libdir}/postfix/discard
+%attr(0755, root, root) %{_libdir}/postfix/dnsblog
 %attr(0755, root, root) %{_libdir}/postfix/error
 %attr(0755, root, root) %{_libdir}/postfix/flush
 %attr(0755, root, root) %{_libdir}/postfix/lmtp
@@ -827,6 +836,11 @@ rm -rf %buildroot
 %attr(0755, root, root) %{_libdir}/postfix/oqmgr
 %attr(0755, root, root) %{_libdir}/postfix/pickup
 %attr(0755, root, root) %{_libdir}/postfix/pipe
+%attr(0755, root, root) %{_libdir}/postfix/postfix-script
+%attr(0755, root, root) %{_libdir}/postfix/postfix-wrapper
+%attr(0755, root, root) %{_libdir}/postfix/post-install
+%attr(0755, root, root) %{_libdir}/postfix/postmulti-script
+%attr(0755, root, root) %{_libdir}/postfix/postscreen
 %attr(0755, root, root) %{_libdir}/postfix/proxymap
 %attr(0755, root, root) %{_libdir}/postfix/qmgr
 %attr(0755, root, root) %{_libdir}/postfix/qmqpd
@@ -835,18 +849,11 @@ rm -rf %buildroot
 %attr(0755, root, root) %{_libdir}/postfix/smtp
 %attr(0755, root, root) %{_libdir}/postfix/smtpd
 %attr(0755, root, root) %{_libdir}/postfix/spawn
-%attr(0755, root, root) %{_libdir}/postfix/trivial-rewrite
-%attr(0755, root, root) %{_libdir}/postfix/virtual
 %attr(0755, root, root) %{_libdir}/postfix/tlsmgr
-%attr(0755, root, root) %{_libdir}/postfix/anvil
+%attr(0755, root, root) %{_libdir}/postfix/tlsproxy
+%attr(0755, root, root) %{_libdir}/postfix/trivial-rewrite
 %attr(0755, root, root) %{_libdir}/postfix/verify
-%attr(0755, root, root) %{_libdir}/postfix/postfix-script
-%attr(0755, root, root) %{_libdir}/postfix/post-install
-%attr(0644, root, root) %{_libdir}/postfix/postfix-files
-%attr(0644, root, root) %{_libdir}/postfix/main.cf
-%attr(0644, root, root) %{_libdir}/postfix/master.cf
-%attr(0755, root, root) %{_libdir}/postfix/postfix-wrapper
-%attr(0755, root, root) %{_libdir}/postfix/postmulti-script
+%attr(0755, root, root) %{_libdir}/postfix/virtual
 
 %attr(0755, root, root) %{_sbindir}/postalias
 %attr(0755, root, root) %{_sbindir}/postcat
