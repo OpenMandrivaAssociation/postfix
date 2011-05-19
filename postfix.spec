@@ -27,17 +27,11 @@
 %bcond_with parallel
 %endif
 
-%if %{mdkversion} < 200800
-%define mansuffix bz2
-%else
-%define mansuffix lzma
-%endif
-
 %define pname		postfix
 %define pver		2.8.3
 # from src/global/mail_version.h
 %define releasedate	20110509
-%define rel		1
+%define rel		2
 
 %if ! %{with experimental}
 %define distver		%pver
@@ -612,7 +606,7 @@ cp man/man1/qshape.1 %buildroot%{_mandir}/man1/qshape.1
 # RPM compresses man pages automatically.
 # - Edit postfix-files to reflect this, so post-install won't get confused
 #   when called during package installation.
-sed -i -e "s@\(/man[158]/.*\.[158]\):@\1.%{mansuffix}:@" %buildroot%{_libdir}/postfix/postfix-files
+sed -i -e "s@\(/man[158]/.*\.[158]\):@\1%{_extension}:@" %buildroot%{_libdir}/postfix/postfix-files
 
 %if %{with dynamicmaps}
 # remove files that are not in the main package
