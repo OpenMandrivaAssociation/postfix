@@ -31,7 +31,7 @@
 %define pver		2.8.6
 # from src/global/mail_version.h
 %define releasedate	20111024
-%define rel		1
+%define rel		2
 
 %if ! %{with experimental}
 %define distver		%pver
@@ -175,9 +175,11 @@ Conflicts:	sendmail exim qmail
 BuildRequires:	db-devel, gawk, perl-base, sed
 BuildRequires:	html2text
 BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-buildroot
-%if %{mdkversion} > 201000
-# syslog-ng before this version needed a different chroot script, which was bug-prone
+%if "%{distribution}" == "Mandriva Linux"
+	%if %{mdkversion} > 201000
+	# syslog-ng before this version needed a different chroot script, which was bug-prone
 Conflicts:	syslog-ng < 3.1-0.beta2.2
+	%endif
 %endif
 
 %if %{with sasl}
@@ -555,12 +557,14 @@ mv %buildroot%{_docdir}/%name/README_FILES DOC/README_FILES
 cp %{SOURCE15} %buildroot%{_sysconfdir}/sasl2/smtpd.conf
 
 # syslog-ng conf for chroot script
-%if %{mdkversion} < 200901
-cp %{SOURCE16} %buildroot%{_sysconfdir}/postfix/syslog-ng.conf
-%else
-%if %{mdkversion} < 201001
-cp %{SOURCE17} %buildroot%{_sysconfdir}/postfix/syslog-ng.conf
-%endif
+%if "%{distribution}" == "Mandriva Linux"
+	%if %{mdkversion} < 200901
+	cp %{SOURCE16} %buildroot%{_sysconfdir}/postfix/syslog-ng.conf
+	%else
+		%if %{mdkversion} < 201001
+		cp %{SOURCE17} %buildroot%{_sysconfdir}/postfix/syslog-ng.conf
+		%endif
+	%endif
 %endif
 
 # This installs into the /etc/rc.d/init.d directory
@@ -573,14 +577,22 @@ mkdir -p %buildroot%{_sysconfdir}/ppp/ip-{up,down}.d
 install -c %{SOURCE6} %buildroot%{_sysconfdir}/ppp/ip-up.d/postfix
 install -c %{SOURCE7} %buildroot%{_sysconfdir}/ppp/ip-down.d/postfix
 
-%if %mdkversion < 200701
-mkdir -p %buildroot%{_sysconfdir}/sysconfig/network-scripts/ifup.d
-install -c %{SOURCE8} %buildroot%{_sysconfdir}/sysconfig/network-scripts/ifup.d/postfix
-%else
-mkdir -p %buildroot%{_sysconfdir}/resolvconf/update-libc.d/
-install -c %{SOURCE8} %buildroot%{_sysconfdir}/resolvconf/update-libc.d/postfix
+%if "%{distribution}" == "Mandriva Linux"
+	%if %mdkversion < 200701
+	mkdir -p %buildroot%{_sysconfdir}/sysconfig/network-scripts/ifup.d
+	install -c %{SOURCE8} %buildroot%{_sysconfdir}/sysconfig/network-scripts/ifup.d/postfix
+	%else
+	mkdir -p %buildroot%{_sysconfdir}/resolvconf/update-libc.d/
+	install -c %{SOURCE8} %buildroot%{_sysconfdir}/resolvconf/update-libc.d/postfix
 
-mkdir -p %buildroot%{_sysconfdir}/sysconfig
+	mkdir -p %buildroot%{_sysconfdir}/sysconfig
+
+	%endif
+%else
+	mkdir -p %buildroot%{_sysconfdir}/resolvconf/update-libc.d/
+	install -c %{SOURCE8} %buildroot%{_sysconfdir}/resolvconf/update-libc.d/postfix
+
+	mkdir -p %buildroot%{_sysconfdir}/sysconfig
 %endif
 
 touch %buildroot%{_sysconfdir}/sysconfig/postfix
@@ -760,18 +772,25 @@ rm -rf %buildroot
 %if %{with dynamicmaps}
 %config(noreplace) %{_sysconfdir}/postfix/dynamicmaps.cf
 %endif
-%if %{mdkversion} < 201001
-%config(noreplace) %{_sysconfdir}/postfix/syslog-ng.conf
+%if "%{distribution}" == "Mandriva Linux"
+	%if %{mdkversion} < 201001
+	%config(noreplace) %{_sysconfdir}/postfix/syslog-ng.conf
+	%endif
 %endif
 
 %attr(0755, root, root) %{_initrddir}/postfix
 %attr(0644, root, root) %config(noreplace) %{_sysconfdir}/pam.d/smtp
 %attr(0755, root, root) %config(noreplace) %{_sysconfdir}/ppp/ip-up.d/postfix
 %attr(0755, root, root) %config(noreplace) %{_sysconfdir}/ppp/ip-down.d/postfix
-%if %mdkversion < 200701
-%attr(0755, root, root) %config(noreplace) %{_sysconfdir}/sysconfig/network-scripts/ifup.d/postfix
+
+%if "%{distribution}" == "Mandriva Linux"
+	%if %mdkversion < 200701
+	%attr(0755, root, root) %config(noreplace) %{_sysconfdir}/sysconfig/network-scripts/ifup.d/postfix
+	%else
+	%attr(0755, root, root) %config(noreplace) %{_sysconfdir}/resolvconf/update-libc.d/postfix
+	%endif
 %else
-%attr(0755, root, root) %config(noreplace) %{_sysconfdir}/resolvconf/update-libc.d/postfix
+	%attr(0755, root, root) %config(noreplace) %{_sysconfdir}/resolvconf/update-libc.d/postfix
 %endif
 %ghost %{_sysconfdir}/sysconfig/postfix
 
@@ -889,11 +908,12 @@ rm -rf %buildroot
 %attr(0755, root, root) %{_libdir}/libpostfix-milter.so.1
 %attr(0755, root, root) %{_libdir}/libpostfix-xsasl.so.1
 
+%if "%{distribution}" == "Mandriva Linux"
+	%if %mdkversion < 200900
+	%post -n %{libname} -p /sbin/ldconfig
 
-%if %mdkversion < 200900
-%post -n %{libname} -p /sbin/ldconfig
-
-%postun -n %{libname} -p /sbin/ldconfig
+	%postun -n %{libname} -p /sbin/ldconfig
+	%endif
 %endif
 
 %if %{with ldap}
