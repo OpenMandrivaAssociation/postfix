@@ -74,8 +74,23 @@ Patch6:		postfix-2.2.4-smtpstone.patch
 
 Patch11:	postfix-2.8.3-format_not_a_string_literal_and_no_format_arguments.diff
 
+BuildRequires:	db-devel
+BuildRequires:	gawk
+BuildRequires:	perl-base
+BuildRequires:	sed
+BuildRequires:	html2text
+%if %{with sasl}
+BuildRequires:	libsasl-devel >= 2.0
+%endif
+%if %{with tls}
+BuildRequires:	openssl-devel >= 0.9.7
+%endif
+
 Provides:	mail-server
 Provides:	sendmail-command
+# syslog-ng before this version needed a different chroot script, 
+# which was bug-prone
+Conflicts:	syslog-ng < 3.1-0.beta2.2
 # http://archives.mandrivalinux.com/cooker/2005-06/msg01987.php
 Requires(post): chkconfig
 Requires: initscripts
@@ -85,20 +100,8 @@ Requires: diffutils
 Requires: gawk
 Requires(pre,post,postun,preun): rpm-helper >= 0.3
 Requires(pre,post):	sed
-Requires(post,preun):		update-alternatives
-BuildRequires:	db-devel
-BuildRequires:	gawk
-BuildRequires:	perl-base
-BuildRequires:	sed
-BuildRequires:	html2text
-# syslog-ng before this version needed a different chroot script, which was bug-prone
-Conflicts:	syslog-ng < 3.1-0.beta2.2
-%if %{with sasl}
-BuildRequires:	libsasl-devel >= 2.0
-%endif
-%if %{with tls}
-BuildRequires:	openssl-devel >= 0.9.7
-%endif
+Requires(post,preun): update-alternatives
+Requires(post,preun): %{libname} >= %EVRD
 
 %description
 Postfix is a Mail Transport Agent (MTA), supporting LDAP, SMTP AUTH (SASL),
