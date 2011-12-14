@@ -1,19 +1,9 @@
-# from src/global/mail_version.h
-%define releasedate	20111105
-%define ftp_directory	official
+%define _disable_ld_no_undefined 1
 %define libname %mklibname postfix 1
-
-%define alternatives 	1
-%if %alternatives
 %define sendmail_command %{_sbindir}/sendmail.postfix
-%else
-%define sendmail_command %{_sbindir}/sendmail
-%endif
 
 %define post_install_parameters	daemon_directory=%{_libdir}/postfix command_directory=%{_sbindir} queue_directory=%{queue_directory} sendmail_path=%{sendmail_command} newaliases_path=%{_bindir}/newaliases mailq_path=%{_bindir}/mailq mail_owner=postfix setgid_group=%{maildrop_group} manpage_directory=%{_mandir} readme_directory=%{_docdir}/%{name}/README_FILES html_directory=%{_docdir}/%{name}/html data_directory=/var/lib/postfix
 
-# useful in descriptions
-%define with_TXT() %{expand:%%{?with_%{1}:with %{1}}%%{!?with_%{1}:without %{1}}}
 # use bcond_with if default is disabled
 # use bcond_without if default is enabled
 # built
@@ -43,7 +33,7 @@ Release:	1
 License:	IBM Public License
 Group:		System/Servers
 URL:		http://www.postfix.org/
-Source0: 	ftp://ftp.porcupine.org/mirrors/postfix-release/%{ftp_directory}/%{name}-%{version}.tar.gz
+Source0: 	ftp://ftp.porcupine.org/mirrors/postfix-release/official/%{name}-%{version}.tar.gz
 Source1: 	%{SOURCE0}.sig
 Source2: 	postfix-main.cf
 Source3: 	postfix-etc-init.d-postfix
@@ -54,13 +44,10 @@ Source7:	postfix-ip-down
 Source8:	postfix-ifup-d
 Source10:	postfix-README.MDK
 Source11:	postfix-README.MDK.update
-#Source11:	http://www.comedia.it/~bluca/postfix/CYRUS_README
 Source12:	postfix-bash-completion
 Source13:	http://www.seaglass.com/postfix/faq.html
 Source14:	postfix-chroot.sh
 Source15:	postfix-smtpd.conf
-Source16:	postfix-syslog-ng.200900.conf
-Source17:	postfix-syslog-ng.conf
 
 # Simon J. Mudd stuff
 Source21:	ftp://ftp.wl0.org/postfinger/postfinger-1.30
@@ -85,7 +72,7 @@ Patch4:		postfix-2.7.0-sdbm.patch
 # Shamelessy stolen from debian
 Patch6:		postfix-2.2.4-smtpstone.patch
 
-Patch11: postfix-2.8.3-format_not_a_string_literal_and_no_format_arguments.diff
+Patch11:	postfix-2.8.3-format_not_a_string_literal_and_no_format_arguments.diff
 
 Provides:	mail-server
 Provides:	sendmail-command
@@ -98,26 +85,20 @@ Requires: diffutils
 Requires: gawk
 Requires(pre,post,postun,preun): rpm-helper >= 0.3
 Requires(pre,post):	sed
-%if %alternatives
 Requires(post,preun):		update-alternatives
-%endif
-BuildRequires:	db52-devel
+BuildRequires:	db-devel
 BuildRequires:	gawk
 BuildRequires:	perl-base
 BuildRequires:	sed
 BuildRequires:	html2text
-
 # syslog-ng before this version needed a different chroot script, which was bug-prone
 Conflicts:	syslog-ng < 3.1-0.beta2.2
-
 %if %{with sasl}
 BuildRequires:	libsasl-devel >= 2.0
 %endif
-
 %if %{with tls}
 BuildRequires:	openssl-devel >= 0.9.7
 %endif
-
 
 %description
 Postfix is a Mail Transport Agent (MTA), supporting LDAP, SMTP AUTH (SASL),
@@ -133,17 +114,6 @@ This software was formerly known as VMailer. It was released by the end
 of 1998 as the IBM Secure Mailer. From then on it has lived on as Postfix. 
 
 PLEASE READ THE %{_defaultdocdir}/%{name}/README.MDK FILE.
-
-This rpm supports different build time options, to enable or disable these
-features you must rebuild the source rpm using the --with ... or --without ...
-rpm option.
-Currently postfix has been built with:
-
-	Munge bare CR: --%{with_TXT barecr}
-	TLS support: --%{with_TXT tls}
-	IPV6 support: --%{with_TXT ipv6}
-	CDB support: --%{with_TXT cdb}
-	Chroot by default: --%{with_TXT chroot}
 
 %package -n %{libname}
 Summary:	Shared libraries required to run Postfix
@@ -210,47 +180,22 @@ This package provides support for CDB maps in Postfix.
 
 %prep
 %setup -q
+%apply_patches
+# no backup files here, otherwise they get included in %%doc
+find . -name \*.orig -exec rm {} \;
 
-releasedate=$(eval echo `echo MAIL_RELEASE_DATE | cpp -P -imacros src/global/mail_version.h`)
-pver=$(eval echo `echo MAIL_VERSION_NUMBER | cpp -P -imacros src/global/mail_version.h`)
-if [ "${pver}" != "%{version}" -o "${releasedate}" != "%{releasedate}" ]; then
-echo version mismatch between source and spec file
-echo MAIL_VERSION_NUMBER="${pver}" spec="%{version}"
-echo MAIL_RELEASE_DATE="${releasedate}" spec="%{releasedate}"
-exit 1
-fi
-
-%patch0 -p1 -b .dynamic 
+mkdir -p conf/dist
+mv conf/main.cf conf/dist
+cp %{SOURCE2} conf/main.cf
 
 # ugly hack for 32/64 arches
 if [ %{_lib} != lib ]; then
 	sed -i -e 's@^/usr/lib/@%{_libdir}/@' conf/postfix-files
-fi
-
-# no backup files here, otherwise they get included in %%doc
-%patch1 -p1 -b .mdkconfig
-find . -name \*.mdkconfig -exec rm {} \;
-mkdir -p conf/dist
-mv conf/main.cf conf/dist
-cp %{SOURCE2} conf/main.cf
-# ugly hack for 32/64 arches
-if [ %{_lib} != lib ]; then
 	sed -i -e "s@/lib/@/%{_lib}@g" conf/main.cf
 fi
 
-%if %alternatives
-%patch2 -p1 -b .alternatives
-%endif
-
-%patch3 -p1 -b .dbupgrade
-%patch4 -p1 -b .sdbm 
-%patch6 -p1 -b .smtpstone 
-
-%patch11 -p0 -b .format_not_a_string_literal_and_no_format_arguments
-
 install -m644 %{SOURCE10} README.MDK
 install -m644 %{SOURCE11} README.MDK.update
-#install -m644 %{SOURCE11} README_FILES/CYRUS_README
 install -m644 %{SOURCE13} postfix-users-faq.html
 
 mkdir UCE
@@ -280,7 +225,6 @@ cp -p mantools/postlink.sed mantools/postlink.posix
 sed -e 's/\[\[:<:\]\]/\\</g; s/\[\[:>:\]\]/\\>/g' mantools/postlink.posix > mantools/postlink
 
 %build
-%define _disable_ld_no_undefined 1
 %serverbuild
 # it does not work with -fPIE and someone added that to the serverbuild macro...
 CFLAGS=`echo $CFLAGS|sed -e 's|-fPIE||g'`
@@ -393,7 +337,6 @@ mkdir -p %{buildroot}%{_sysconfdir}/resolvconf/update-libc.d/
 install -c %{SOURCE8} %{buildroot}%{_sysconfdir}/resolvconf/update-libc.d/postfix
 
 mkdir -p %{buildroot}%{_sysconfdir}/sysconfig
-
 touch %{buildroot}%{_sysconfdir}/sysconfig/postfix
 
 # this is used by some examples (cyrus)
@@ -429,14 +372,16 @@ sed -i -e "/^sample_directory/d" %{buildroot}%{_sysconfdir}/postfix/main.cf
 %pre
 %_pre_useradd postfix %{queue_directory} /bin/false
 %_pre_groupadd %{maildrop_group} postfix
-# disable chroot of spawn service in /etc/sysconfig/postfix, but do it only once and only if user did not
+# disable chroot of spawn service in /etc/sysconfig/postfix, 
+# but do it only once and only if user did not
 # modify /etc/sysconfig/postfix manually
 if grep -qs "^NEVER_CHROOT_PROGRAM='^(proxymap|local|pipe|virtual)$'$" /etc/sysconfig/postfix; then
 	if ! grep -qs "^NEVER_CHROOT_PROGRAM='^(proxymap|local|pipe|virtual|spawn)$'$" /usr/sbin/postfix-chroot.sh; then
 		perl -pi -e "s/^NEVER_CHROOT_PROGRAM=.*\$/NEVER_CHROOT_PROGRAM=\'^(proxymap|local|pipe|virtual|spawn)\\\$\'/" /etc/sysconfig/postfix
 	fi
 fi
-# disable some unneeded and potentially harmful nss libraries in /etc/sysconfig/postfix, but do it only once and only if user did not
+# disable some unneeded and potentially harmful nss libraries in 
+# /etc/sysconfig/postfix, but do it only once and only if user did not
 # modify /etc/sysconfig/postfix manually
 if grep -qs "^IGNORE_NSS_LIBS='^$'$" /etc/sysconfig/postfix; then
 	if ! grep -qs "^IGNORE_NSS_LIBS='^(mdns.*|ldap|db|wins)$'$" /usr/sbin/postfix-chroot.sh; then
@@ -484,16 +429,13 @@ done
 
 if [ -e /etc/sysconfig/postfix ]; then
 	%{_sbindir}/postfix-chroot.sh -q update
-%if %{with chroot}
-else
+%if !%{with chroot}
 	%{_sbindir}/postfix-chroot.sh -q enable
 %endif
 fi
 %_post_service postfix
 
-%if %alternatives
 /usr/sbin/update-alternatives --install %{_sbindir}/sendmail sendmail-command %{sendmail_command} 30 --slave %{_prefix}/lib/sendmail sendmail-command-in_libdir %{sendmail_command}
-%endif
 
 %triggerin -- glibc setup nss_ldap nss_db nss_wins nss_mdns
 # Generate chroot jails on the fly when needed things are installed/upgraded
@@ -537,11 +479,9 @@ fi
 %postun
 %_postun_userdel postfix
 %_postun_groupdel %{maildrop_group}
-%if %alternatives
 if [ ! -e %{sendmail_command} ]; then
 	/usr/sbin/update-alternatives --remove sendmail-command %{sendmail_command} 
 fi
-%endif
 
 %files
 %dir %{_sysconfdir}/postfix
