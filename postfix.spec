@@ -1,47 +1,7 @@
-# compatibility macros
-
-# Example usage: %if %{defined with_foo} && %{undefined with_bar} ...
-%define defined()  %{expand:%%{?%{1}:1}%%{!?%{1}:0}}
-%define undefined()    %{expand:%%{?%{1}:0}%%{!?%{1}:1}}
-
-# Shorthand for %{defined with_...}
-%define with()     %{expand:%%{?with_%{1}:1}%%{!?with_%{1}:0}}
-%define without()  %{expand:%%{?with_%{1}:0}%%{!?with_%{1}:1}}
-
-# useful in descriptions
-%define with_TXT()     %{expand:%%{?with_%{1}:with %{1}}%%{!?with_%{1}:without %{1}}}
-
-# use bcond_with if default is disabled
-# use bcond_without if default is enabled
-%define bcond_with()       %{expand:%%{?_with_%{1}:%%global with_%{1} 1}}
-%define bcond_without()    %{expand:%%{!?_without_%{1}:%%global with_%{1} 1}}
-
-# Disabled if official version, enabled if snapshot
-%bcond_with experimental
-
-# call package postfix-experimental?
-# it cannot be parallel installed anyway
-%if %{with experimental}
-%bcond_without parallel
-%else
-%bcond_with parallel
-%endif
-
-%define pname		postfix
-%define pver		2.8.6
 # from src/global/mail_version.h
-%define releasedate	20111024
-%define rel		2
-
-%if ! %{with experimental}
-%define distver		%pver
-%define distverdot	%pver
+%define releasedate	20111105
 %define ftp_directory	official
-%else
-%define distver		%pver-%releasedate
-%define distverdot	%pver.%releasedate
-%define ftp_directory	experimental
-%endif
+%define libname %mklibname postfix 1
 
 %define alternatives 	1
 %if %alternatives
@@ -49,12 +9,14 @@
 %else
 %define sendmail_command %{_sbindir}/sendmail
 %endif
-%define post_install_parameters	daemon_directory=%{_libdir}/postfix command_directory=%{_sbindir} queue_directory=%{queue_directory} sendmail_path=%{sendmail_command} newaliases_path=%{_bindir}/newaliases mailq_path=%{_bindir}/mailq mail_owner=postfix setgid_group=%{maildrop_group} manpage_directory=%{_mandir} readme_directory=%{_docdir}/%name/README_FILES html_directory=%{_docdir}/%name/html data_directory=/var/lib/postfix
 
+%define post_install_parameters	daemon_directory=%{_libdir}/postfix command_directory=%{_sbindir} queue_directory=%{queue_directory} sendmail_path=%{sendmail_command} newaliases_path=%{_bindir}/newaliases mailq_path=%{_bindir}/mailq mail_owner=postfix setgid_group=%{maildrop_group} manpage_directory=%{_mandir} readme_directory=%{_docdir}/%{name}/README_FILES html_directory=%{_docdir}/%{name}/html data_directory=/var/lib/postfix
+
+# useful in descriptions
+%define with_TXT() %{expand:%%{?with_%{1}:with %{1}}%%{!?with_%{1}:without %{1}}}
 # use bcond_with if default is disabled
 # use bcond_without if default is enabled
-%bcond_without dynamicmaps
-
+# built
 %bcond_without ldap
 %bcond_without mysql
 %bcond_without pgsql
@@ -63,44 +25,26 @@
 %bcond_without tls
 %bcond_without ipv6
 %bcond_without cdb
-%bcond_with multiline
-%bcond_with VDA
 %bcond_without chroot
 
 # Postfix requires one exlusive uid/gid and a 2nd exclusive gid for its own use.
 %define maildrop_group	postdrop
 %define queue_directory	%{_var}/spool/postfix
 
-%if %{with dynamicmaps}
-# if we are building dynamicmaps optional maps will always be built
-%global with_ldap 1
-%global with_mysql 1
-%global with_pgsql 1
-%global with_pcre 1
-%global with_cdb 1
-
 # Macro: %{dynmap_add_cmd <name> [<soname>] [-m]}
 %define dynmap_add_cmd(m) FILE=%{_sysconfdir}/postfix/dynamicmaps.cf; if ! grep -q "^%{1}[[:space:]]" ${FILE}; then echo "%{1}	%{_libdir}/postfix/dict_%{?2:%{2}}%{?!2:%{1}}.so	dict_%{1}_open%{-m:	mkmap_%{1}_open}" >> ${FILE}; fi;
 %define dynmap_rm_cmd() FILE=%{_sysconfdir}/postfix/dynamicmaps.cf; if [ $1 = 0 -a -s $FILE ]; then  cp -p ${FILE} ${FILE}.$$; grep -v "^%{1}[[:space:]]" ${FILE}.$$ > ${FILE}; rm -f ${FILE}.$$; fi;
-%endif
 
-%if ! %{with parallel}
-Name:		%{pname}
-Version:	%{distverdot}
-Release:	%mkrel %{rel}
-Conflicts:	%{pname}-experimental
-%else
-Name:		%{pname}-experimental
-Version:	%{pver}
-Release:	%mkrel -c %{releasedate} %{rel}
-Provides:	%{pname}
-Conflicts:	%{pname}
-%endif
 Summary:	Postfix Mail Transport Agent
+Name:		postfix
 Epoch:		1
+Version:	2.8.7
+Release:	1
+License:	IBM Public License
+Group:		System/Servers
 URL:		http://www.postfix.org/
-Source0: 	ftp://ftp.porcupine.org/mirrors/postfix-release/%{ftp_directory}/%{pname}-%{distver}.tar.gz
-Source1: 	ftp://ftp.porcupine.org/mirrors/postfix-release/%{ftp_directory}/%{pname}-%{distver}.tar.gz.sig
+Source0: 	ftp://ftp.porcupine.org/mirrors/postfix-release/%{ftp_directory}/%{name}-%{version}.tar.gz
+Source1: 	%{SOURCE0}.sig
 Source2: 	postfix-main.cf
 Source3: 	postfix-etc-init.d-postfix
 Source4:	postfix-etc-pam.d-smtp
@@ -141,46 +85,30 @@ Patch4:		postfix-2.7.0-sdbm.patch
 # Shamelessy stolen from debian
 Patch6:		postfix-2.2.4-smtpstone.patch
 
-# applied if %with pam
-# originally from http://d.scn.ru/proj/postfix/dict_pam/
-Patch7:		postfix-2.0.16-20030921.pam.patch
-
-# applied if %with multiline
-Patch8: ftp://ftp.wl0.org/SOURCES/postfix-2.3.2-multiline-greeting.patch
-
-# applied if %with VDA
-# http://vda.sourceforge.net/
-# Postfix 2.6.5-NG: SHASUM 946770cdfe2d77a96c6652b254449ea961513081
-Patch9: http://vda.sourceforge.net/VDA/postfix-2.6.5-vda-ng.patch.gz
-# Postfix 2.6.5-NG-bigquota: SHASUM 6dfeb9a2fff44d85e9a5a28b81a84898734adfe6
-Patch10: http://vda.sourceforge.net/VDA/postfix-2.6.5-vda-ng-bigquota.patch.gz
-
 Patch11: postfix-2.8.3-format_not_a_string_literal_and_no_format_arguments.diff
 
-License:	IBM Public License
-Group:		System/Servers
 Provides:	mail-server
 Provides:	sendmail-command
 # http://archives.mandrivalinux.com/cooker/2005-06/msg01987.php
-Requires(post): chkconfig, initscripts, syslog-daemon, coreutils, diffutils, gawk
-Requires: syslog-daemon, coreutils, diffutils, gawk
+Requires(post): chkconfig
+Requires: initscripts
+Requires: syslog-daemon
+Requires: coreutils
+Requires: diffutils
+Requires: gawk
 Requires(pre,post,postun,preun): rpm-helper >= 0.3
 Requires(pre,post):	sed
-Requires:		sed
 %if %alternatives
 Requires(post,preun):		update-alternatives
-%else
-Conflicts:	sendmail exim qmail
 %endif
-BuildRequires:	db-devel, gawk, perl-base, sed
+BuildRequires:	db52-devel
+BuildRequires:	gawk
+BuildRequires:	perl-base
+BuildRequires:	sed
 BuildRequires:	html2text
-BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-buildroot
-%if "%{distribution}" == "Mandriva Linux"
-	%if %{mdkversion} > 201000
-	# syslog-ng before this version needed a different chroot script, which was bug-prone
+
+# syslog-ng before this version needed a different chroot script, which was bug-prone
 Conflicts:	syslog-ng < 3.1-0.beta2.2
-	%endif
-%endif
 
 %if %{with sasl}
 BuildRequires:	libsasl-devel >= 2.0
@@ -190,36 +118,6 @@ BuildRequires:	libsasl-devel >= 2.0
 BuildRequires:	openssl-devel >= 0.9.7
 %endif
 
-%if %{with dynamicmaps}
-%define libname %mklibname postfix 1
-Requires:	%{libname} = %epoch:%version-%release
-Requires(post):	%{libname} = %epoch:%version-%release
-# versionless require or we will break upgrades
-Requires(preun):	%{libname}
-# we dont, actually
-Requires(postun):	%{libname}
-%else
-%if %{with ldap}
-BuildRequires:	openldap-devel >= 2.1
-%endif
-%if %{with pcre}
-BuildRequires:	pcre-devel
-%endif
-%if %{with mysql}
-BuildRequires:	mysql-devel
-%endif
-%if %{with pgsql}
-BuildRequires:	postgresql-devel >= 8.1.4
-%endif
-%if %{with pam}
-BuildRequires:	pam-devel
-%endif
-%if %{with cdb}
-BuildRequires: libtinycdb-devel
-%endif
-%endif
-# dynamicmaps
-BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-buildroot
 
 %description
 Postfix is a Mail Transport Agent (MTA), supporting LDAP, SMTP AUTH (SASL),
@@ -241,15 +139,12 @@ features you must rebuild the source rpm using the --with ... or --without ...
 rpm option.
 Currently postfix has been built with:
 
-	Smtpd multiline greeting: --%{with_TXT multiline}
-	Virtual Delivery Agent: --%{with_TXT VDA}
 	Munge bare CR: --%{with_TXT barecr}
 	TLS support: --%{with_TXT tls}
 	IPV6 support: --%{with_TXT ipv6}
 	CDB support: --%{with_TXT cdb}
 	Chroot by default: --%{with_TXT chroot}
 
-%if %{with dynamicmaps}
 %package -n %{libname}
 Summary:	Shared libraries required to run Postfix
 Group:		System/Servers
@@ -262,7 +157,7 @@ This package contains shared libraries used by Postfix.
 Summary:	LDAP map support for Postfix
 Group:		System/Servers
 BuildRequires:	openldap-devel >= 2.1
-Requires:	%name = %epoch:%version-%release
+Requires:	%{name} = %EVRD
 
 %description ldap
 This package provides support for LDAP maps in Postfix.
@@ -273,7 +168,7 @@ This package provides support for LDAP maps in Postfix.
 Summary:	PCRE map support for Postfix
 Group:		System/Servers
 BuildRequires:	pcre-devel
-Requires:	%name = %epoch:%version-%release
+Requires:	%{name} = %EVRD
 
 %description pcre
 This package provides support for PCRE (perl compatible regular expression)
@@ -285,7 +180,7 @@ maps in Postfix.
 Summary:	MYSQL map support for Postfix
 Group:		System/Servers
 BuildRequires:	mysql-devel
-Requires:	%name = %epoch:%version-%release
+Requires:	%{name} = %EVRD
 
 %description mysql
 This package provides support for MYSQL maps in Postfix.
@@ -295,28 +190,11 @@ This package provides support for MYSQL maps in Postfix.
 %package pgsql
 Summary:	Postgres SQL map support for Postfix
 Group:		System/Servers
-# From the release notes of postfix-2.2.11:
-# The PostgreSQL client was updated after major database API changes
-# in response to PostgreSQL security issues. This breaks support for
-# PGSQL versions prior to 8.1.4, 8.0.8, 7.4.13, and 7.3.15. Support
-# for these requires major code changes which are not possible in a
-# stable release.
-BuildRequires:	postgresql-devel >= 8.1.4
-Requires:	%name = %epoch:%version-%release
+BuildRequires:	postgresql9.0-devel
+Requires:	%{name} = %EVRD
 
 %description pgsql
 This package provides support for Postgres SQL maps in Postfix.
-%endif
-
-%if %{with pam}
-%package pam
-Summary:	PAM map support for Postfix
-Group:		System/Servers
-BuildRequires:	pam-devel
-Requires:	%name = %epoch:%version-%release
-
-%description pam
-This package provides support for PAM maps in Postfix.
 %endif
 
 %if %{with cdb}
@@ -324,43 +202,30 @@ This package provides support for PAM maps in Postfix.
 Summary:	CDB map support for Postfix
 Group:		System/Servers
 BuildRequires:	libtinycdb-devel
-Requires:	%name = %epoch:%version-%release
+Requires:	%{name} = %EVRD
 
 %description cdb
 This package provides support for CDB maps in Postfix.
 %endif
-%endif
-# dynamicmaps
 
 %prep
-%if ! %{with parallel}
-if [ %{version} != %{distverdot} ]
-%else
-if [ %{version} != %{pver} ]
-%endif
-then
-echo  do not use "mdvsys update" with postfix 1>&2
-exit 1
-fi
-
-%setup -n %{pname}-%{distver} -q
+%setup -q
 
 releasedate=$(eval echo `echo MAIL_RELEASE_DATE | cpp -P -imacros src/global/mail_version.h`)
 pver=$(eval echo `echo MAIL_VERSION_NUMBER | cpp -P -imacros src/global/mail_version.h`)
-if [ "${pver}" != "%{pver}" -o "${releasedate}" != "%{releasedate}" ]; then
+if [ "${pver}" != "%{version}" -o "${releasedate}" != "%{releasedate}" ]; then
 echo version mismatch between source and spec file
-echo MAIL_VERSION_NUMBER="${pver}" spec="%{pver}"
+echo MAIL_VERSION_NUMBER="${pver}" spec="%{version}"
 echo MAIL_RELEASE_DATE="${releasedate}" spec="%{releasedate}"
 exit 1
 fi
 
-%if %{with dynamicmaps}
 %patch0 -p1 -b .dynamic 
+
 # ugly hack for 32/64 arches
 if [ %{_lib} != lib ]; then
 	sed -i -e 's@^/usr/lib/@%{_libdir}/@' conf/postfix-files
 fi
-%endif
 
 # no backup files here, otherwise they get included in %%doc
 %patch1 -p1 -b .mdkconfig
@@ -378,28 +243,8 @@ fi
 %endif
 
 %patch3 -p1 -b .dbupgrade
-
 %patch4 -p1 -b .sdbm 
-
 %patch6 -p1 -b .smtpstone 
-
-# Apply PAM Patch
-%if %{with pam}
-%patch7 -p1 -b .pam
-#rm -f README_FILES/PAM_README.pam
-%endif
-
-# Apply SMTPD Multiline greeting patch
-%if %{with multiline}
-%patch8 -p1 -b .multiline
-%endif
-
-%if %{with VDA}
-%patch9 -p1 -b .vda
-%patch10 -p1 -b .vda-bigquota
-# vda patch does not add documentation to postfix-files
-sed -i.vda -e '/readme_directory\/UUCP_README/a$readme_directory/VDA_README:f:root:-:644' conf/postfix-files
-%endif
 
 %patch11 -p0 -b .format_not_a_string_literal_and_no_format_arguments
 
@@ -437,43 +282,31 @@ sed -e 's/\[\[:<:\]\]/\\</g; s/\[\[:>:\]\]/\\>/g' mantools/postlink.posix > mant
 %build
 %define _disable_ld_no_undefined 1
 %serverbuild
+# it does not work with -fPIE and someone added that to the serverbuild macro...
+CFLAGS=`echo $CFLAGS|sed -e 's|-fPIE||g'`
+CXXFLAGS=`echo $CXXFLAGS|sed -e 's|-fPIE||g'`
+RPM_OPT_FLAGS=`echo $RPM_OPT_FLAGS|sed -e 's|-fPIE||g'`
+
 OPT="$RPM_OPT_FLAGS"
 DEBUG=
 CCARGS=
 AUXLIBS="%{?ldflags:%ldflags}"
+AUXLIBS=`echo $AUXLIBS|sed -e 's|-fPIE||g'`
 
-%ifarch s390 s390x ppc
-OPT="${OPT} -fsigned-char"
-%endif
-
-%if %{with dynamicmaps}
 # the patch is mixed with SDBM support :(
   CCARGS="${CCARGS} -DHAS_SDBM -DHAS_DLOPEN"
-%endif
 
 %if %{with ldap}
   CCARGS="${CCARGS} -DHAS_LDAP"
-%if ! %{with dynamicmaps}
-  AUXLIBS="${AUXLIBS} -lldap -llber"
-%endif
 %endif
 %if %{with pcre}
   CCARGS="${CCARGS} -DHAS_PCRE"
-%if ! %{with dynamicmaps}
-  AUXLIBS="${AUXLIBS} -lpcre"
-%endif
 %endif
 %if %{with mysql}
   CCARGS="${CCARGS} -DHAS_MYSQL -I/usr/include/mysql"
-%if ! %{with dynamicmaps}
-  AUXLIBS="${AUXLIBS} -lmysqlclient"
-%endif
 %endif
 %if %{with pgsql}
   CCARGS="${CCARGS} -DHAS_PGSQL -I/usr/include/pgsql"
-%if ! %{with dynamicmaps}
-  AUXLIBS="${AUXLIBS} -lpq"
-%endif
 %endif
 %if %{with sasl}
   CCARGS="${CCARGS} -DUSE_SASL_AUTH -DUSE_CYRUS_SASL -I/usr/include/sasl"
@@ -488,12 +321,6 @@ OPT="${OPT} -fsigned-char"
 %endif
 %if %{with cdb}
   CCARGS="${CCARGS} -DHAS_CDB"
-%if ! %{with dynamicmaps}
-  AUXLIBS="${AUXLIBS} -lcdb"
-%endif
-%endif
-%if %{with pam}
-  CCARGS="${CCARGS} -DHAS_PAM"
 %endif
 
 export CCARGS AUXLIBS OPT DEBUG
@@ -503,7 +330,6 @@ unset CCARGS AUXLIBS DEBUG OPT
 make
 make manpages
 
-%if %{with dynamicmaps}
 for i in lib/*.a; do
 	j=${i#lib/lib}
 	ln -s ${i#lib/} lib/libpostfix-${j%.a}.so.1
@@ -518,7 +344,6 @@ EOF
 LD_LIBRARY_PATH=$PWD/lib${LD_LIBRARY_PATH:+:}${LD_LIBRARY_PATH} \
 	./src/postconf/postconf -d | \
 	egrep -v '^(myhostname|mydomain|mynetworks) ' >> conf/main.cf.default
-%endif
 
 # add correct parameters to main.cf.dist
 LD_LIBRARY_PATH=$PWD/lib${LD_LIBRARY_PATH:+:}${LD_LIBRARY_PATH} \
@@ -527,103 +352,75 @@ LD_LIBRARY_PATH=$PWD/lib${LD_LIBRARY_PATH:+:}${LD_LIBRARY_PATH} \
 mv conf/dist/main.cf conf/main.cf.dist
 
 %install
-rm -fr %buildroot
+rm -fr %{buildroot}
 
 # install postfix into the build root
 LD_LIBRARY_PATH=$PWD/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH} \
 make non-interactive-package \
-	install_root=%buildroot \
+	install_root=%{buildroot} \
 	config_directory=%{_sysconfdir}/postfix \
 	%post_install_parameters \
 	|| exit 1
 
 mkdir -p %{buildroot}/var/lib/postfix
 
-%if %{with dynamicmaps}
 for i in lib/*.a; do
 	j=${i#lib/lib}
 	install $i %{buildroot}%{_libdir}/libpostfix-${j%.a}.so.1
 done
-%endif
 
 # rpm %%doc macro wants to take his files in buildroot
 rm -fr DOC
 mkdir DOC
-mv %buildroot%{_docdir}/%name/html DOC/html
-mv %buildroot%{_docdir}/%name/README_FILES DOC/README_FILES
+mv %{buildroot}%{_docdir}/%{name}/html DOC/html
+mv %{buildroot}%{_docdir}/%{name}/README_FILES DOC/README_FILES
 
 # for sasl configuration
-/bin/mkdir -p %buildroot%{_sysconfdir}/sasl2
-cp %{SOURCE15} %buildroot%{_sysconfdir}/sasl2/smtpd.conf
-
-# syslog-ng conf for chroot script
-%if "%{distribution}" == "Mandriva Linux"
-	%if %{mdkversion} < 200901
-	cp %{SOURCE16} %buildroot%{_sysconfdir}/postfix/syslog-ng.conf
-	%else
-		%if %{mdkversion} < 201001
-		cp %{SOURCE17} %buildroot%{_sysconfdir}/postfix/syslog-ng.conf
-		%endif
-	%endif
-%endif
+mkdir -p %{buildroot}%{_sysconfdir}/sasl2
+cp %{SOURCE15} %{buildroot}%{_sysconfdir}/sasl2/smtpd.conf
 
 # This installs into the /etc/rc.d/init.d directory
-/bin/mkdir -p %buildroot%{_initrddir}
-install -c %{SOURCE3} %buildroot%{_initrddir}/postfix
-/bin/mkdir -p %buildroot%{_sysconfdir}/pam.d
-install -c %{SOURCE4} %buildroot%{_sysconfdir}/pam.d/smtp
+mkdir -p %{buildroot}%{_initrddir}
+install -c %{SOURCE3} %{buildroot}%{_initrddir}/postfix
+mkdir -p %{buildroot}%{_sysconfdir}/pam.d
+install -c %{SOURCE4} %{buildroot}%{_sysconfdir}/pam.d/smtp
 
-mkdir -p %buildroot%{_sysconfdir}/ppp/ip-{up,down}.d
-install -c %{SOURCE6} %buildroot%{_sysconfdir}/ppp/ip-up.d/postfix
-install -c %{SOURCE7} %buildroot%{_sysconfdir}/ppp/ip-down.d/postfix
+mkdir -p %{buildroot}%{_sysconfdir}/ppp/ip-{up,down}.d
+install -c %{SOURCE6} %{buildroot}%{_sysconfdir}/ppp/ip-up.d/postfix
+install -c %{SOURCE7} %{buildroot}%{_sysconfdir}/ppp/ip-down.d/postfix
 
-%if "%{distribution}" == "Mandriva Linux"
-	%if %mdkversion < 200701
-	mkdir -p %buildroot%{_sysconfdir}/sysconfig/network-scripts/ifup.d
-	install -c %{SOURCE8} %buildroot%{_sysconfdir}/sysconfig/network-scripts/ifup.d/postfix
-	%else
-	mkdir -p %buildroot%{_sysconfdir}/resolvconf/update-libc.d/
-	install -c %{SOURCE8} %buildroot%{_sysconfdir}/resolvconf/update-libc.d/postfix
+mkdir -p %{buildroot}%{_sysconfdir}/resolvconf/update-libc.d/
+install -c %{SOURCE8} %{buildroot}%{_sysconfdir}/resolvconf/update-libc.d/postfix
 
-	mkdir -p %buildroot%{_sysconfdir}/sysconfig
+mkdir -p %{buildroot}%{_sysconfdir}/sysconfig
 
-	%endif
-%else
-	mkdir -p %buildroot%{_sysconfdir}/resolvconf/update-libc.d/
-	install -c %{SOURCE8} %buildroot%{_sysconfdir}/resolvconf/update-libc.d/postfix
-
-	mkdir -p %buildroot%{_sysconfdir}/sysconfig
-%endif
-
-touch %buildroot%{_sysconfdir}/sysconfig/postfix
+touch %{buildroot}%{_sysconfdir}/sysconfig/postfix
 
 # this is used by some examples (cyrus)
-mkdir -p %buildroot%{queue_directory}/extern
+mkdir -p %{buildroot}%{queue_directory}/extern
 
-install -c auxiliary/rmail/rmail %buildroot%{_bindir}/rmail
+install -c auxiliary/rmail/rmail %{buildroot}%{_bindir}/rmail
 
 # copy new aliases files and generate a ghost aliases.db file
-cp -f %{SOURCE5} %buildroot%{_sysconfdir}/postfix/aliases
-chmod 644 %buildroot%{_sysconfdir}/postfix/aliases
-touch %buildroot%{_sysconfdir}/postfix/aliases.db
+cp -f %{SOURCE5} %{buildroot}%{_sysconfdir}/postfix/aliases
+chmod 644 %{buildroot}%{_sysconfdir}/postfix/aliases
+touch %{buildroot}%{_sysconfdir}/postfix/aliases.db
 
 # install chroot script and postfinger
-install -m 0755 %{SOURCE14} %buildroot%{_sbindir}/postfix-chroot.sh
-install -m 0755 %{SOURCE21} %buildroot%{_sbindir}/postfinger
+install -m 0755 %{SOURCE14} %{buildroot}%{_sbindir}/postfix-chroot.sh
+install -m 0755 %{SOURCE21} %{buildroot}%{_sbindir}/postfinger
 
 # install qshape
-install -m755 auxiliary/qshape/qshape.pl %buildroot%{_sbindir}/qshape
-cp man/man1/qshape.1 %buildroot%{_mandir}/man1/qshape.1
+install -m755 auxiliary/qshape/qshape.pl %{buildroot}%{_sbindir}/qshape
+cp man/man1/qshape.1 %{buildroot}%{_mandir}/man1/qshape.1
 
 # RPM compresses man pages automatically.
 # - Edit postfix-files to reflect this, so post-install won't get confused
 #   when called during package installation.
-sed -i -e "s@\(/man[158]/.*\.[158]\):@\1%{_extension}:@" %buildroot%{_libdir}/postfix/postfix-files
+sed -i -e "s@\(/man[158]/.*\.[158]\):@\1%{_extension}:@" %{buildroot}%{_libdir}/postfix/postfix-files
 
-%if %{with dynamicmaps}
 # remove files that are not in the main package
-sed -i -e "/dict_.*\.so/d" %buildroot%{_libdir}/postfix/postfix-files
-%endif
+sed -i -e "/dict_.*\.so/d" %{buildroot}%{_libdir}/postfix/postfix-files
 
 # remove sample_directory from main.cf (#15297)
 # the default is /etc/postfix
@@ -746,11 +543,7 @@ if [ ! -e %{sendmail_command} ]; then
 fi
 %endif
 
-%clean
-rm -rf %buildroot
-
 %files
-%defattr(-, root, root, 755)
 %dir %{_sysconfdir}/postfix
 %config(noreplace) %{_sysconfdir}/sasl2/smtpd.conf
 %config(noreplace) %{_sysconfdir}/postfix/main.cf
@@ -769,29 +562,12 @@ rm -rf %buildroot
 %config(noreplace) %{_sysconfdir}/postfix/transport
 %config(noreplace) %{_sysconfdir}/postfix/virtual
 %{_sysconfdir}/postfix/makedefs.out
-%if %{with dynamicmaps}
 %config(noreplace) %{_sysconfdir}/postfix/dynamicmaps.cf
-%endif
-%if "%{distribution}" == "Mandriva Linux"
-	%if %{mdkversion} < 201001
-	%config(noreplace) %{_sysconfdir}/postfix/syslog-ng.conf
-	%endif
-%endif
-
 %attr(0755, root, root) %{_initrddir}/postfix
 %attr(0644, root, root) %config(noreplace) %{_sysconfdir}/pam.d/smtp
 %attr(0755, root, root) %config(noreplace) %{_sysconfdir}/ppp/ip-up.d/postfix
 %attr(0755, root, root) %config(noreplace) %{_sysconfdir}/ppp/ip-down.d/postfix
-
-%if "%{distribution}" == "Mandriva Linux"
-	%if %mdkversion < 200701
-	%attr(0755, root, root) %config(noreplace) %{_sysconfdir}/sysconfig/network-scripts/ifup.d/postfix
-	%else
-	%attr(0755, root, root) %config(noreplace) %{_sysconfdir}/resolvconf/update-libc.d/postfix
-	%endif
-%else
-	%attr(0755, root, root) %config(noreplace) %{_sysconfdir}/resolvconf/update-libc.d/postfix
-%endif
+%attr(0755, root, root) %config(noreplace) %{_sysconfdir}/resolvconf/update-libc.d/postfix
 %ghost %{_sysconfdir}/sysconfig/postfix
 
 %dir %attr(0700, postfix, root) /var/lib/postfix
@@ -880,26 +656,20 @@ rm -rf %buildroot
 %attr(0755, root, root) %{_sbindir}/postmap
 %attr(0755, root, root) %{_sbindir}/postmulti
 %attr(0755, root, root) %{_sbindir}/postsuper
-
 %attr(0755, root, root) %{_sbindir}/qmqp-sink
 %attr(0755, root, root) %{_sbindir}/qmqp-source
 %attr(0755, root, root) %{_sbindir}/smtp-sink
 %attr(0755, root, root) %{_sbindir}/smtp-source
-
 %attr(0755, root, root) %{_sbindir}/postfinger
 %attr(0755, root, root) %{_sbindir}/postfix-chroot.sh
 %attr(0755, root, root) %{_sbindir}/qshape
-
 %attr(0755, root, root) %{sendmail_command}
 %attr(0755, root, root) %{_bindir}/mailq
 %attr(0755, root, root) %{_bindir}/newaliases
 %attr(0755, root, root) %{_bindir}/rmail
-
 %{_mandir}/*/*
 
-%if %{with dynamicmaps}
 %files -n %{libname}
-%defattr(755, root, root)
 %attr(0755, root, root) %{_libdir}/libpostfix-dns.so.1
 %attr(0755, root, root) %{_libdir}/libpostfix-global.so.1
 %attr(0755, root, root) %{_libdir}/libpostfix-master.so.1
@@ -908,17 +678,10 @@ rm -rf %buildroot
 %attr(0755, root, root) %{_libdir}/libpostfix-milter.so.1
 %attr(0755, root, root) %{_libdir}/libpostfix-xsasl.so.1
 
-%if "%{distribution}" == "Mandriva Linux"
-	%if %mdkversion < 200900
-	%post -n %{libname} -p /sbin/ldconfig
-
-	%postun -n %{libname} -p /sbin/ldconfig
-	%endif
-%endif
-
 %if %{with ldap}
 %files ldap
 %attr(755, root, root) %{_libdir}/postfix/dict_ldap.so
+
 %post ldap
 %dynmap_add_cmd ldap
 %postun ldap
@@ -928,24 +691,17 @@ rm -rf %buildroot
 %if %{with mysql}
 %files mysql
 %attr(755, root, root) %{_libdir}/postfix/dict_mysql.so 
+
 %post mysql
 %dynmap_add_cmd mysql
 %postun mysql
 %dynmap_rm_cmd mysql
 %endif
 
-%if %{with pam}
-%files pam
-%attr(755, root, root) %{_libdir}/postfix/dict_pam.so
-%post pam
-%dynmap_add_cmd pam
-%postun pam
-%dynmap_rm_cmd pam
-%endif
-
 %if %{with pcre}
 %files pcre
 %attr(755, root, root) %{_libdir}/postfix/dict_pcre.so
+
 %post pcre
 %dynmap_add_cmd pcre
 %postun pcre
@@ -955,16 +711,17 @@ rm -rf %buildroot
 %if %{with pgsql}
 %files pgsql
 %attr(755, root, root) %{_libdir}/postfix/dict_pgsql.so
+
 %post pgsql
 %dynmap_add_cmd pgsql
 %postun pgsql
 %dynmap_rm_cmd pgsql
 %endif
-%endif
 
 %if %{with cdb}
 %files cdb
 %attr(755, root, root) %{_libdir}/postfix/dict_cdb.so
+
 %post cdb
 %dynmap_add_cmd cdb -m
 %postun cdb
