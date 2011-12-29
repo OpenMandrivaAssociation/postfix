@@ -29,7 +29,7 @@ Summary:	Postfix Mail Transport Agent
 Name:		postfix
 Epoch:		1
 Version:	2.8.7
-Release:	1
+Release:	2
 License:	IBM Public License
 Group:		System/Servers
 URL:		http://www.postfix.org/
@@ -100,6 +100,9 @@ Requires: diffutils
 Requires: gawk
 Requires(pre,post,postun,preun): rpm-helper >= 0.3
 Requires(pre,post):	sed
+%if %{with tls}
+Requires(post):	openssl
+%endif
 Requires(post,preun): update-alternatives
 Requires(post,preun): %{libname} >= %EVRD
 
@@ -428,12 +431,17 @@ for old_smtpd_conf in /etc/postfix/sasl/smtpd.conf %{_libdir}/sasl2/smtpd.conf; 
 	fi
 done
 
+%if %{with tls}
 %_create_ssl_certificate postfix
+%endif
 
 if [ -e /etc/sysconfig/postfix ]; then
 	%{_sbindir}/postfix-chroot.sh -q update
-%if !%{with chroot}
+else
+%if %{with chroot}
 	%{_sbindir}/postfix-chroot.sh -q enable
+%else
+	%{_sbindir}/postfix-chroot.sh -q create_sysconfig
 %endif
 fi
 %_post_service postfix
