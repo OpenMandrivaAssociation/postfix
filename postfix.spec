@@ -10,6 +10,7 @@
 %bcond_without ldap
 %bcond_without mysql
 %bcond_without pgsql
+%bcond_without sqlite
 %bcond_without pcre
 %bcond_without sasl
 %bcond_without tls
@@ -28,8 +29,8 @@
 Summary:	Postfix Mail Transport Agent
 Name:		postfix
 Epoch:		1
-Version:	2.8.7
-Release:	4
+Version:	2.9.1
+Release:	1
 License:	IBM Public License
 Group:		System/Servers
 URL:		http://www.postfix.org/
@@ -58,21 +59,20 @@ Source26:	http://jimsun.LinxNet.com/misc/header_checks.txt
 Source27:	http://jimsun.LinxNet.com/misc/body_checks.txt
 
 # Dynamic map patch taken from debian's package
-Patch0:		postfix-2.8.3-dynamicmaps.diff
+Patch0:		postfix-2.9.1-dynamicmaps.diff
+Patch5:		postfix-2.9.1-dynamicmaps2.diff
 
-Patch1:		postfix-2.8.3-mdkconfig.diff
+Patch1:		postfix-2.9.1-mdkconfig.diff
 Patch2:		postfix-alternatives-mdk.patch
 
 # dbupgrade patch patch split from dynamicmaps one
-Patch3:		postfix-2.8.3-dbupgrade.diff
+Patch3:		postfix-2.9.1-dbupgrade.diff
 
 # sdbm patch patch split from dynamicmaps one
 Patch4:		postfix-2.7.0-sdbm.patch
 
 # Shamelessy stolen from debian
 Patch6:		postfix-2.2.4-smtpstone.patch
-
-Patch11:	postfix-2.8.3-format_not_a_string_literal_and_no_format_arguments.diff
 
 BuildRequires:	db-devel
 BuildRequires:	gawk
@@ -171,6 +171,17 @@ Requires:	%{name} = %EVRD
 
 %description pgsql
 This package provides support for Postgres SQL maps in Postfix.
+%endif
+
+%if %{with sqlite}
+%package sqlite
+Summary:	SQLite map support for Postfix
+Group:		System/Servers
+BuildRequires:	sqlite3-devel
+Requires:	%{name} = %EVRD
+
+%description sqlite
+This package provides support for SQLite maps in Postfix.
 %endif
 
 %if %{with cdb}
@@ -667,6 +678,16 @@ fi
 %dynmap_add_cmd pgsql
 %postun pgsql
 %dynmap_rm_cmd pgsql
+%endif
+
+%if %{with sqlite}
+%files sqlite
+%attr(755, root, root) %{_libdir}/postfix/dict_sqlite.so
+
+%post sqlite
+%dynmap_add_cmd sqlite
+%postun sqlite
+%dynmap_rm_cmd sqlite
 %endif
 
 %if %{with cdb}
