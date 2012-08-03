@@ -105,6 +105,7 @@ Requires(post):	openssl
 %endif
 Requires(post,preun): update-alternatives
 Requires(post,preun): %{libname} >= %EVRD
+Requires: %name-config >= 2.9.0-1
 
 %description
 Postfix is a Mail Transport Agent (MTA), supporting LDAP, SMTP AUTH (SASL),
@@ -194,6 +195,18 @@ Requires:	%{name} = %EVRD
 %description cdb
 This package provides support for CDB maps in Postfix.
 %endif
+
+%package config-standalone
+Summary: Default configuration files for running Postfix standalone
+Provides: %name-config = %version-%release
+Conflicts: %name-config-dovecot
+
+%description config-standalone
+Default configuration files for running Postfix standalone.
+
+Use this config if you intend to run Postfix without dovecot.
+Alternatively, install %name-config-dovecot for the
+postfix/dovecot combo.
 
 %prep
 %setup -q
@@ -508,12 +521,6 @@ fi
 %files
 %dir %{_sysconfdir}/postfix
 %config(noreplace) %{_sysconfdir}/sasl2/smtpd.conf
-%config(noreplace) %{_sysconfdir}/postfix/main.cf
-# http://archives.mandrivalinux.com/cooker/2005-07/msg01109.php
-%{_sysconfdir}/postfix/main.cf.dist
-%{_sysconfdir}/postfix/main.cf.default
-%{_sysconfdir}/postfix/bounce.cf.default
-%config(noreplace) %{_sysconfdir}/postfix/master.cf
 %config(noreplace) %{_sysconfdir}/postfix/access
 %config(noreplace) %{_sysconfdir}/postfix/aliases
 %ghost %{_sysconfdir}/postfix/aliases.db
@@ -570,8 +577,6 @@ fi
 %doc UCE
 
 %dir %{_libdir}/postfix
-%attr(0644, root, root) %{_libdir}/postfix/main.cf
-%attr(0644, root, root) %{_libdir}/postfix/master.cf
 %attr(0644, root, root) %{_libdir}/postfix/postfix-files
 %attr(0755, root, root) %{_libdir}/postfix/anvil
 %attr(0755, root, root) %{_libdir}/postfix/bounce
@@ -700,3 +705,12 @@ fi
 %dynmap_rm_cmd cdb
 %endif
 
+%files config-standalone
+%config(noreplace) %{_sysconfdir}/postfix/main.cf
+# http://archives.mandrivalinux.com/cooker/2005-07/msg01109.php
+%{_sysconfdir}/postfix/main.cf.dist
+%{_sysconfdir}/postfix/main.cf.default
+%{_sysconfdir}/postfix/bounce.cf.default
+%config(noreplace) %{_sysconfdir}/postfix/master.cf
+%attr(0644, root, root) %{_libdir}/postfix/main.cf
+%attr(0644, root, root) %{_libdir}/postfix/master.cf
