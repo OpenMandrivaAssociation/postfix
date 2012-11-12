@@ -1,0 +1,416 @@
+--- postfix-2.9.1/conf/master.cf.0001~	2011-12-14 18:44:24.000000000 +0100
++++ postfix-2.9.1/conf/master.cf	2012-05-11 15:26:04.940314767 +0200
+@@ -4,6 +4,9 @@
+ #
+ # Do not forget to execute "postfix reload" after editing this file.
+ #
++# The script postfix-chroot.sh can be used to set up a Postfix chroot
++# environment on your Mandrivalinux System.
++#
+ # ==========================================================================
+ # service type  private unpriv  chroot  wakeup  maxproc command + args
+ #               (yes)   (yes)   (yes)   (never) (100)
+@@ -27,6 +30,8 @@ smtp      inet  n       -       n
+ #  -o milter_macro_daemon_name=ORIGINATING
+ #628       inet  n       -       n       -       -       qmqpd
+ pickup    fifo  n       -       n       60      1       pickup
++  -o content_filter=
++  -o receive_override_options=
+ cleanup   unix  n       -       n       -       0       cleanup
+ qmgr      fifo  n       -       n       300     1       qmgr
+ #qmgr     fifo  n       -       n       300     1       oqmgr
+@@ -65,33 +70,30 @@ scache    unix  -       -       n
+ # Also specify in main.cf: maildrop_destination_recipient_limit=1
+ #
+ #maildrop  unix  -       n       n       -       -       pipe
+-#  flags=DRhu user=vmail argv=/usr/local/bin/maildrop -d ${recipient}
++#  flags=DRhu user=nobody argv=/usr/bin/maildrop -d ${recipient}
+ #
+ # ====================================================================
+ #
+-# Recent Cyrus versions can use the existing "lmtp" master.cf entry.
+-#
+-# Specify in cyrus.conf:
+-#   lmtp    cmd="lmtpd -a" listen="localhost:lmtp" proto=tcp4
+-#
+-# Specify in main.cf one or more of the following:
+-#  mailbox_transport = lmtp:inet:localhost
+-#  virtual_transport = lmtp:inet:localhost
+-#
+-# ====================================================================
+-#
+-# Cyrus 2.1.5 (Amos Gouaux)
+-# Also specify in main.cf: cyrus_destination_recipient_limit=1
+-#
+-#cyrus     unix  -       n       n       -       -       pipe
+-#  user=cyrus argv=/cyrus/bin/deliver -e -r ${sender} -m ${extension} ${user}
+-#
+-# ====================================================================
+-#
+-# Old example of delivery via Cyrus.
+-#
+-#old-cyrus unix  -       n       n       -       -       pipe
+-#  flags=R user=cyrus argv=/cyrus/bin/deliver -e -m ${extension} ${user}
++# Please See the Postfix CYRUS_README file for details
++# deliver interface (deprecated), to use this also use
++# postconf -e cyrus-deliver_destination_recipient_limit=1
++cyrus-deliver     unix  -       n       n       -       -       pipe
++  user=cyrus argv=/usr/lib/cyrus-imapd/deliver -e -r ${sender} -m ${extension} ${user}
++#
++# for default cyrus socket placement
++cyrus     unix  -       n       n       -       -       lmtp
++  -o lmtp_cache_connection=yes
++#
++# if you configure cyrus socket in the chroot jail
++cyrus-chroot     unix  -       -       y       -       -       lmtp
++  -o lmtp_cache_connection=yes
++#
++# for lmtp to cyrus via tcp
++cyrus-inet     unix  -       -       n       -       -       lmtp
++  -o lmtp_cache_connection=yes
++  -o lmtp_sasl_auth_enable=yes
++  -o lmtp_sasl_password_maps=hash:/etc/postfix/cyrus_lmtp_sasl_pass
++  -o lmtp_sasl_security_options=noanonymous
+ #
+ # ====================================================================
+ #
+@@ -103,6 +105,7 @@ scache    unix  -       -       n
+ # ====================================================================
+ #
+ # Other external delivery methods.
++# These are not distributed with Mandrivalinux
+ #
+ #ifmail    unix  -       n       n       -       -       pipe
+ #  flags=F user=ftn argv=/usr/lib/ifmail/ifmail -r $nexthop ($recipient)
+@@ -117,3 +120,55 @@ scache    unix  -       -       n
+ #mailman   unix  -       n       n       -       -       pipe
+ #  flags=FR user=list argv=/usr/lib/mailman/bin/postfix-to-mailman.py
+ #  ${nexthop} ${user}
++#
++##### START OF CONTENT FILTER CUSTOMIZATIONS #####
++# Please see the Postfix FILTER_README for details.
++# These sample entries expect your content filter to
++# listen on port 10025 and to inject mail back into
++# postfix on port 10026.
++#
++# to enable such content filter run the command
++#    postconf -e content_filter=smtp-filter:127.0.0.1:10025
++#    postconf -e smtp-filter_destination_concurrency_limit=2
++# or
++#    postconf -e content_filter=lmtp-filter:127.0.0.1:10025
++#    postconf -e lmtp-filter_destination_concurrency_limit=2
++# and the command
++#    postconf -e receive_override_options=no_address_mappings
++#
++# adjust the value of ?mtp-filter_destination_concurrency_limit
++# to match the maximum number of process your content filter
++# will spawn.
++#
++127.0.0.1:10026        inet    n       -       n       -       -       smtpd
++  -o content_filter=
++  -o smtpd_restriction_classes=
++  -o smtpd_client_restrictions=permit_mynetworks,reject
++  -o smtpd_helo_restrictions=
++  -o smtpd_sender_restrictions=
++  -o smtpd_end_of_data_restrictions=
++  -o smtpd_etrn_restrictions=
++  -o smtpd_data_restrictions=
++  -o smtpd_delay_reject=no
++  -o smtpd_recipient_restrictions=permit_mynetworks,reject
++  -o mynetworks=127.0.0.0/8
++  -o smtpd_authorized_xforward_hosts=127.0.0.0/8
++  -o strict_rfc821_envelopes=yes
++  -o smtpd_error_sleep_time=0
++  -o smtpd_soft_error_limit=1001
++  -o smtpd_hard_error_limit=1000
++  -o receive_override_options=no_unknown_recipient_checks,no_header_body_checks
++#
++lmtp-filter    unix    -      -        n       -       -       lmtp
++  -o lmtp_data_done_timeout=1200
++  -o lmtp_send_xforward_command=yes
++  -o lmtp_cache_connection=no
++  -o max_use=20
++#
++smtp-filter    unix    -      -        n       -       -       smtp
++  -o smtp_data_done_timeout=1200
++  -o smtp_send_xforward_command=yes
++  -o max_use=20
++#
++##### END OF CONTENT FILTER CUSTOMIZATIONS #####
++
+--- postfix-2.9.1/conf/postfix-files.0001~	2012-05-11 15:26:04.934314767 +0200
++++ postfix-2.9.1/conf/postfix-files	2012-05-11 15:26:04.940314767 +0200
+@@ -125,8 +125,6 @@ $command_directory/postqueue:f:root:$set
+ $sendmail_path:f:root:-:755
+ $newaliases_path:l:$sendmail_path
+ $mailq_path:l:$sendmail_path
+-$config_directory/LICENSE:f:root:-:644:1
+-$config_directory/TLS_LICENSE:f:root:-:644:1
+ $config_directory/access:f:root:-:644:p1
+ $config_directory/aliases:f:root:-:644:p1
+ $config_directory/bounce.cf.default:f:root:-:644:1
+@@ -138,6 +136,7 @@ $config_directory/generics:f:root:-:644:
+ $config_directory/header_checks:f:root:-:644:p1
+ $config_directory/install.cf:f:root:-:644:o
+ $config_directory/main.cf.default:f:root:-:644:1
++$config_directory/main.cf.dist:f:root:-:644:1
+ $config_directory/main.cf:f:root:-:644:p
+ $config_directory/makedefs.out:f:root:-:644:1
+ $config_directory/master.cf:f:root:-:644:p
+@@ -237,6 +236,7 @@ $sample_directory/sample-misc.cf:f:root:
+ $sample_directory/sample-pcre-access.cf:f:root:-:644:o
+ $sample_directory/sample-pcre-body.cf:f:root:-:644:o
+ $sample_directory/sample-pcre-header.cf:f:root:-:644:o
++$sample_directory/sample-pgsql.cf:f:root:-:644:o
+ $sample_directory/sample-pgsql-aliases.cf:f:root:-:644:o
+ $sample_directory/sample-qmqpd.cf:f:root:-:644:o
+ $sample_directory/sample-rate.cf:f:root:-:644:o
+@@ -290,7 +290,6 @@ $readme_directory/PGSQL_README:f:root:-:
+ $readme_directory/POSTSCREEN_README:f:root:-:644
+ $readme_directory/QMQP_README:f:root:-:644:o
+ $readme_directory/QSHAPE_README:f:root:-:644
+-$readme_directory/RELEASE_NOTES:f:root:-:644
+ $readme_directory/RESTRICTION_CLASS_README:f:root:-:644
+ $readme_directory/SASL_README:f:root:-:644
+ $readme_directory/SCHEDULER_README:f:root:-:644
+--- postfix-2.9.1/HISTORY.0001~	2012-02-18 13:13:45.000000000 +0100
++++ postfix-2.9.1/HISTORY	2012-05-11 15:26:04.942314765 +0200
+@@ -6945,7 +6945,7 @@ Apologies for any names omitted.
+ 	This involved a further rewrite of the regexp map code.
+ 	File: util/dict_regexp.c.
+ 
+-200209010
++20020910
+ 
+ 	Bugfix: the SMTP client produced suprious warnings about
+ 	trouble with fallback_relay hosts. File:  smtp/smtp_connect.c.
+@@ -6953,7 +6953,7 @@ Apologies for any names omitted.
+ 	Robustness: don't wait with detecting broken SMTP connections
+ 	until reading input. Leandro Santi. File: smtpd/smtpd_chat.c.
+ 
+-200209011
++20020911
+ 
+ 	Workaround: IRIX 6 can't do ioctl FIONREAD on pipes. This
+ 	breaks the in_flow_delay feature.  File:  util/sys_defs.h.
+--- postfix-2.9.1/proto/INSTALL.html.0001~	2012-01-17 20:53:14.000000000 +0100
++++ postfix-2.9.1/proto/INSTALL.html	2012-05-11 15:26:04.942314765 +0200
+@@ -151,6 +151,8 @@ Linux Slackware 3.x, 4.x, 7.x <br>
+ Linux SuSE 5.x, 6.x, 7.x <br>
+ Linux Ubuntu 4.10..7.04<br>
+ Mac OS X <br>
++Mandrakelinux 7.x - 10.x <br>
++Mandriva Linux 2005 - 2012
+ NEXTSTEP 3.x <br>
+ NetBSD 1.x <br>
+ OPENSTEP 4.x <br>
+--- postfix-2.9.1/proto/LDAP_README.html.0001~	2010-12-02 17:23:41.000000000 +0100
++++ postfix-2.9.1/proto/LDAP_README.html	2012-05-11 15:26:04.942314765 +0200
+@@ -63,9 +63,9 @@ package.  </p>
+ <p> Note 1: Postfix no longer supports the LDAP version 1 interface.
+ </p>
+ 
+-<p> Note 2: to use LDAP with Debian GNU/Linux's Postfix, all you
+-need is to install the postfix-ldap package and you're done.  There
+-is no need to recompile Postfix. </p>
++<p> Note 2: to use LDAP with Mandriva Linux or Debian GNU/Linux's
++Postfix, all you need is to install the postfix-ldap package and
++you're done.  There is no need to recompile Postfix. </p>
+ 
+ <p> You need to have LDAP libraries and include files installed
+ somewhere on your system, and you need to configure the Postfix
+--- postfix-2.9.1/proto/MYSQL_README.html.0001~	2008-01-12 03:11:23.000000000 +0100
++++ postfix-2.9.1/proto/MYSQL_README.html	2012-05-11 15:26:04.942314765 +0200
+@@ -38,9 +38,9 @@ code as described in the INSTALL documen
+ be required if you build Postfix from a vendor-specific source
+ package.  </p>
+ 
+-<p> Note: to use mysql with Debian GNU/Linux's Postfix, all you
+-need is to install the postfix-mysql package and you're done.
+-There is no need to recompile Postfix. </p>
++<p> Note: to use mysql with Mandriva Linux or Debian GNU/Linux's
++Postfix, all you need is to install the postfix-mysql package and
++you're done.  There is no need to recompile Postfix. </p>
+ 
+ <p> The Postfix MySQL client utilizes the mysql client library,
+ which can be obtained from: </p>
+--- postfix-2.9.1/proto/PCRE_README.html.0001~	2008-01-12 03:14:37.000000000 +0100
++++ postfix-2.9.1/proto/PCRE_README.html	2012-05-11 15:26:04.942314765 +0200
+@@ -37,9 +37,9 @@ code as described in the INSTALL documen
+ be required if you build Postfix from a vendor-specific source
+ package.  </p>
+ 
+-<p> Note: to use pcre with Debian GNU/Linux's Postfix, all you
+-need is to install the postfix-pcre package and you're done.  There
+-is no need to recompile Postfix. </p>
++<p> Note: to use pcre with Mandriva Linux or Debian GNU/Linux's
++Postfix, all you need is to install the postfix-pcre package and
++you're done.  There is no need to recompile Postfix. </p>
+ 
+ <p> In some future, Postfix will have a plug-in interface for adding
+ map types. Until then, you need to compile PCRE support into Postfix.
+--- postfix-2.9.1/proto/PGSQL_README.html.0001~	2008-01-12 03:11:34.000000000 +0100
++++ postfix-2.9.1/proto/PGSQL_README.html	2012-05-11 15:26:04.942314765 +0200
+@@ -38,9 +38,9 @@ code as described in the INSTALL documen
+ be required if you build Postfix from a vendor-specific source
+ package.  </p>
+ 
+-<p> Note: to use pgsql with Debian GNU/Linux's Postfix, all you
+-need to do is to install the postfix-pgsql package and you're done.
+-There is no need to recompile Postfix. </p>
++<p> Note: to use pgsql with Mandriva Linux or Debian GNU/Linux's
++Postfix, all you need to do is to install the postfix-pgsql package
++and you're done.  There is no need to recompile Postfix. </p>
+ 
+ <p> In order to build Postfix with pgsql map support, you specify
+ -DHAS_PGSQL, the directory with the PostgreSQL header files, and
+--- postfix-2.9.1/README_FILES/INSTALL.0001~	2012-01-17 20:58:01.000000000 +0100
++++ postfix-2.9.1/README_FILES/INSTALL	2012-05-11 15:26:04.943314765 +0200
+@@ -90,6 +90,8 @@ At some point in time, a version of Post
+     Linux SuSE 5.x, 6.x, 7.x
+     Linux Ubuntu 4.10..7.04
+     Mac OS X
++    Mandrakelinux 7.x - 10.x
++    Mandriva Linux 2005 - 2012.x
+     NEXTSTEP 3.x
+     NetBSD 1.x
+     OPENSTEP 4.x
+--- postfix-2.9.1/README_FILES/LDAP_README.0001~	2010-12-02 17:23:59.000000000 +0100
++++ postfix-2.9.1/README_FILES/LDAP_README	2012-05-11 15:26:04.943314765 +0200
+@@ -32,9 +32,9 @@ from a vendor-specific source package.
+ 
+ Note 1: Postfix no longer supports the LDAP version 1 interface.
+ 
+-Note 2: to use LDAP with Debian GNU/Linux's Postfix, all you need is to install
+-the postfix-ldap package and you're done. There is no need to recompile
+-Postfix.
++Note 2: to use LDAP with Mandriva Linux or Debian GNU/Linux's Postfix, all you
++need is to install the postfix-ldap package and you're done. There is no need
++to recompile Postfix.
+ 
+ You need to have LDAP libraries and include files installed somewhere on your
+ system, and you need to configure the Postfix Makefiles accordingly.
+--- postfix-2.9.1/README_FILES/MYSQL_README.0001~	2008-01-12 03:14:53.000000000 +0100
++++ postfix-2.9.1/README_FILES/MYSQL_README	2012-05-11 15:26:04.943314765 +0200
+@@ -21,9 +21,9 @@ These instructions assume that you build
+ in the INSTALL document. Some modification may be required if you build Postfix
+ from a vendor-specific source package.
+ 
+-Note: to use mysql with Debian GNU/Linux's Postfix, all you need is to install
+-the postfix-mysql package and you're done. There is no need to recompile
+-Postfix.
++Note: to use mysql with Mandriva Linux or Debian GNU/Linux's Postfix, all you
++need is to install the postfix-mysql package and you're done. There is no need
++to recompile Postfix.
+ 
+ The Postfix MySQL client utilizes the mysql client library, which can be
+ obtained from:
+--- postfix-2.9.1/README_FILES/PCRE_README.0001~	2008-01-12 03:14:54.000000000 +0100
++++ postfix-2.9.1/README_FILES/PCRE_README	2012-05-11 15:26:04.943314765 +0200
+@@ -20,9 +20,9 @@ These instructions assume that you build
+ in the INSTALL document. Some modification may be required if you build Postfix
+ from a vendor-specific source package.
+ 
+-Note: to use pcre with Debian GNU/Linux's Postfix, all you need is to install
+-the postfix-pcre package and you're done. There is no need to recompile
+-Postfix.
++Note: to use pcre with Mandriva Linux or Debian GNU/Linux's Postfix, all you
++need is to install the postfix-pcre package and you're done. There is no need
++to recompile Postfix.
+ 
+ In some future, Postfix will have a plug-in interface for adding map types.
+ Until then, you need to compile PCRE support into Postfix.
+--- postfix-2.9.1/README_FILES/PGSQL_README.0001~	2008-01-12 03:14:54.000000000 +0100
++++ postfix-2.9.1/README_FILES/PGSQL_README	2012-05-11 15:26:04.943314765 +0200
+@@ -21,9 +21,9 @@ These instructions assume that you build
+ in the INSTALL document. Some modification may be required if you build Postfix
+ from a vendor-specific source package.
+ 
+-Note: to use pgsql with Debian GNU/Linux's Postfix, all you need to do is to
+-install the postfix-pgsql package and you're done. There is no need to
+-recompile Postfix.
++Note: to use pgsql with Mandriva Linux or Debian GNU/Linux's Postfix, all you
++need to do is to install the postfix-pgsql package and you're done. There is no
++need to recompile Postfix.
+ 
+ In order to build Postfix with pgsql map support, you specify -DHAS_PGSQL, the
+ directory with the PostgreSQL header files, and the location of the libpq
+--- postfix-2.9.1/src/global/mail_params.h.0001~	2012-01-15 01:36:37.000000000 +0100
++++ postfix-2.9.1/src/global/mail_params.h	2012-05-11 15:26:04.943314765 +0200
+@@ -468,11 +468,7 @@ extern bool var_percent_hack;
+   * Local delivery: alias databases.
+   */
+ #define VAR_ALIAS_MAPS		"alias_maps"
+-#ifdef HAS_NIS
+-#define DEF_ALIAS_MAPS		ALIAS_DB_MAP ", nis:mail.aliases"
+-#else
+ #define DEF_ALIAS_MAPS		ALIAS_DB_MAP
+-#endif
+ extern char *var_alias_maps;
+ 
+  /*
+--- postfix-2.9.1/src/util/sys_defs.h.0001~	2012-01-17 17:29:55.000000000 +0100
++++ postfix-2.9.1/src/util/sys_defs.h	2012-05-11 15:27:46.191311747 +0200
+@@ -54,7 +54,7 @@
+ #define ALIAS_DB_MAP   "hash:/etc/mail/aliases"	/* OpenBSD 2.7 */
+ #endif
+ #ifndef ALIAS_DB_MAP
+-#define ALIAS_DB_MAP	"hash:/etc/aliases"
++#define ALIAS_DB_MAP	"hash:/etc/postfix/aliases"
+ #endif
+ #define GETTIMEOFDAY(t)	gettimeofday(t,(struct timezone *) 0)
+ #define ROOT_PATH	"/bin:/usr/bin:/sbin:/usr/sbin"
+@@ -757,7 +757,7 @@ extern int initgroups(const char *, int)
+ #define HAS_FSYNC
+ #define HAS_DB
+ #define DEF_DB_TYPE	"hash"
+-#define ALIAS_DB_MAP	"hash:/etc/aliases"
++#define ALIAS_DB_MAP	"hash:/etc/postfix/aliases"
+ #ifndef NO_NIS
+ #define HAS_NIS
+ #endif
+@@ -772,7 +772,7 @@ extern int initgroups(const char *, int)
+ #define NATIVE_MAILQ_PATH "/usr/bin/mailq"
+ #define NATIVE_NEWALIAS_PATH "/usr/bin/newaliases"
+ #define NATIVE_COMMAND_DIR "/usr/sbin"
+-#define NATIVE_DAEMON_DIR "/usr/libexec/postfix"
++#define NATIVE_DAEMON_DIR "/usr/lib/postfix"
+ #ifdef __GLIBC_PREREQ
+ # define HAVE_GLIBC_API_VERSION_SUPPORT(maj, min) __GLIBC_PREREQ(maj, min)
+ #else
+@@ -834,7 +834,7 @@ extern int initgroups(const char *, int)
+ #define HAS_FSYNC
+ #define HAS_DB
+ #define DEF_DB_TYPE	"hash"
+-#define ALIAS_DB_MAP	"hash:/etc/aliases"
++#define ALIAS_DB_MAP	"hash:/etc/postfix/aliases"
+ #ifndef NO_NIS
+ #define HAS_NIS
+ #endif
+@@ -868,7 +868,7 @@ extern int initgroups(const char *, int)
+ #define HAS_FSYNC
+ #define HAS_DB
+ #define DEF_DB_TYPE	"hash"
+-#define ALIAS_DB_MAP	"hash:/etc/aliases"
++#define ALIAS_DB_MAP	"hash:/etc/postfix/aliases"
+ #ifndef NO_NIS
+ #define HAS_NIS
+ #endif
+@@ -958,7 +958,7 @@ extern int h_errno;			/* <netdb.h> impor
+ #define NATIVE_MAILQ_PATH "/usr/bin/mailq"
+ #define NATIVE_NEWALIAS_PATH "/usr/bin/newaliases"
+ #define NATIVE_COMMAND_DIR "/usr/sbin"
+-#define NATIVE_DAEMON_DIR "/usr/libexec/postfix"
++#define NATIVE_DAEMON_DIR "/usr/lib/postfix"
+ #endif
+ 
+ #ifdef HPUX10
+@@ -997,7 +997,7 @@ extern int h_errno;			/* <netdb.h> impor
+ #define NATIVE_MAILQ_PATH "/usr/bin/mailq"
+ #define NATIVE_NEWALIAS_PATH "/usr/bin/newaliases"
+ #define NATIVE_COMMAND_DIR "/usr/sbin"
+-#define NATIVE_DAEMON_DIR "/usr/libexec/postfix"
++#define NATIVE_DAEMON_DIR "/usr/lib/postfix"
+ #endif
+ 
+ #ifdef HPUX9

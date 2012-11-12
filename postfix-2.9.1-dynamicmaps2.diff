@@ -1,0 +1,11 @@
+--- postfix-2.8.3/conf/dynamicmaps.cf   1970-01-01 01:00:00.000000000 +0100
++++ postfix-2.8.3.oden/conf/dynamicmaps.cf      2011-05-17 09:49:18.715471760 +0200
+@@ -0,0 +1,7 @@
++# Postfix dynamic maps configuration file.
++#
++# The first match found is the one that is used.  Wildcards are not
++# supported.
++#
++#type  location of .so file           name of open function  name of mkmap function
++#====  =============================  =====================  ======================
+

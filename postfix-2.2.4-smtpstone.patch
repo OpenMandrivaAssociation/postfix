@@ -1,0 +1,24 @@
+--- postfix-2.2.4/conf/postfix-files.stone	2005-07-01 15:24:14.000000000 -0300
++++ postfix-2.2.4/conf/postfix-files	2005-07-01 15:27:52.000000000 -0300
+@@ -109,6 +109,10 @@
+ $command_directory/postsuper:f:root:-:755
+ $command_directory/postdrop:f:root:$setgid_group:2755:u
+ $command_directory/postqueue:f:root:$setgid_group:2755:u
++$command_directory/qmqp-sink:f:root:-:755
++$command_directory/qmqp-source:f:root:-:755
++$command_directory/smtp-sink:f:root:-:755
++$command_directory/smtp-source:f:root:-:755
+ $sendmail_path:f:root:-:755
+ $newaliases_path:l:$sendmail_path
+ $mailq_path:l:$sendmail_path
+@@ -151,6 +155,10 @@
+ $manpage_directory/man1/postqueue.1:f:root:-:644
+ $manpage_directory/man1/postsuper.1:f:root:-:644
+ $manpage_directory/man1/sendmail.1:f:root:-:644
++$manpage_directory/man1/smtp-sink.1:f:root:-:644
++$manpage_directory/man1/smtp-source.1:f:root:-:644
++$manpage_directory/man1/qmqp-sink.1:f:root:-:644
++$manpage_directory/man1/qmqp-source.1:f:root:-:644
+ $manpage_directory/man5/access.5:f:root:-:644
+ $manpage_directory/man5/aliases.5:f:root:-:644
+ $manpage_directory/man5/body_checks.5:f:root:-:644

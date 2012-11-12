@@ -1,0 +1,28 @@
+diff -Naurp postfix-2.9.1/src/postmap/postmap.c postfix-2.9.1.dlucio/src/postmap/postmap.c
+--- postfix-2.9.1/src/postmap/postmap.c	2012-03-16 15:37:48.551885684 -0400
++++ postfix-2.9.1.dlucio/src/postmap/postmap.c	2012-03-16 15:43:58.732126366 -0400
+@@ -766,8 +766,8 @@ static int postmap_upgrade(const char *m
+ 
+ static NORETURN usage(char *myname)
+ {
+-    msg_fatal("usage: %s [-Nfinoprsvw] [-c config_dir] [-d key] [-q key] [map_type:]file...",
+-	      myname);
++     msg_fatal("usage: %s [-Nfhimnoprsuvw] [-c config_dir] [-d key] [-q key] [map_type:]file...",
++              myname);
+ }
+ 
+ MAIL_VERSION_STAMP_DECLARE;
+diff -Naurp postfix-2.9.1/src/util/dict_dbm.c postfix-2.9.1.dlucio/src/util/dict_dbm.c
+--- postfix-2.9.1/src/util/dict_dbm.c	2012-03-16 15:37:48.554885669 -0400
++++ postfix-2.9.1.dlucio/src/util/dict_dbm.c	2012-03-16 15:40:06.757228849 -0400
+@@ -437,6 +437,10 @@ DICT   *dict_dbm_open(const char *path,
+ 	    msg_fatal("shared-lock database %s for open: %m", dbm_path);
+     }
+ 
++#ifdef HAVE_GDBM
++    msg_fatal("%s: gdbm maps use locking that is incompatible with postfix.  Use a hash map instead.",
++		 path);
++#endif
+     /*
+      * XXX SunOS 5.x has no const in dbm_open() prototype.
+      */

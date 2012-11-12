@@ -1,0 +1,20 @@
+sources:
+  "body_checks.txt:"	db8d40e68a1af18f55466ba5867e23ba81ef4c2e
+  "faq.html:"	a771fd74d6f5ee5621dc9a596b3ec0f42f60ba9d
+  "header_checks.txt:"	08630d5d86b7d5d8331bf7ecdeb7729451bfc108
+  "postfinger-1.30:"	e9749096b5d636962f945e245e15094b794224e9
+  "postfix-2.9.4.tar.gz:"	ac53c2c6e15b642d5d06eb0fc092d6a35ab7eec7
+  "postfix-2.9.4.tar.gz.sig:"	1df021cd01a3ba11deb4211e9674acae246478e2
+  "postfix-aliases:"	7f77cc00c7b449f09be93d4406dea67f13124699
+  "postfix-anti-UCE.txt:"	fce64856cc6d821a6fabda01215f8cf02e1c9590
+  "postfix-bash-completion:"	bb01856654fdf367aad08153320908e65abfcefb
+  "postfix-chroot.sh:"	a4837267850a6df9363e5ea5e4db5a3eeab3fe1b
+  "postfix-etc-init.d-postfix:"	3445d056ea66a5015bd3027c9bf088a08eb51922
+  "postfix-etc-pam.d-smtp:"	cd9d0e6fc3b0a12aedf8c67adfc1e1de8b2a378c
+  "postfix-ifup-d:"	a54d5fab98a0c42478dc474add6bdb7e829c2fcd
+  "postfix-ip-down:"	6ac0986291a7677a8df480d31f1400de2118ca87
+  "postfix-ip-up:"	44d2c119c567c4d8e279c21c4962bb1782d7e40a
+  "postfix-main.cf:"	c55f37d97d1ba291d347e587ca77bb63cd12cb31
+  "postfix-README.MDK:"	3db99e84ae8bac106add91a88e726dae5634b40d
+  "postfix-README.MDK.update:"	72a832e4c0f2aadd35de09fcff4c1841a267e113
+  "postfix-smtpd.conf:"	6816114876a31559920f59951aafb7367406ad6c
