@@ -1,0 +1,23 @@
+Postfix packages older than 2.2.4-5mdk had a wrong triggerpostun script
+which made it difficult to change the alternatives scheme.
+
+Starting with 2.2.4-6mdk a new alternatives scheme is being used which is
+described best here: http://archives.mandrakelinux.com/cooker/2005-06/msg01987.php
+
+This introduced problems in the upgrade due to that old triggerpostun script.
+The main symptoms are broken symbolic links and missing binaries (like
+/usr/bin/mailq).
+
+Not all upgrades will have this problem: just the ones where a postfix package
+with the broken triggerpostun script is upgraded directly to postfix >= 2.2.4-6mdk.
+
+The init script in postfix >= 2.2.4-6mdk will correct most of the problems as soon
+as the service is (re)started, but the following manpages will not be accessible: 
+mailq(1), newaliases(1) and aliases(5).
+
+A reinstallation of the postfix package (or any further upgrade) will fix
+all issues.
+
+See the http://archives.mandrivalinux.com/cooker/2005-07/msg01012.php thread
+for a more detailed explanation.
+

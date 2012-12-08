@@ -1,0 +1,254 @@
+This files documents Mandriva Linux specific customizations for the
+Postfix package, read this file in addition to the fine documentation
+present in the /usr/share/doc/postfix/README_FILES subdirectory.
+
+Contents
+	Running a mail server
+	Dynamic Maps
+	Chroot
+	Cyrus Imapd
+	SMTP Authentication (SASL)
+	Defending against UCE, Spam and Viruses
+	Content filters
+	Multiple instances
+	Log Files
+	Map rebuild at startup
+	Reporting Problems
+	
+
+
+Running a mail server
+---------------------
+By default Postfix will not accept mail from the network, this is done
+so on a default install you will not risk on being a prey to spammers.
+
+If you want to run a mailserver change the Postfix inet_interfaces
+parameter, run:
+	postconf -e 'inet_interfaces=your.ip.add.ress'
+or the simplier
+	postconf -e 'inet_interfaces=all'
+then restart postfix
+
+For the same reasons Postfix will not relay mail by default (it will
+not receive mail from an host and forward it to a different host).
+
+When your mail server is running properly be sure to change
+"unknown_local_recipient_reject_code" to "550" in order to permanently
+reject unknown users.
+
+
+Dynamic Maps
+------------
+Postfix supports many map formats, but not all of them are installed
+by default. Support for PCRE, LDAP, Postgres SQL, MySQL and possibly
+others is available by installing the related postfix-xxx package
+(i.e. postfix-ldap for ldap support).
+To see what map formats are available and install them use either
+rpmdrake or urpmq.
+Note that postmap will not be able to build map files different than
+hash or btree. if you want to use a different backend for file-based
+maps you will need to rebuild those manually.
+
+
+Chroot
+------
+For security reasons, Postfix runs chroot'ed by default. That means
+that the mail server is running in "/var/spool/postfix", not in the
+usual root filesystem, "/". The mail server has no access to files
+outside this location.
+
+Therefore, copies of some of your configuration files are put in the
+chroot.  Some of them may change over the time, if you modify them, or
+for other reasons.
+
+The system will try to adjust for the most common changes to
+/etc/resolv.conf, i.e. if you own a laptop and you use dhcp to
+configure your network interface, or if you are a dialup user using
+ppp to connect to the Internet.
+
+If you want to modify this behaviour look at the scripts:
+	/etc/ppp/ip-up.d/postfix
+	/etc/ppp/ip-down.d/postfix
+	/etc/sysconfig/network-scripts/ifup.d/postfix
+
+If you run "postfix check" you will get warnings about changes between
+the file in the chroot and your system files.
+
+If you really feel unconfortable having postfix chrooted you can
+change this setting.
+
+To remove the chroot run:
+	/usr/sbin/postfix-chroot.sh disable
+To set the chroot up again run:
+	/usr/sbin/postfix-chroot.sh enable
+
+Do not remove chroot manually.
+
+The chroot script is controlled by settings found in
+/etc/sysconfig/postfix
+
+Also remember that in a chrooted environment the parameters
+"smtp_tls_CApath" and "smtpd_tls_CApath" do not work unless you copy the whole
+directory to the chroot, use "smtp_tls_CAfile" and "smtpd_tls_CAfile" instead.
+
+
+Cyrus Imapd
+-----------
+Unfortunately postfix is still missing an uptodate CYRUS_README
+document.
+
+For the time being, the simplier way of sending mail to a cyrus server
+running on the same machine is:
+	postconf -e "mailbox_transport = cyrus:unix:/var/lib/imap/socket/lmtp"
+
+The cyrus transports have been modified from the default postfix
+distribution, so the "cyrus" transport has become a variant of the
+lmtp transport, which does not get chrooted. The old "cyrus"
+transport, which used to pipe mail trough the "deliver" program has
+been renamed to cyrus-deliver.
+
+There is also a "cyrus-chroot" transport, which could be used if we
+prefer to run the lmtp transport chrooted. To do this create the
+directory "/var/spool/postfix/extern/cyrus" owned by cyrus:postfix and
+mode 750 and modify /etc/cyrus.conf changing the line
+   lmtpunix cmd="lmtpd" listen="/var/lib/imap/socket/lmtp" prefork=1
+to
+   lmtpunix cmd="lmtpd" listen="/var/spool/postfix/extern/cyrus/lmtp" prefork=1
+
+The cyrus-inet transport can be used if the cyrus server is on a
+different host than postfix. Refer to cyrus documentation on how to
+set it up on the cyrus side.
+
+To use it create the file /etc/postfix/cyrus_lmtp_sasl_pass
+containing a line like:
+	hostname_or_ip_address	user:password
+run
+	postmap /etc/postfix/cyrus_lmtp_sasl_pass
+then run
+	postconf -e "mailbox_transport = cyrus-inet:host:port
+
+
+SMTP Authentication (SASL)
+--------------------------
+There are some important issues you will have to note is if you want
+to use SMTP AUTH via SASL.
+
+To use SASL you will certainly require a sasl plugin installed. The
+plugin packages are called libsasl2-plug-XXX, (i.e libsasl2-plug-plain
+for SASL PLAIN support). To see what plugins are available and install
+them use either rpmdrake or urpmi.
+
+You will also need to modify the sasl configuration file.
+
+Note that with postfix-2.3.2-1mdv2007.0 the location of the sasl
+configuration file has changed again.
+The sasl library will search the configuration file under
+/etc/sasl2 or /usr/lib/sasl2 (/usr/lib64/sasl2 on 64bit systems)
+
+The parameter "smtpd_sasl_path" is used to identify the name of the sasl
+configuration file (without the .conf) at the end.
+the default value for smtpd_sasl_path is "smtpd"
+This parameter was previously named "smtpd_sasl_application_name"
+
+To make it clear, the sasl configuration file is now
+/etc/sasl2/smtpd.conf
+
+SASL database relies on file /var/lib/sasl2/sasl.db being accessible
+by Postfix. This means both it being visible by a chrooted postfix and
+it being readable by the postfix user.
+
+Saslauthd requires its socket (by default /var/lib/sasl2/mux) to be
+accessible by Postfix as well.
+
+When running under chroot, two solutions are available:
+
+1a) Sasldb users: copy sasldb file under /var/spool/postfix/var/lib/sasl2
+  and keep it in sync.  Remember to verify that user postfix is able
+  to read the sasl database.
+
+1b) Saslauthd users: by default the saslauthd service tries to
+  hardlink the default socket "/var/lib/sasl2/mux" to
+  "/var/spool/postfix/var/lib/sasl2/mux", which usually works, unless
+  you configured the postfix spool on a different filesystem.
+  In this case you can change the saslauthd default socket (add "-m
+  /var/spool/postfix/var/lib/sasl2" to the SASLAUTHD_OPTS= line in
+  /etc/sysconfig/saslauthd and restart the saslauthd service)
+
+2) mount /var/lib/sasl2 directory under chroot with --bind option, add the
+   following line to /etc/fstab:
+	/var/lib/sasl2 /var/spool/postfix/var/lib/sasl2 none rw,bind 0 0
+   If you are using sasldb you will still have to check that the sasl
+   database is readable by user postfix.
+
+
+Defending against UCE, Spam and Viruses
+---------------------------------------
+Mandriva provides some prepackaged tools to complement postfix and aid
+in defending your mail servera gainst unwanted content. Some are
+content filters, like amavisd-new and spampd, other are policy
+daemons, like policyd and postgrey.
+
+Read the documentation that comes with those packages as well as the
+"Content filters" paragraph below to learn how to use them effectively.
+
+You should also read the postfix-anti-UCE.txt document and the sample
+body_checks.txt and header_checks.txt in the
+/usr/share/doc/postfix/UCE directory.
+
+Content filters
+---------------
+Some provisioning for content filter setup is already in
+/etc/postfix/master.cf, check comments in that file as well as
+FILTER_README.
+
+Amavisd-new and spampd rpms already add themselves to postfix
+configuration when installed.
+
+Remember to tune the lmtp-filter_destination_concurrency_limit (or
+smtp-filter_destination_concurrency_limit) parameter to the number of
+instances of amavisd-new (or spampd) you have configured.
+
+
+Multiple instances
+------------------
+The multi_instance creation/startup support by Viktor Duchovni is
+included since Mandriva release 2007.
+If you don't need multiple instances the default behaviour is
+unchanged.
+If you do, please read the post-install(1) man page to understand how
+the new functionality works.
+The postfix-chroot.sh script will act on all configured instances, it
+is not possible to chroot only a subset of configured instances.
+
+Log Files
+---------
+On Mandriva mail logs are split by default based on severity, so you
+will find 3 files under /var/log/mail directory "errors", "warinings"
+and "info". If you need to merge those files together for event
+correlation, you can issue the following command, all on one line:
+	sort -k 1M -k 2n -k3.1,3.2n -k 3.4,3.5n -k 3.7,3.8n
+		/var/log/mail/{errors,info,warnings}
+and redirect the output wherever you like.
+
+Map rebuild at startup
+----------------------
+The postfix init script automatically tries to rebuild maps at daemon
+startup, in case the map source is newer than the map. This is useful
+for forgetful users that do not run postmap after modifying a file.
+This feature is limited to hash or btree maps.
+In case this behaviour is not desired it can be disabled by setting
+REBUILD_ALIASES and REBUILD_MAPS variables to 0 in
+/etc/sysconfig/postfix
+
+
+Reporting Problems
+------------------
+Before reporting any problem with this package please check if your
+question is not already answered in the awesome postfix documentation
+or in the postfix-users-faq.html document.
+
+When asking for help always include the output of the "postfinger"
+command and any relevant information from the /var/log/mail/warnings
+and /var/log/mail/errors files.
+
+

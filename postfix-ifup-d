@@ -1,0 +1,17 @@
+#!/bin/sh
+# update resolv.conf in postfix chroot environment
+default_config_directory=/etc/postfix
+postconf=/usr/sbin/postconf
+[ -d ${default_config_directory} ] || exit 0
+[ -x ${postconf} ] || exit 0
+multi_instance_directories=`postconf -c ${default_config_directory} -h multi_instance_directories 2>/dev/null`
+
+for confdir in ${default_config_directory} ${multi_instance_directories}; do
+	chroot=`${postconf} -c ${confdir} -h queue_directory 2>/dev/null`
+	chroot_resolv=${chroot}/etc/resolv.conf
+	[ -f ${chroot_resolv} -a /etc/resolv.conf -nt ${chroot_resolv} ] &&
+		cp -pf /etc/resolv.conf /var/spool/postfix/etc/resolv.conf > /dev/null
+done
+
+# i have no way to check if we are not chrooted and resolv.conf changed, i'll reload it anyway
+[ -f /var/lock/subsys/postfix ] && /usr/sbin/postfix reload 2>/dev/null || true

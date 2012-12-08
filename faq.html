@@ -1,0 +1,2313 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
+<head>
+<title>
+Postfix FAQ</title>
+<link href="/default.css" rel="stylesheet" type="text/css" />
+</head>
+
+<body>
+
+<!-- Header table -->
+<table width="100%" cellpadding="0" cellspacing="0">
+<tr>
+
+<td valign="top">
+
+<table border="0" width="100%" cellpadding="5" cellspacing="0">
+<tr style="background-color: #828f78;">
+<td align="left">
+<img src="/images/postfix_email.jpg" alt="" /></td><td align="right"><span class="nav">
+<a href="/" class="nav">home</a> |
+<a href="/postfix/" class="nav">postfix/email</a> |
+<a href="/apache/" class="nav">apache/web</a> <span class="nav">|</span>
+<a href="/contact.html" class="nav">contact</a>
+
+</span></td></tr></table>
+
+</td></tr>
+</table>
+<!-- End header table -->
+<br />
+<a name="top"></a>
+
+<h1>Postfix FAQ</h1>
+<p>
+The following Frequently Asked Questions come primarily from the
+Postfix mailing list. <a
+href="http://www.postfix.org/lists.html">Information about
+the list</a> is available from the official Postfix web site.
+This is a much expanded version of the FAQ in the Appendix of <a
+href="http://www.oreilly.com/catalog/postfix/">Postfix: The
+Definitive Guide</a>, and it is continuing to grow.  It has been
+<a
+href="http://www.kobitosan.net/postfix/kylesfaq.html">translated
+into Japanese</a> by IKEDA Nozomu. If you have any questions,
+comments, or suggestions for this page please send them to me at
+&lt;<a
+href="mailto:&#107;&#100;&#101;&#110;&#116;&#64;&#115;&#101;&#97;&#103;&#108;&#97;&#115;&#115;&#46;&#99;&#111;&#109;">&#107;&#100;&#101;&#110;&#116;&#64;&#115;&#101;&#97;&#103;&#108;&#97;&#115;&#115;&#46;&#99;&#111;&#109;</a>&gt;.
+</p>
+<p>
+Questions are organized into the following categories:
+</p>
+
+<center><table width="45%" border="0" cellpadding="1" cellspacing="1">
+<tr>
+<td><img src="/images/arrow_lt_bg.png" alt="*" /></td><td align="left" style="font-size: 90%"><a href="#PostfixMailingList">Postfix Mailing List</a></td>
+<td><img src="/images/arrow_lt_bg.png" alt="*" /></td><td align="left" style="font-size: 90%"><a href="#CompilingPostfix">Compiling Postfix</a></td>
+</tr>
+<tr>
+<td><img src="/images/arrow_lt_bg.png" alt="*" /></td><td align="left" style="font-size: 90%"><a href="#GeneralQuestions">General Questions</a></td>
+<td><img src="/images/arrow_lt_bg.png" alt="*" /></td><td align="left" style="font-size: 90%"><a href="#Aliases">Aliases</a></td>
+</tr>
+<tr>
+<td><img src="/images/arrow_lt_bg.png" alt="*" /></td><td align="left" style="font-size: 90%"><a href="#ErrorandWarningMessages">Error and Warning Messages</a></td>
+<td><img src="/images/arrow_lt_bg.png" alt="*" /></td><td align="left" style="font-size: 90%"><a href="#MailQueue">Mail Queue</a></td>
+</tr>
+<tr>
+<td><img src="/images/arrow_lt_bg.png" alt="*" /></td><td align="left" style="font-size: 90%"><a href="#Logging">Logging</a></td>
+<td><img src="/images/arrow_lt_bg.png" alt="*" /></td><td align="left" style="font-size: 90%"><a href="#DNSIssues">DNS Issues</a></td>
+</tr>
+<tr>
+<td><img src="/images/arrow_lt_bg.png" alt="*" /></td><td align="left" style="font-size: 90%"><a href="#VirtualDomains">Virtual Domains</a></td>
+<td><img src="/images/arrow_lt_bg.png" alt="*" /></td><td align="left" style="font-size: 90%"><a href="#UBEBlocking">UBE Blocking</a></td>
+</tr>
+<tr>
+<td><img src="/images/arrow_lt_bg.png" alt="*" /></td><td align="left" style="font-size: 90%"><a href="#Anti-Virus">Anti-Virus</a></td>
+</tr>
+</table></center>
+<p>
+The entire FAQ is contained within this HTML file, so you can use
+your browser's Find function to search within the FAQ.
+</p>
+<br />
+<i><small>Last modified: Fri Oct 29 15:13:30 2004</small></i>
+<hr />
+<div style="margin-left: 1em;">
+<h3 class="subhead"><a name="PostfixMailingList">Postfix Mailing List</a></h3>
+<table style="margin-left: 1em;" border="0">
+<tr style="font-size: 90%" ><th align="right" valign="top"style="padding-right: 3px;">1.</th>
+<td valign="top"><a href="#unml" class="questionlist">How do I unsubscribe from the Postfix mailing list?
+</a></td></tr>
+<tr style="font-size: 90%" ><th align="right" valign="top"style="padding-right: 3px;">2.</th>
+<td valign="top"><a href="#qna" class="questionlist">I sent a message to the list that did not get answered. Lots of
+other questions are answered. Did I do something wrong?
+</a></td></tr>
+</table>
+<h3 class="subhead"><a name="CompilingPostfix">Compiling Postfix</a></h3>
+<table style="margin-left: 1em;" border="0">
+<tr style="font-size: 90%" ><th align="right" valign="top"style="padding-right: 3px;">3.</th>
+<td valign="top"><a href="#warnerr" class="questionlist">When I execute make, I get lots of errors,
+like the following:
+
+gcc  -Wmissing-prototypes -Wformat -g -o -I.  -I../../Include -DLINUX2 -c ...
+
+How can I get around these errors?
+
+</a></td></tr>
+</table>
+<h3 class="subhead"><a name="GeneralQuestions">General Questions</a></h3>
+<table style="margin-left: 1em;" border="0">
+<tr style="font-size: 90%" ><th align="right" valign="top"style="padding-right: 3px;">4.</th>
+<td valign="top"><a href="#chban" class="questionlist">How do I change the banner Postfix uses when greeting connecting
+clients?
+</a></td></tr>
+<tr style="font-size: 90%" ><th align="right" valign="top"style="padding-right: 3px;">5.</th>
+<td valign="top"><a href="#chbnc" class="questionlist">When Postfix sends a bounce message, it tells the sender, "For
+further assistance, please send mail to
+&lt;postmaster&gt;" But I want it to include my domain
+name in the address, e.g.
+&lt;postmaster@example.com&gt;.  How can I do that?
+</a></td></tr>
+<tr style="font-size: 90%" ><th align="right" valign="top"style="padding-right: 3px;">6.</th>
+<td valign="top"><a href="#chsrc" class="questionlist">How do I modify the source code?
+</a></td></tr>
+<tr style="font-size: 90%" ><th align="right" valign="top"style="padding-right: 3px;">7.</th>
+<td valign="top"><a href="#mbmd" class="questionlist">Which is better mbox- or Maildir-style mailboxes?
+</a></td></tr>
+<tr style="font-size: 90%" ><th align="right" valign="top"style="padding-right: 3px;">8.</th>
+<td valign="top"><a href="#exinc" class="questionlist">Is there some kind of 'include' directive for 
+main.cf?
+</a></td></tr>
+<tr style="font-size: 90%" ><th align="right" valign="top"style="padding-right: 3px;">9.</th>
+<td valign="top"><a href="#dsn" class="questionlist">How can I get confirmation of mail deliveries?
+</a></td></tr>
+<tr style="font-size: 90%" ><th align="right" valign="top"style="padding-right: 3px;">10.</th>
+<td valign="top"><a href="#rpl" class="questionlist">What's the best way to have an automated reply sent whenever
+a particular address receives an email message?
+</a></td></tr>
+<tr style="font-size: 90%" ><th align="right" valign="top"style="padding-right: 3px;">11.</th>
+<td valign="top"><a href="#dsc" class="questionlist">How can I add or append a disclaimer (or other text) to the bottom of 
+every email that gets sent from my mail server?
+</a></td></tr>
+<tr style="font-size: 90%" ><th align="right" valign="top"style="padding-right: 3px;">12.</th>
+<td valign="top"><a href="#svmsg" class="questionlist">How can I save a copy of every message?
+</a></td></tr>
+<tr style="font-size: 90%" ><th align="right" valign="top"style="padding-right: 3px;">13.</th>
+<td valign="top"><a href="#qta" class="questionlist">How can I enable quotas or size limits on users' mailboxes?
+</a></td></tr>
+<tr style="font-size: 90%" ><th align="right" valign="top"style="padding-right: 3px;">14.</th>
+<td valign="top"><a href="#dapp" class="questionlist">Why do some addresses have my own domain name appended to them in
+the headers? For example, before I installed Postfix I might see
+a header like the following:
+
+To: billy
+
+
+Now it comes in as
+
+To: billy@mail.example.com
+
+</a></td></tr>
+<tr style="font-size: 90%" ><th align="right" valign="top"style="padding-right: 3px;">15.</th>
+<td valign="top"><a href="#exftr" class="questionlist">How can I tell if my Postfix was built with a particular feature?
+I got my copy of Postfix from a package and I want to know if it
+includes support for SASL and TLS.
+</a></td></tr>
+<tr style="font-size: 90%" ><th align="right" valign="top"style="padding-right: 3px;">16.</th>
+<td valign="top"><a href="#chprt" class="questionlist">How can I get Postfix to listen on a port other than 25?
+</a></td></tr>
+<tr style="font-size: 90%" ><th align="right" valign="top"style="padding-right: 3px;">17.</th>
+<td valign="top"><a href="#df12" class="questionlist">What is the main difference between the 1.xx and 2.xx versions of
+Postfix?
+</a></td></tr>
+<tr style="font-size: 90%" ><th align="right" valign="top"style="padding-right: 3px;">18.</th>
+<td valign="top"><a href="#dfcfg" class="questionlist">Okay, but I'm mainly worried about my config files. How should
+I handle them when upgrading?
+</a></td></tr>
+<tr style="font-size: 90%" ><th align="right" valign="top"style="padding-right: 3px;">19.</th>
+<td valign="top"><a href="#bndintf" class="questionlist">I have a few interfaces on my system. How can I get Postfix to
+bind to only one of them?
+</a></td></tr>
+<tr style="font-size: 90%" ><th align="right" valign="top"style="padding-right: 3px;">20.</th>
+<td valign="top"><a href="#wrnmsg" class="questionlist">With Sendmail, I used to get a warning notice when a message
+couldn't be delivered for 4 hours or so. Can I get that with
+Postfix?
+</a></td></tr>
+<tr style="font-size: 90%" ><th align="right" valign="top"style="padding-right: 3px;">21.</th>
+<td valign="top"><a href="#dfmtmc" class="questionlist">What's the difference between
+mailbox_transport and
+mailbox_command?
+</a></td></tr>
+<tr style="font-size: 90%" ><th align="right" valign="top"style="padding-right: 3px;">22.</th>
+<td valign="top"><a href="#hdhdr" class="questionlist">All of our internal systems relay through our mail gateway. Is
+there a way to remove or hide the hostnames and IP addresses of
+our internal systems from the messages headers before they go
+out?
+</a></td></tr>
+<tr style="font-size: 90%" ><th align="right" valign="top"style="padding-right: 3px;">23.</th>
+<td valign="top"><a href="#fwdnex" class="questionlist">How can I tell Postfix to forward all messages that are sent to
+non-existent mailboxes to a particular user?
+</a></td></tr>
+<tr style="font-size: 90%" ><th align="right" valign="top"style="padding-right: 3px;">24.</th>
+<td valign="top"><a href="#bncnex" class="questionlist">Okay, how can I have Postfix initially accept all messages,
+but then bounce those that are addressed to non-existent users?
+</a></td></tr>
+<tr style="font-size: 90%" ><th align="right" valign="top"style="padding-right: 3px;">25.</th>
+<td valign="top"><a href="#rldpf" class="questionlist">When I make changes to configuration files or lookup tables, do I
+have to reload Postfix?
+</a></td></tr>
+<tr style="font-size: 90%" ><th align="right" valign="top"style="padding-right: 3px;">26.</th>
+<td valign="top"><a href="#tmprsp" class="questionlist">According to my configuration Postfix should be replying with a
+permanent error code (554), but it keeps sending a temporary one
+(454). Why is it doing that?
+</a></td></tr>
+<tr style="font-size: 90%" ><th align="right" valign="top"style="padding-right: 3px;">27.</th>
+<td valign="top"><a href="#rmtusr" class="questionlist">I have a few users that travel regularly. How can I allow them
+to send mail through my server without creating an open relay?
+Can't I just tell Postfix to allow relaying when the sender
+address is from my domain?
+</a></td></tr>
+<tr style="font-size: 90%" ><th align="right" valign="top"style="padding-right: 3px;">28.</th>
+<td valign="top"><a href="#mstrspc" class="questionlist">I need to add some smtpd restrictions to my
+master.cf file, something like:
+
+-o smtpd_recipient_restrictions=check_recipient_access hash:/etc/postfix/recipient_access
+
+Any idea how I can do that with the space required between the
+check_recipient_access and the lookup table?
+</a></td></tr>
+<tr style="font-size: 90%" ><th align="right" valign="top"style="padding-right: 3px;">29.</th>
+<td valign="top"><a href="#cnctdelay" class="questionlist">There seems to be a long delay whenever a client connects to my
+smtpd service. It can take as long as a minute from establishing
+a connection until Postfix sends the 220 banner. Any ideas on
+what might be causing this?
+</a></td></tr>
+<tr style="font-size: 90%" ><th align="right" valign="top"style="padding-right: 3px;">30.</th>
+<td valign="top"><a href="#nosmtpd" class="questionlist">Is it possible to have Postfix running, but without the SMTPD
+server listening for outside connections?
+</a></td></tr>
+</table>
+<h3 class="subhead"><a name="Aliases">Aliases</a></h3>
+<table style="margin-left: 1em;" border="0">
+<tr style="font-size: 90%" ><th align="right" valign="top"style="padding-right: 3px;">31.</th>
+<td valign="top"><a href="#alfrst" class="questionlist">I have aliases where only the first address in the list receives
+messages. The others can receive mail fine when sent to them
+directly, but when they're part of an alias, their messages don't
+arrive.
+</a></td></tr>
+<tr style="font-size: 90%" ><th align="right" valign="top"style="padding-right: 3px;">32.</th>
+<td valign="top"><a href="#aldbl" class="questionlist">If I have an alias like this,
+
+info:     peter,heloise
+
+
+and somebody sends a message addressed to both
+info and peter, then
+peter receives the message twice.  When
+I used Sendmail it detected the same mail going to the same user
+twice and prevented it. How can I do the same with Postfix?
+</a></td></tr>
+<tr style="font-size: 90%" ><th align="right" valign="top"style="padding-right: 3px;">33.</th>
+<td valign="top"><a href="#exexpn" class="questionlist">I'm trying to test alias lists to see what addresses are
+expanded from particular lists. With other mail servers, I used
+the EXPN command to get a full recipient list, but it doesn't
+seem to work with Postfix.
+</a></td></tr>
+</table>
+<h3 class="subhead"><a name="ErrorandWarningMessages">Error and Warning Messages</a></h3>
+<table style="margin-left: 1em;" border="0">
+<tr style="font-size: 90%" ><th align="right" valign="top"style="padding-right: 3px;">34.</th>
+<td valign="top"><a href="#erlpbk" class="questionlist">I can't seem to receive messages. What does this error mean:
+"&lt;test@example.com&gt;: mail for example.com loops back
+to myself"?
+</a></td></tr>
+<tr style="font-size: 90%" ><th align="right" valign="top"style="padding-right: 3px;">35.</th>
+<td valign="top"><a href="#erfldf" class="questionlist">Why am I getting messages like this in my log? Shouldn't all of
+these files be in /etc?
+
+warning: /var/spool/postfix/etc/services/services and /etc/services/services differ
+warning: /var/spool/postfix/etc/resolv.conf/resolv.conf and /etc/resolv.conf/resolv.conf differ
+warning: /var/spool/postfix/etc/hosts/hosts and /etc/hosts/hosts differ
+warning: /var/spool/postfix/etc/nsswitch.conf/nsswitch.conf and /etc/nsswitch.conf/nsswitch.conf differ
+
+</a></td></tr>
+<tr style="font-size: 90%" ><th align="right" valign="top"style="padding-right: 3px;">36.</th>
+<td valign="top"><a href="#errunusr" class="questionlist">When mail arrives for an unknown user, Postfix rejects it with
+the message, "User unknown in (local|virtual|relay) recipient
+table." Is it possible to just say something like the user
+doesn't exist?
+</a></td></tr>
+<tr style="font-size: 90%" ><th align="right" valign="top"style="padding-right: 3px;">37.</th>
+<td valign="top"><a href="#eruksvc" class="questionlist">I'm getting
+
+postfix/smtp[18860]: fatal: unknown service: smtp/tcp
+
+What could be the problem?
+</a></td></tr>
+</table>
+<h3 class="subhead"><a name="MailQueue">Mail Queue</a></h3>
+<table style="margin-left: 1em;" border="0">
+<tr style="font-size: 90%" ><th align="right" valign="top"style="padding-right: 3px;">38.</th>
+<td valign="top"><a href="#qdl" class="questionlist">I have a whole bunch of mail queued up that I know I don't need.
+Is there any way to delete all of the queued messages?
+</a></td></tr>
+<tr style="font-size: 90%" ><th align="right" valign="top"style="padding-right: 3px;">39.</th>
+<td valign="top"><a href="#dfmqpq" class="questionlist">I see strange differences between mailq and
+postqueue. My mailq command
+says there is nothing in the queue (/var/spool/mqueue is
+empty), but postqueue reports a lot
+of messages. How can that be?
+</a></td></tr>
+<tr style="font-size: 90%" ><th align="right" valign="top"style="padding-right: 3px;">40.</th>
+<td valign="top"><a href="#qexp" class="questionlist">How can I change how long messages stay in the queue before they
+expire and get bounced?
+</a></td></tr>
+<tr style="font-size: 90%" ><th align="right" valign="top"style="padding-right: 3px;">41.</th>
+<td valign="top"><a href="#qexpmsg" class="questionlist">Is there a way to cause individual messages to be expired from the
+queue after some time? Or is there a way to have different queue
+lifetimes for different destinations?
+</a></td></tr>
+<tr style="font-size: 90%" ><th align="right" valign="top"style="padding-right: 3px;">42.</th>
+<td valign="top"><a href="#qrdlvr" class="questionlist">I had a problem in my configuration. It's fixed now, but the
+system is still trying to deliver queued messages using the old,
+incorrect configuration. What do I have to do to make them use
+the new configuration?
+</a></td></tr>
+<tr style="font-size: 90%" ><th align="right" valign="top"style="padding-right: 3px;">43.</th>
+<td valign="top"><a href="#qmlrdmn" class="questionlist">I have a lot of mail in my queue that seems to originate from
+"MAILER-DAEMON" instead of an actual email address. Where is it
+coming from?
+</a></td></tr>
+</table>
+<h3 class="subhead"><a name="Logging">Logging</a></h3>
+<table style="margin-left: 1em;" border="0">
+<tr style="font-size: 90%" ><th align="right" valign="top"style="padding-right: 3px;">44.</th>
+<td valign="top"><a href="#lgwhr" class="questionlist">Where does Postfix log its information?
+</a></td></tr>
+<tr style="font-size: 90%" ><th align="right" valign="top"style="padding-right: 3px;">45.</th>
+<td valign="top"><a href="#lgsbj" class="questionlist">Is it possible to have Postfix log the subject of a message along
+with the other information like To and From addresses?
+</a></td></tr>
+<tr style="font-size: 90%" ><th align="right" valign="top"style="padding-right: 3px;">46.</th>
+<td valign="top"><a href="#lginc" class="questionlist">Is there some kind of debug or verbose logging option so that I
+can see exactly what happens with my mail?
+</a></td></tr>
+<tr style="font-size: 90%" ><th align="right" valign="top"style="padding-right: 3px;">47.</th>
+<td valign="top"><a href="#lgnofrm" class="questionlist">My log doesn't seem to have any entries with the From address
+logged? What gives?
+</a></td></tr>
+<tr style="font-size: 90%" ><th align="right" valign="top"style="padding-right: 3px;">48.</th>
+<td valign="top"><a href="#lganl" class="questionlist">Are there any good programs to analyze Postfix log entries?
+</a></td></tr>
+<tr style="font-size: 90%" ><th align="right" valign="top"style="padding-right: 3px;">49.</th>
+<td valign="top"><a href="#lgdbl" class="questionlist">The way I use virus scanning, all messages are re-injected back
+into Postfix. This causes everything to be logged twice. Is there 
+a way to configure Postfix not to log certain things?
+</a></td></tr>
+<tr style="font-size: 90%" ><th align="right" valign="top"style="padding-right: 3px;">50.</th>
+<td valign="top"><a href="#lgdftm" class="questionlist">My system time is correct but my mail log entries show a
+different time. What could be the problem?
+</a></td></tr>
+</table>
+<h3 class="subhead"><a name="DNSIssues">DNS Issues</a></h3>
+<table style="margin-left: 1em;" border="0">
+<tr style="font-size: 90%" ><th align="right" valign="top"style="padding-right: 3px;">51.</th>
+<td valign="top"><a href="#dnshnf" class="questionlist">I get an error saying that the host cannot be found, but when I
+look up the host I get an answer. Why can't Postfix figure it
+out?
+</a></td></tr>
+<tr style="font-size: 90%" ><th align="right" valign="top"style="padding-right: 3px;">52.</th>
+<td valign="top"><a href="#dnshnf2" class="questionlist">In my case, I'm doing host -t MX example.com.
+I get an answer, but Postfix complains with "Host not found, try
+again".
+</a></td></tr>
+<tr style="font-size: 90%" ><th align="right" valign="top"style="padding-right: 3px;">53.</th>
+<td valign="top"><a href="#dnsigmx" class="questionlist">Postfix seems to be ignoring the MX record and trying to deliver
+directly to the A record system. Is this normal?
+</a></td></tr>
+</table>
+<h3 class="subhead"><a name="VirtualDomains">Virtual Domains</a></h3>
+<table style="margin-left: 1em;" border="0">
+<tr style="font-size: 90%" ><th align="right" valign="top"style="padding-right: 3px;">54.</th>
+<td valign="top"><a href="#vrtcmd" class="questionlist">Is there any way I can have a virtual alias deliver a message to
+a program?
+</a></td></tr>
+<tr style="font-size: 90%" ><th align="right" valign="top"style="padding-right: 3px;">55.</th>
+<td valign="top"><a href="#vrtglal" class="questionlist">Is it possible to have global virtual aliases for addresses like
+postmaster, so that mail for
+postmaster at all of my domains can go to the
+same address?
+</a></td></tr>
+</table>
+<h3 class="subhead"><a name="UBEBlocking">UBE Blocking</a></h3>
+<table style="margin-left: 1em;" border="0">
+<tr style="font-size: 90%" ><th align="right" valign="top"style="padding-right: 3px;">56.</th>
+<td valign="top"><a href="#ubeor1" class="questionlist">Help! I think I'm an open relay. I see lots of messages in my log
+that look like this:
+
+Jun 20 06:38:46 scallop postfix/smtp[21383]: connect to 
+mail.example.com[10.11.12.13]: Connection refused (port 25)
+Jun 20 06:38:46 scallop postfix/smtp[21383]: 79AA4234A9: 
+to=&lt;jenny796@example.com&gt;, relay=none, delay=55262, 
+status=deferred (connect to mail.example.com[10.11.12.13]:
+Connection refused)
+
+I don't know anything about the example.com
+domain. Should I be worried?
+</a></td></tr>
+<tr style="font-size: 90%" ><th align="right" valign="top"style="padding-right: 3px;">57.</th>
+<td valign="top"><a href="#ubeor2" class="questionlist">Help! I think I might be an open relay. How can I check?
+</a></td></tr>
+<tr style="font-size: 90%" ><th align="right" valign="top"style="padding-right: 3px;">58.</th>
+<td valign="top"><a href="#ubeor3" class="questionlist">Help! I'm definitely an open relay. I've been listed with various
+black lists and everything. I'm sure my Postfix configuration is
+correct. What could be causing my system to relay?
+</a></td></tr>
+<tr style="font-size: 90%" ><th align="right" valign="top"style="padding-right: 3px;">59.</th>
+<td valign="top"><a href="#ubeblea" class="questionlist">I get a lot of spam with a blank envelope sender address. How can
+I block these?
+</a></td></tr>
+<tr style="font-size: 90%" ><th align="right" valign="top"style="padding-right: 3px;">60.</th>
+<td valign="top"><a href="#ubedly" class="questionlist">I have restrictions set up to block certain sender addresses.
+Why aren't messages from restricted senders blocked as soon as
+the client issues the MAIL FROM command?
+</a></td></tr>
+<tr style="font-size: 90%" ><th align="right" valign="top"style="padding-right: 3px;">61.</th>
+<td valign="top"><a href="#ubewhchk" class="questionlist">Is there any way to know which entry for
+header_checks and
+body_checks caused a message to be rejected?
+</a></td></tr>
+<tr style="font-size: 90%" ><th align="right" valign="top"style="padding-right: 3px;">62.</th>
+<td valign="top"><a href="#ubenousr" class="questionlist">I get lots of mail for non-existent users that comes from servers
+that don't respond, so my queue is always full while it tries to
+deliver bounce notifications to these non-existent servers. How
+can I prevent this?
+</a></td></tr>
+<tr style="font-size: 90%" ><th align="right" valign="top"style="padding-right: 3px;">63.</th>
+<td valign="top"><a href="#ubechknw" class="questionlist">I added body and header checks to my configuration and set
+up the files with regular expressions to block certain subject
+lines and attachments, but when I test it, I can still send
+messages with subjects and attachments that should be blocked.
+What did I do wrong?
+</a></td></tr>
+<tr style="font-size: 90%" ><th align="right" valign="top"style="padding-right: 3px;">64.</th>
+<td valign="top"><a href="#ubechknw2" class="questionlist">I added some body checks to my configuration that stop a lot of
+viruses. It mostly works well, but why is it that sometimes it
+doesn't seem to be used?
+</a></td></tr>
+<tr style="font-size: 90%" ><th align="right" valign="top"style="padding-right: 3px;">65.</th>
+<td valign="top"><a href="#ubecdchk" class="questionlist">Using header_checks or
+body_checks can I make conditional
+comparisons? Something like, for example:
+
+/^to: joey/ AND /^subject: hot deals/      REJECT
+
+
+so that certain subjects are blocked only for certain users.
+</a></td></tr>
+<tr style="font-size: 90%" ><th align="right" valign="top"style="padding-right: 3px;">66.</th>
+<td valign="top"><a href="#ubewhtlstchk" class="questionlist">I'm using header_checks and
+body_checks to block spam, but some legitimate
+email is blocked by my checks. Is there any way to whitelist some
+mail so that the header and body checks are not applied?
+</a></td></tr>
+<tr style="font-size: 90%" ><th align="right" valign="top"style="padding-right: 3px;">67.</th>
+<td valign="top"><a href="#ubewhtlstrpt" class="questionlist">Okay, but I just want to be able to receive my reports that include
+blocked strings from the logs. Is there no way to receive these?
+</a></td></tr>
+<tr style="font-size: 90%" ><th align="right" valign="top"style="padding-right: 3px;">68.</th>
+<td valign="top"><a href="#ubewhtlstrbl" class="questionlist">I'm using one of the blacklists to block spam and it's working
+fine. Now one of our customers/partners has got themselves
+listed, so my mail server is dutifully rejecting their messages.
+Is there a way to allow just their messages but still use the
+blacklist?
+</a></td></tr>
+<tr style="font-size: 90%" ><th align="right" valign="top"style="padding-right: 3px;">69.</th>
+<td valign="top"><a href="#ubetstchk" class="questionlist">How can I test the regular expressions I've created in my
+header_checks and body_checks?
+</a></td></tr>
+<tr style="font-size: 90%" ><th align="right" valign="top"style="padding-right: 3px;">70.</th>
+<td valign="top"><a href="#ubesbdm" class="questionlist">If I block a domain with an access map like
+
+example.com     REJECT No spam accepted
+
+Does that mean that subdomains like
+host.example.com are also blocked?
+</a></td></tr>
+<tr style="font-size: 90%" ><th align="right" valign="top"style="padding-right: 3px;">71.</th>
+<td valign="top"><a href="#ubestr7" class="questionlist">Do people generally have success with setting
+strict_7bit_headers = yes?
+</a></td></tr>
+<tr style="font-size: 90%" ><th align="right" valign="top"style="padding-right: 3px;">72.</th>
+<td valign="top"><a href="#2mx" class="questionlist">I have two MX hosts configured in my DNS. I have great spam
+checking set up on my first MX system, but I'm getting a lot of
+spam delivered directly to the backup MX even though the primary
+is available. Is there a way to force mail to the primary when
+it's up?
+</a></td></tr>
+</table>
+<h3 class="subhead"><a name="Anti-Virus">Anti-Virus</a></h3>
+<table style="margin-left: 1em;" border="0">
+<tr style="font-size: 90%" ><th align="right" valign="top"style="padding-right: 3px;">73.</th>
+<td valign="top"><a href="#avblkatc" class="questionlist">Can I block certain attachments based on the extension of the
+file name?
+</a></td></tr>
+</table>
+</div>
+<hr size="1" width="100%" />
+<!-- Postfix FAQ-->
+
+<h2>Postfix Mailing List</h2>
+
+
+
+<p class="question"><b><a name="unml">1.</a></b>
+How do I unsubscribe from the Postfix mailing list?
+</p>
+
+<p class="answer"><b></b>
+Send a request to &lt;majordomo@postfix.org&gt; with the words
+"unsubscribe postfix-users" in the <b>body</b> of the message. Your
+message should look like this:
+</p>
+
+<pre>
+To: &lt;majordomo@postfix.org&gt;
+From: &lt;you@yourdomain.com&gt;
+Subject:
+
+unsubscribe postfix-users
+</pre>
+
+<p align="right"><small>[<a href="javascript:history.go(-1)">Back</a>][<a href="#top">Top</a>][<a href="/contact.html">Feedback</a>]</small></p>
+
+<hr width="80%" size="1" noshade="noshade" />
+
+<p class="question"><b><a name="qna">2.</a></b>
+I sent a message to the list that did not get answered. Lots of other
+questions are answered. Did I do something wrong?
+</p>
+
+<p class="answer"><b></b>
+In fact, very seldom do questions go unanswered on the Postfix
+mailing list. It's a relatively generous list. But to make sure that
+your questions are answered and that you provide enough information,
+here are some basic rules for submissions:
+</p>
+
+
+<ol class="answer">
+<li class="answer">Do not send a general, "It's not working..." message.	 Explain the
+details of your problem. As you draft your message    to the list,
+think of it as if you are proving that you have a    problem. Show
+relevant log entries, configuration information,    and any other
+details about your environment that you think might    be a factor.
+</p>
+
+</li>
+<li class="answer">Always send the output of <tt class="command">postconf -n</tt>. Even 
+  if you think it's not necessary for your problem, there may be   
+some piece of information that will enable list experts to    answer
+your question immediately based on your configuration.	  Some list
+members won't bother with a question that doesn't    include enough
+information to answer.
+</p>
+
+</li>
+<li class="answer">Send plain text messages. Some list members use email clients	that
+don't render HTML and won't even read messages in HTML.
+</p>
+
+</li>
+<li class="answer">Don't hijack an existing thread with a new question.  Start a	new
+message and type in the address, or store it in your address   book
+if it's too much to type.
+</p>
+
+</li>
+</ol>
+<p align="right"><small>[<a href="javascript:history.go(-1)">Back</a>][<a href="#top">Top</a>][<a href="/contact.html">Feedback</a>]</small></p>
+
+<hr width="80%" size="1" noshade="noshade" />
+
+<h2>Compiling Postfix</h2>
+
+
+
+<p class="question"><b><a name="warnerr">3.</a></b>
+When I execute <tt class="command">make</tt>, I get lots of errors,
+like the following:
+</p>
+
+<pre>
+gcc  -Wmissing-prototypes -Wformat -g -o -I.  -I../../Include -DLINUX2 -c ...
+</pre>
+
+<p class="question">How can I get around these errors?
+</p>
+
+<p class="answer"><b></b>
+Those are not errors. The 'missing-prototypes' string is directive to
+the compiler telling it to print a warning if a global function is
+defined without a previous prototype declaration. The lines you see
+are the normal output from the build process.
+</p>
+
+<p align="right"><small>[<a href="javascript:history.go(-1)">Back</a>][<a href="#top">Top</a>][<a href="/contact.html">Feedback</a>]</small></p>
+
+<hr width="80%" size="1" noshade="noshade" />
+
+<h2>General Questions</h2>
+
+
+
+<p class="question"><b><a name="chban">4.</a></b>
+How do I change the banner Postfix uses when greeting connecting
+clients?
+</p>
+
+<p class="answer"><b></b>
+Set the parameter <tt class="literal">smtpd_banner</tt>. By default,
+it's set as:
+</p>
+
+<pre>
+smtpd_banner = $myhostname ESMTP $mail_name
+</pre>
+
+<p class="answer">You normally should not change the banner. If you do, the initial
+"$myhostname ESMTP" is required by the standards and should
+definitely be left as is.
+</p>
+
+<p align="right"><small>[<a href="javascript:history.go(-1)">Back</a>][<a href="#top">Top</a>][<a href="/contact.html">Feedback</a>]</small></p>
+
+<hr width="80%" size="1" noshade="noshade" />
+
+<p class="question"><b><a name="chbnc">5.</a></b>
+When Postfix sends a bounce message, it tells the sender, "For
+further assistance, please send mail to &lt;postmaster&gt;" But I
+want it to include my domain name in the address, e.g.
+&lt;postmaster@example.com&gt;.  How can I do that?
+</p>
+
+<p class="answer"><b></b>
+The idea behind this is that people who receive this notification
+should contact their own local postmasters, since they may very well
+be the ones who have to deal with the problem.	If you really want to
+change it, you have to modify the source code.
+</p>
+
+<p align="right"><small>[<a href="javascript:history.go(-1)">Back</a>][<a href="#top">Top</a>][<a href="/contact.html">Feedback</a>]</small></p>
+
+<hr width="80%" size="1" noshade="noshade" />
+
+<p class="question"><b><a name="chsrc">6.</a></b>
+How do I modify the source code?
+</p>
+
+<p class="answer"><b></b>
+If you have to ask, don't do it. Live with it or find somebody who
+knows C to make the change for you.
+</p>
+
+<p align="right"><small>[<a href="javascript:history.go(-1)">Back</a>][<a href="#top">Top</a>][<a href="/contact.html">Feedback</a>]</small></p>
+
+<hr width="80%" size="1" noshade="noshade" />
+
+<p class="question"><b><a name="mbmd">7.</a></b>
+Which is better mbox- or Maildir-style mailboxes?
+</p>
+
+<p class="answer"><b></b>
+It depends on your situation. One critical point is that if your mail
+store is mounted over NFS, don't use mbox. Otherwise, mbox is almost
+universally supported, but might be susceptible to file locking
+problems when multiple programs need access to the mail file. The
+maildir format eliminates file locking issues, but might not scale
+adequately on your system for users who keep very large numbers of
+messages on your server.
+</p>
+
+<p class="answer">As far as performance considerations, it depends again.  With
+maildir, accessing a particular message and deleting is probably
+quicker, but with mbox appending new messages to the end of the mail
+file probably wins out. From the Postfix point-of-view, it doesn't
+really matter. You can let other factors such as your choice of
+POP/IMAP server drive the decision. All else being equal, you should
+probably choose maildir.
+</p>
+
+<p align="right"><small>[<a href="javascript:history.go(-1)">Back</a>][<a href="#top">Top</a>][<a href="/contact.html">Feedback</a>]</small></p>
+
+<hr width="80%" size="1" noshade="noshade" />
+
+<p class="question"><b><a name="exinc">8.</a></b>
+Is there some kind of 'include' directive for  <tt
+class="filename">main.cf</tt>?
+</p>
+
+<p class="answer"><b></b>
+No. Most administrators with complex configurations create a Makefile
+that will <tt class="command">cat</tt> the necessary files together. 
+If you have other regular administrative tasks, add them  to your
+Makefile too. Your Makefile can have an entry something like this:
+</p>
+
+<pre>
+main.cf: file1 file2 file3
+        cat file1 file2 file3 > main.cf.new
+        mv main.cf.new main.cf
+</pre>
+
+<p class="answer">Then type <tt class="command">make main.cf</tt> to rebuild your
+configuration file.
+</p>
+
+<p align="right"><small>[<a href="javascript:history.go(-1)">Back</a>][<a href="#top">Top</a>][<a href="/contact.html">Feedback</a>]</small></p>
+
+<hr width="80%" size="1" noshade="noshade" />
+
+<p class="question"><b><a name="dsn">9.</a></b>
+How can I get confirmation of mail deliveries?
+</p>
+
+<p class="answer"><b></b>
+This is not currently available in Postfix.
+</p>
+
+<p align="right"><small>[<a href="javascript:history.go(-1)">Back</a>][<a href="#top">Top</a>][<a href="/contact.html">Feedback</a>]</small></p>
+
+<hr width="80%" size="1" noshade="noshade" />
+
+<p class="question"><b><a name="rpl">10.</a></b>
+What's the best way to have an automated reply sent whenever a
+particular address receives an email message?
+</p>
+
+<p class="answer"><b></b>
+Almost all versions of Unix include the <tt
+class="command">vacation</tt> program, which serves this very
+purpose.
+</p>
+
+<p align="right"><small>[<a href="javascript:history.go(-1)">Back</a>][<a href="#top">Top</a>][<a href="/contact.html">Feedback</a>]</small></p>
+
+<hr width="80%" size="1" noshade="noshade" />
+
+<p class="question"><b><a name="dsc">11.</a></b>
+How can I add or append a disclaimer (or other text) to the bottom of
+ every email that gets sent from my mail server?
+</p>
+
+<p class="answer"><b></b>
+By design this is not implemented in Postfix directly. It's not the
+job of an MTA, and it's not as simple a problem as it seems because
+of MIME and digital signatures. MIME messages have a structure that
+can be very complex. Digital signatures attest to the fact that a
+signed message has not been modified. Adding a footer to the bottom
+of a message, breaks both of these. Some people add short text to the
+headers of email messages, but the text is not likely to be seen by
+most users.  The real solution is to configure your clients to add
+whatever text is required.
+</p>
+
+<p class="answer">Having said that, it is possible to configure a content filter that
+appends the text for you. Follow the directions for configuring
+Postfix to work with a content filter. Your filter should be MIME
+aware, and you should be aware that digital signatures will no longer
+work.
+</p>
+
+<p align="right"><small>[<a href="javascript:history.go(-1)">Back</a>][<a href="#top">Top</a>][<a href="/contact.html">Feedback</a>]</small></p>
+
+<hr width="80%" size="1" noshade="noshade" />
+
+<p class="question"><b><a name="svmsg">12.</a></b>
+How can I save a copy of every message?
+</p>
+
+<p class="answer"><b></b>
+Specify an address in the <tt class="literal">always_bcc</tt>
+parameter.  It will receive copies of all messages. After version 2.1
+(and earlier snapshot versions), you can also use <tt
+class="literal">sender_bcc_maps</tt> and <tt
+class="literal">recipient_bcc_maps</tt> to save messages for specific
+users only.
+</p>
+
+<p align="right"><small>[<a href="javascript:history.go(-1)">Back</a>][<a href="#top">Top</a>][<a href="/contact.html">Feedback</a>]</small></p>
+
+<hr width="80%" size="1" noshade="noshade" />
+
+<p class="question"><b><a name="qta">13.</a></b>
+How can I enable quotas or size limits on users' mailboxes?
+</p>
+
+<p class="answer"><b></b>
+This is not really a function of Postfix, although if you are using
+mbox-style mailboxes, you may achieve what you're looking for with
+the <tt class="literal">mailbox_size_limit</tt> parameter.  Be aware
+that if you use maildir style mailboxes this parameter only limits
+the size of individual mail files and not the size of the entire
+mailbox.
+</p>
+
+<p class="answer">Mailbox quotas are best enforced by the mail store itself, which
+might be done through normal operating system accounting or your IMAP
+server configuration. Be aware that if your IMAP server receives
+messages over LMTP, over-quota situations won't be discovered until
+after Postfix has accepted the message, so it will have to be
+bounced. If you want to reject mail for users over their quotas,
+you'll have to use an access table listing users who are over their
+quotas.
+</p>
+
+<p align="right"><small>[<a href="javascript:history.go(-1)">Back</a>][<a href="#top">Top</a>][<a href="/contact.html">Feedback</a>]</small></p>
+
+<hr width="80%" size="1" noshade="noshade" />
+
+<p class="question"><b><a name="dapp">14.</a></b>
+Why do some addresses have my own domain name appended to them in the
+headers? For example, before I installed Postfix I might see a header
+like the following:
+</p>
+
+<pre>
+To: billy
+</pre>
+
+<p class="question">Now it comes in as
+</p>
+
+<pre>
+To: billy@mail.example.com
+</pre>
+
+<p class="answer"><b></b>
+Postfix insists on fully qualified headers as required by the
+standards, so it tries to fix incomplete addresses. It is possible to
+turn off address completion by setting <tt
+class="literal">append_at_myorigin = no</tt> but that's likely to
+foul up other aspects of your system.
+</p>
+
+<p class="answer">The best solution is to make sure that your users specify correct and
+complete addresses in their <tt class="literal">To:</tt> and <tt
+class="literal">From:</tt> headers. Then be sure to reject any
+messages without fully-qualified addresses by including the
+restriction <tt class="literal">reject_non_fqdn_recipient</tt> among
+your anti-spam rules.
+</p>
+
+<p align="right"><small>[<a href="javascript:history.go(-1)">Back</a>][<a href="#top">Top</a>][<a href="/contact.html">Feedback</a>]</small></p>
+
+<hr width="80%" size="1" noshade="noshade" />
+
+<p class="question"><b><a name="exftr">15.</a></b>
+How can I tell if my Postfix was built with a particular feature? I
+got my copy of Postfix from a package and I want to know if it
+includes support for SASL and TLS.
+</p>
+
+<p class="answer"><b></b>
+One way to check what your SMTPD supports is to ask it. Try the
+following:
+</p>
+
+<pre>
+$ <b>telnet mail.example.com 25</b>
+Trying 192.168.100.11...
+Connected to 192.168.100.11.
+Escape character is '^]'.
+220 scallop.seaglass.com ESMTP Postfix
+<b>EHLO localhost</b>
+250-scallop.seaglass.com
+250-PIPELINING
+250-SIZE 10240000
+250-VRFY
+250-ETRN
+250-STARTTLS
+250-XVERP
+250 8BITMIME
+<b>quit</b>
+</pre>
+
+<p class="answer">You type the <b>emphasized</b> lines.  Use your own mail server
+hostname instead of <tt class="literal"> mail.example.com</tt>, of
+course.
+</p>
+
+<p class="answer">You might also be interested in the output of
+</p>
+
+<pre>
+$ postconf -m
+</pre>
+
+<p class="answer">which displays all supported lookup table types.
+</p>
+
+<p class="answer">You can also check the libraries that have been compiled into your
+<tt class="command">smtpd</tt> binary.	Many platforms support a
+command to display the libraries such as <tt class="command">ldd</tt>
+or <tt class="command">elfdump</tt>.
+</p>
+
+<p class="answer">And finally, Simon Mudd maintains a utility called <tt
+class="command">postfinger</tt>, which can be used to find out a lot
+of good information about your installation of Postfix.
+</p>
+
+<p align="right"><small>[<a href="javascript:history.go(-1)">Back</a>][<a href="#top">Top</a>][<a href="/contact.html">Feedback</a>]</small></p>
+
+<hr width="80%" size="1" noshade="noshade" />
+
+<p class="question"><b><a name="chprt">16.</a></b>
+How can I get Postfix to listen on a port other than 25?
+</p>
+
+<p class="answer"><b></b>
+Set the port in an <tt class="literal">smtpd</tt> entry in the <tt
+class="filename">master.cf</tt> file. You can change the existing <tt
+class="literal">smtpd</tt> entry or add an additional one depending
+on what you need.
+</p>
+
+<p class="answer">An entry like the following causes Postfix to listen on port 10025:
+</p>
+
+<pre>
+10025      inet  n     -     n     -     -     smtpd
+</pre>
+
+<p align="right"><small>[<a href="javascript:history.go(-1)">Back</a>][<a href="#top">Top</a>][<a href="/contact.html">Feedback</a>]</small></p>
+
+<hr width="80%" size="1" noshade="noshade" />
+
+<p class="question"><b><a name="df12">17.</a></b>
+What is the main difference between the 1.xx and 2.xx versions of
+Postfix?
+</p>
+
+<p class="answer"><b></b>
+<i>&ldquo;See the RELEASE_NOTES files. It took me half a week to
+write them, and it would be a shame if people ignored
+them,&rdquo;</i> Postfix author, Wietse Venema.
+</p>
+
+<p class="answer">Fair enough.
+</p>
+
+<p align="right"><small>[<a href="javascript:history.go(-1)">Back</a>][<a href="#top">Top</a>][<a href="/contact.html">Feedback</a>]</small></p>
+
+<hr width="80%" size="1" noshade="noshade" />
+
+<p class="question"><b><a name="dfcfg">18.</a></b>
+Okay, but I'm mainly worried about my config files. How should I
+handle them when upgrading?
+</p>
+
+<p class="answer"><b></b>
+Make a backup, of course, before upgrading, but the command <tt
+class="command">make upgrade</tt> automatically updates your existing
+config files. Don't try to use your old files as they were when going
+from 1.0 to 2.0.
+</p>
+
+<p class="answer">The upgrade has a couple of compatibility tweaks that you probably
+want to change once you're on the new version.	Set <tt
+class="literal">local_recipient_maps</tt> to an appropriate map or
+use the default setting, and change <tt
+class="literal">unknown_local_recipient_reject_code</tt> to a
+permanent error (554).
+</p>
+
+<p align="right"><small>[<a href="javascript:history.go(-1)">Back</a>][<a href="#top">Top</a>][<a href="/contact.html">Feedback</a>]</small></p>
+
+<hr width="80%" size="1" noshade="noshade" />
+
+<p class="question"><b><a name="bndintf">19.</a></b>
+I have a few interfaces on my system. How can I get Postfix to bind
+to only one of them?
+</p>
+
+<p class="answer"><b></b>
+Specify the IP address of the interface(s) you want Postfix to use in
+the <tt class="literal">inet_interfaces</tt> parameter.
+</p>
+
+<p align="right"><small>[<a href="javascript:history.go(-1)">Back</a>][<a href="#top">Top</a>][<a href="/contact.html">Feedback</a>]</small></p>
+
+<hr width="80%" size="1" noshade="noshade" />
+
+<p class="question"><b><a name="wrnmsg">20.</a></b>
+With Sendmail, I used to get a warning notice when a message couldn't
+be delivered for 4 hours or so. Can I get that with Postfix?
+</p>
+
+<p class="answer"><b></b>
+This is controlled by the <tt class="literal">delay_warning_time</tt>
+parameter. By default it's set to 0 for never.
+</p>
+
+<p align="right"><small>[<a href="javascript:history.go(-1)">Back</a>][<a href="#top">Top</a>][<a href="/contact.html">Feedback</a>]</small></p>
+
+<hr width="80%" size="1" noshade="noshade" />
+
+<p class="question"><b><a name="dfmtmc">21.</a></b>
+What's the difference between <tt
+class="literal">mailbox_transport</tt> and <tt
+class="literal">mailbox_command</tt>?
+</p>
+
+<p class="answer"><b></b>
+The <tt class="literal">mailbox_transport</tt> parameter is set to a
+service from <tt class="filename">master.cf</tt>, while <tt
+class="literal">mailbox_command</tt> refers to an actual command on
+the mail server filesystem.
+</p>
+
+<p class="answer">There are a few parameters that can affect mailbox delivery. The
+parameters in order of preference are <tt
+class="literal">mailbox_transport</tt>, <tt
+class="literal">mailbox_command_maps</tt>, <tt
+class="literal">mailbox_command</tt>, and <tt
+class="literal">home_mailbox</tt>. When a user is not found on the
+system, the parameters <tt class="literal">fallback_transport</tt>
+and then <tt class="literal">luser_relay</tt> come into play.
+</p>
+
+<p align="right"><small>[<a href="javascript:history.go(-1)">Back</a>][<a href="#top">Top</a>][<a href="/contact.html">Feedback</a>]</small></p>
+
+<hr width="80%" size="1" noshade="noshade" />
+
+<p class="question"><b><a name="hdhdr">22.</a></b>
+All of our internal systems relay through our mail gateway. Is there
+a way to remove or hide the hostnames and IP addresses of our
+internal systems from the messages headers before they go out?
+</p>
+
+<p class="answer"><b></b>
+Add header checks that match the header lines showing your internal
+systems and specify the IGNORE action for them.
+</p>
+
+<pre>
+/^received:.*192\.168\.144\.32/     IGNORE
+</pre>
+
+<p align="right"><small>[<a href="javascript:history.go(-1)">Back</a>][<a href="#top">Top</a>][<a href="/contact.html">Feedback</a>]</small></p>
+
+<hr width="80%" size="1" noshade="noshade" />
+
+<p class="question"><b><a name="fwdnex">23.</a></b>
+How can I tell Postfix to forward all messages that are sent to
+non-existent mailboxes to a particular user?
+</p>
+
+<p class="answer"><b></b>
+You can specify an address in the <tt
+class="literal">luser_relay</tt> parameter and disable <tt
+class="literal">local_recipient_maps</tt>.
+</p>
+
+<pre>
+luser_relay = info
+local_recipient_maps =
+</pre>
+
+<p class="answer">Be careful if you do this. With the prevalence of spam the address
+you specify is liable to catch a large amount of junk mail.
+</p>
+
+<p align="right"><small>[<a href="javascript:history.go(-1)">Back</a>][<a href="#top">Top</a>][<a href="/contact.html">Feedback</a>]</small></p>
+
+<hr width="80%" size="1" noshade="noshade" />
+
+<p class="question"><b><a name="bncnex">24.</a></b>
+Okay, how can I have Postfix initially accept all messages, but then
+bounce those that are addressed to non-existent users?
+</p>
+
+<p class="answer"><b></b>
+Simply disabling <tt class="literal">local_recipient_maps</tt> does
+the trick. The SMTP server accepts everything, and only later does
+the local delivery agent discover that the user doesn't exist, so it
+bounces the message. You really don't want to do this.	You will
+receive a large amount of junk for which your server will try to send
+bounce notices. Innocent souls whose addresses have been faked will
+be inundated with bogus bounce messages from your (and probably
+others') mail server.
+</p>
+
+<p align="right"><small>[<a href="javascript:history.go(-1)">Back</a>][<a href="#top">Top</a>][<a href="/contact.html">Feedback</a>]</small></p>
+
+<hr width="80%" size="1" noshade="noshade" />
+
+<p class="question"><b><a name="rldpf">25.</a></b>
+When I make changes to configuration files or lookup tables, do I
+have to reload Postfix?
+</p>
+
+<p class="answer"><b></b>
+It depends on the type of file you are changing.
+</p>
+
+<p class="answer"><b>Easy answer</b>: Changes in files that Postfix reads into memory
+at startup require a reload for your changes to go into effect
+immediately. Examples of such files are <tt
+class="filename">main.cf</tt>, <tt class="filename">master.cf</tt>,
+and any lookup table using regular expressions. DB or DBM files are
+not read into memory and don't require reloading Postfix when they
+are changed. Note that with changes to the <tt
+class="literal">inet_interfaces</tt> parameter, a reload is not
+sufficient. You must stop and then start Postfix in this case.
+</p>
+
+<p class="answer"><b>Complete answer</b>: Since most Postfix daemons are short-lived,
+your new settings are actually recognized automatically as those
+daemons expire and new ones are launched. However, longer running
+daemons such as <tt class="command">pickup</tt>, <tt
+class="command">qmgr</tt>, and possibly <tt
+class="command">trivial-rewrite</tt> will not detect changes to <tt
+class="filename">main.cf</tt>, so changes to parameters used by these
+daemons require that you reload Postfix. Changes to <tt
+class="filename">master.cf</tt> always require a reload.  Note that
+with changes to the <tt class="literal">inet_interfaces</tt>
+parameter, a reload is not sufficient. You must stop and then start
+Postfix in this case.
+</p>
+
+<p class="answer"><i> Special thanks to Vi[ck]tor Duchovni for information in this
+answer. </i>
+</p>
+
+<p align="right"><small>[<a href="javascript:history.go(-1)">Back</a>][<a href="#top">Top</a>][<a href="/contact.html">Feedback</a>]</small></p>
+
+<hr width="80%" size="1" noshade="noshade" />
+
+<p class="question"><b><a name="tmprsp">26.</a></b>
+According to my configuration Postfix should be replying with a
+permanent error code (554), but it keeps sending a temporary one
+(454). Why is it doing that?
+</p>
+
+<p class="answer"><b></b>
+You probably have <tt class="literal">soft_bounce = yes</tt>. Also,
+if there is a temporary DNS problem, Postfix automatically converts
+permanent errors to temporary ones.
+</p>
+
+<p align="right"><small>[<a href="javascript:history.go(-1)">Back</a>][<a href="#top">Top</a>][<a href="/contact.html">Feedback</a>]</small></p>
+
+<hr width="80%" size="1" noshade="noshade" />
+
+<p class="question"><b><a name="rmtusr">27.</a></b>
+I have a few users that travel regularly. How can I allow them to
+send mail through my server without creating an open relay? Can't I
+just tell Postfix to allow relaying when the sender address is from
+my domain?
+</p>
+
+<p class="answer"><b></b>
+Emphatically not. Spammers know to use your domain when trying to
+relay mail through your server. If your users have static IP
+addresses add them to your <tt class="literal">mynetworks</tt>
+parameter. Assuming they don't have static IP addresses, the easiest
+option is to see if they can use the SMTP server of the ISP they're
+connecting through. If none of these options are available, you will
+have to look into SMTP AUTH or one of the pop-before-smtp solutions.
+</p>
+
+<p align="right"><small>[<a href="javascript:history.go(-1)">Back</a>][<a href="#top">Top</a>][<a href="/contact.html">Feedback</a>]</small></p>
+
+<hr width="80%" size="1" noshade="noshade" />
+
+<p class="question"><b><a name="mstrspc">28.</a></b>
+I need to add some smtpd restrictions to my <tt
+class="filename">master.cf</tt> file, something like:
+</p>
+
+<pre>
+-o smtpd_recipient_restrictions=check_recipient_access hash:/etc/postfix/recipient_access
+</pre>
+
+<p class="question">Any idea how I can do that with the space required between the <tt
+class="literal">check_recipient_access</tt> and the lookup table?
+</p>
+
+<p class="answer"><b></b>
+You can use a comma instead of a space:
+</p>
+
+<pre>
+...
+-o smtpd_recipient_restrictions=check_recipient_access,hash:/etc/postfix/recipient_access
+</pre>
+
+<p class="answer">Another option is to define a variable in <tt
+class="filename">main.cf</tt> with all the restrictions you need,
+then use the variable in <tt class="filename">master.cf</tt>:
+</p>
+
+<pre>
+#
+# main.cf
+#
+...
+other_restrictions = 
+      check_recipient_access hash:/etc/postfix/recipient_access
+      reject_unknown_recipient_domain
+      ...
+</pre>
+
+<p class="answer">
+</p>
+
+<pre>
+#
+# master.cf
+#
+...
+-o smtpd_recipient_restrictions=$other_restrictions
+</pre>
+
+<p align="right"><small>[<a href="javascript:history.go(-1)">Back</a>][<a href="#top">Top</a>][<a href="/contact.html">Feedback</a>]</small></p>
+
+<hr width="80%" size="1" noshade="noshade" />
+
+<p class="question"><b><a name="cnctdelay">29.</a></b>
+There seems to be a long delay whenever a client connects to my smtpd
+service. It can take as long as a minute from establishing a
+connection until Postfix sends the 220 banner. Any ideas on what
+might be causing this?
+</p>
+
+<p class="answer"><b></b>
+This delay is almost always due to the DNS resolver on your server.
+When a client connects, Postfix tries to look up the hostname for the
+connecting client's IP address. If your resolver is not configured
+correctly or your DNS server is slow to respond, you will see a
+delay. You should run a caching-only DNS server on the same system as
+your Postfix server.
+</p>
+
+<p class="answer">The most common reason for a misconfigured resolver is that your <tt
+class="filename">smtpd</tt> service is running in a chroot, and you
+don't have all of the necessary configuration files within the chroot
+compartment.
+</p>
+
+<p align="right"><small>[<a href="javascript:history.go(-1)">Back</a>][<a href="#top">Top</a>][<a href="/contact.html">Feedback</a>]</small></p>
+
+<hr width="80%" size="1" noshade="noshade" />
+
+<p class="question"><b><a name="nosmtpd">30.</a></b>
+Is it possible to have Postfix running, but without the SMTPD server
+listening for outside connections?
+</p>
+
+<p class="answer"><b></b>
+Yes, comment out the <tt class="command">smtpd</tt> line in your <tt
+class="filename">master.cf</tt> file.
+</p>
+
+<pre>
+#smtp      inet  n       -       n       -       -       smtpd
+</pre>
+
+<p align="right"><small>[<a href="javascript:history.go(-1)">Back</a>][<a href="#top">Top</a>][<a href="/contact.html">Feedback</a>]</small></p>
+
+<hr width="80%" size="1" noshade="noshade" />
+
+<h2>Aliases</h2>
+
+
+
+<p class="question"><b><a name="alfrst">31.</a></b>
+I have aliases where only the first address in the list receives
+messages. The others can receive mail fine when sent to them
+directly, but when they're part of an alias, their messages don't
+arrive.
+</p>
+
+<p class="answer"><b></b>
+If you are using an external program for delivery, it might not
+handle more than one address at a time. Such is the case with <tt
+class="command">maildrop</tt>, for example. To make sure that Postfix
+passes messages for delivery one at a time, set the
+<i>transport</i><tt class="literal">_destination_recipient_limit</tt>
+parameter in <tt class="filename">main.cf</tt> to one.
+<i>transport</i> is the name of the transport method making the
+deliveries. If you are using <tt class="command">maildrop</tt>, the
+parameter looks like the following:
+</p>
+
+<pre>
+maildrop_destination_recipient_limit = 1
+</pre>
+
+<p align="right"><small>[<a href="javascript:history.go(-1)">Back</a>][<a href="#top">Top</a>][<a href="/contact.html">Feedback</a>]</small></p>
+
+<hr width="80%" size="1" noshade="noshade" />
+
+<p class="question"><b><a name="aldbl">32.</a></b>
+If I have an alias like this,
+</p>
+
+<pre>
+info:     peter,heloise
+</pre>
+
+<p class="question">and somebody sends a message addressed to both <tt
+class="literal">info</tt> and <tt class="literal">peter</tt>, then
+<tt class="literal">peter</tt> receives the message twice.  When I
+used Sendmail it detected the same mail going to the same user twice
+and prevented it. How can I do the same with Postfix?
+</p>
+
+<p class="answer"><b></b>
+You can't. The architecture of Postfix is such that detecting
+duplicates like this is too costly. It's the trade-off between a
+multi-component system with a high level of security and performance,
+and a monolithic one that can easily detect those duplications.
+</p>
+
+<p align="right"><small>[<a href="javascript:history.go(-1)">Back</a>][<a href="#top">Top</a>][<a href="/contact.html">Feedback</a>]</small></p>
+
+<hr width="80%" size="1" noshade="noshade" />
+
+<p class="question"><b><a name="exexpn">33.</a></b>
+I'm trying to test alias lists to see what addresses are expanded
+from particular lists. With other mail servers, I used the EXPN
+command to get a full recipient list, but it doesn't seem to work
+with Postfix.
+</p>
+
+<p class="answer"><b></b>
+Postfix does not support EXPN. Because of Postfix's architecture and
+security design, the unprivileged SMTP server doesn't know anything
+about local aliases. It's the privileged local delivery agent that
+actually expands aliases at the point of delivery. If you use a
+mailing list manager, it most likely has a command to tell you who is
+on the list, or you may have to check the aliases file on the mail
+server system.
+</p>
+
+<p align="right"><small>[<a href="javascript:history.go(-1)">Back</a>][<a href="#top">Top</a>][<a href="/contact.html">Feedback</a>]</small></p>
+
+<hr width="80%" size="1" noshade="noshade" />
+
+<h2>Error and Warning Messages</h2>
+
+
+
+<p class="question"><b><a name="erlpbk">34.</a></b>
+I can't seem to receive messages. What does this error mean:
+"&lt;test@example.com&gt;: mail for example.com loops back to
+myself"?
+</p>
+
+<p class="answer"><b></b>
+Postfix reports this error when a DNS reply points to your mail
+server, but Postfix hasn't been configured to deal with messages
+addressed to the domain.  Postfix accepts mail for domains listed in
+<tt class="literal">mydestination</tt>, <tt
+class="literal">relay_domains</tt>, <tt
+class="literal">virtual_mailbox_domains</tt>, <tt
+class="literal">virtual_alias_domains</tt>, and domains that resolve
+to IP addresses listed in <tt class="literal">inet_interfaces</tt>
+and <tt class="literal">proxy_interfaces</tt>. The domain must be
+listed in one of these parameters.
+</p>
+
+<p align="right"><small>[<a href="javascript:history.go(-1)">Back</a>][<a href="#top">Top</a>][<a href="/contact.html">Feedback</a>]</small></p>
+
+<hr width="80%" size="1" noshade="noshade" />
+
+<p class="question"><b><a name="erfldf">35.</a></b>
+Why am I getting messages like this in my log? Shouldn't all of these
+files be in <tt class="filename">/etc</tt>?
+</p>
+
+<pre>
+warning: /var/spool/postfix/etc/services/services and /etc/services/services differ
+warning: /var/spool/postfix/etc/resolv.conf/resolv.conf and /etc/resolv.conf/resolv.conf differ
+warning: /var/spool/postfix/etc/hosts/hosts and /etc/hosts/hosts differ
+warning: /var/spool/postfix/etc/nsswitch.conf/nsswitch.conf and /etc/nsswitch.conf/nsswitch.conf differ
+</pre>
+
+<p class="answer"><b></b>
+When Postfix components run within a chroot, their view of your file
+system is limited to subdirectories below the directory specified in
+<tt class="literal">queue_directory</tt> (default: <tt
+class="filename">/var/spool/postfix</tt>). Some system resources must
+be copied into the chrooted directory, and Postfix checks that the
+system versions are in sync with those in your chroot.
+</p>
+
+<p align="right"><small>[<a href="javascript:history.go(-1)">Back</a>][<a href="#top">Top</a>][<a href="/contact.html">Feedback</a>]</small></p>
+
+<hr width="80%" size="1" noshade="noshade" />
+
+<p class="question"><b><a name="errunusr">36.</a></b>
+When mail arrives for an unknown user, Postfix rejects it with the
+message, "User unknown in (local|virtual|relay) recipient table." Is
+it possible to just say something like the user doesn't exist?
+</p>
+
+<p class="answer"><b></b>
+The idea here is to give you as the administrator good information
+about how to solve a problem.  You can set
+</p>
+
+<pre>
+show_user_unknown_table_name = no
+</pre>
+
+<p class="answer">to have the message simply say "User unknown."
+</p>
+
+<p align="right"><small>[<a href="javascript:history.go(-1)">Back</a>][<a href="#top">Top</a>][<a href="/contact.html">Feedback</a>]</small></p>
+
+<hr width="80%" size="1" noshade="noshade" />
+
+<p class="question"><b><a name="eruksvc">37.</a></b>
+I'm getting
+</p>
+
+<pre>
+postfix/smtp[18860]: fatal: unknown service: smtp/tcp
+</pre>
+
+<p class="question">What could be the problem?
+</p>
+
+<p class="answer"><b></b>
+Most likely you are missing or have an unreadable <tt
+class="filename">/var/spool/postfix/etc/services</tt>.
+</p>
+
+<p align="right"><small>[<a href="javascript:history.go(-1)">Back</a>][<a href="#top">Top</a>][<a href="/contact.html">Feedback</a>]</small></p>
+
+<hr width="80%" size="1" noshade="noshade" />
+
+<h2>Mail Queue</h2>
+
+
+
+<p class="question"><b><a name="qdl">38.</a></b>
+I have a whole bunch of mail queued up that I know I don't need. Is
+there any way to delete all of the queued messages?
+</p>
+
+<p class="answer"><b></b>
+
+</p>
+
+<pre>
+# <b>postsuper -d ALL</b>
+</pre>
+
+<p class="answer">Note that the word ALL must be all capital letters, and that
+executing this command deletes <b>all</b> of the mail in your queue.
+</p>
+
+<p align="right"><small>[<a href="javascript:history.go(-1)">Back</a>][<a href="#top">Top</a>][<a href="/contact.html">Feedback</a>]</small></p>
+
+<hr width="80%" size="1" noshade="noshade" />
+
+<p class="question"><b><a name="dfmqpq">39.</a></b>
+I see strange differences between <tt class="command">mailq</tt> and
+<tt class="command">postqueue</tt>. My <tt class="command">mailq</tt>
+command says there is nothing in the queue (<tt
+class="literal">/var/spool/mqueue is empty</tt>), but <tt
+class="command">postqueue</tt> reports a lot of messages. How can
+that be?
+</p>
+
+<p class="answer"><b></b>
+Your <tt class="command">mailq</tt> is from Sendmail.  Somehow your
+Postfix installation is fouled up. Postfix installs a replacement <tt
+class="command">mailq</tt> command. You need to fix your Postfix
+installation. The problem might be simple like the Sendmail <tt
+class="command">mailq</tt> is in the path before the Postfix <tt
+class="command">mailq</tt> (in which case, rename the Sendmail one to
+<tt class="command">mailq.sendmail</tt>, for example) or your Postfix
+installation might not have completed successfully.
+</p>
+
+<p align="right"><small>[<a href="javascript:history.go(-1)">Back</a>][<a href="#top">Top</a>][<a href="/contact.html">Feedback</a>]</small></p>
+
+<hr width="80%" size="1" noshade="noshade" />
+
+<p class="question"><b><a name="qexp">40.</a></b>
+How can I change how long messages stay in the queue before they
+expire and get bounced?
+</p>
+
+<p class="answer"><b></b>
+The <tt class="literal">maximal_queue_lifetime</tt> parameter
+determines how long a message should stay in the queue before it is
+deemed undeliverable. The default is five days (5d).
+</p>
+
+<p align="right"><small>[<a href="javascript:history.go(-1)">Back</a>][<a href="#top">Top</a>][<a href="/contact.html">Feedback</a>]</small></p>
+
+<hr width="80%" size="1" noshade="noshade" />
+
+<p class="question"><b><a name="qexpmsg">41.</a></b>
+Is there a way to cause individual messages to be expired from the
+queue after some time? Or is there a way to have different queue
+lifetimes for different destinations?
+</p>
+
+<p class="answer"><b></b>
+There is no explicit expire option for queue files. The queue manager
+controls the expiration of messages based on how long they've been
+around and the value of <tt
+class="literal">maximal_queue_lifetime</tt> (see previous question).
+It's not possible to have different queue times for different
+destinations because queued messages may have multiple recipients and
+therefore no single destination.
+</p>
+
+<p class="answer">Also, later versions of Postfix introduced the <tt
+class="literal">bounce_queue_lifetime</tt> parameter, so you can
+shorten the time that non-deliverable non-delivery notifications stay
+in your queue.
+</p>
+
+<p align="right"><small>[<a href="javascript:history.go(-1)">Back</a>][<a href="#top">Top</a>][<a href="/contact.html">Feedback</a>]</small></p>
+
+<hr width="80%" size="1" noshade="noshade" />
+
+<p class="question"><b><a name="qrdlvr">42.</a></b>
+I had a problem in my configuration. It's fixed now, but the system
+is still trying to deliver queued messages using the old, incorrect
+configuration. What do I have to do to make them use the new
+configuration?
+</p>
+
+<p class="answer"><b></b>
+You have to requeue the messages with the <tt
+class="command">postsuper -r</tt> command.
+</p>
+
+<p align="right"><small>[<a href="javascript:history.go(-1)">Back</a>][<a href="#top">Top</a>][<a href="/contact.html">Feedback</a>]</small></p>
+
+<hr width="80%" size="1" noshade="noshade" />
+
+<p class="question"><b><a name="qmlrdmn">43.</a></b>
+I have a lot of mail in my queue that seems to originate from
+"MAILER-DAEMON" instead of an actual email address. Where is it
+coming from?
+</p>
+
+<p class="answer"><b></b>
+Those are bounce messages from your server that cannot be delivered
+to original senders of previously undeliverable mail. Most often this
+happens when your server is accepting messages for non-existent
+users. See <a href="#ubenousr">a related question</a>.
+</p>
+
+<p class="answer">If you are already rejecting messages for non-existent users, this
+might be caused by one of your own users infected with a virus. Check
+your logs to see where the original messages are coming from.
+</p>
+
+<p align="right"><small>[<a href="javascript:history.go(-1)">Back</a>][<a href="#top">Top</a>][<a href="/contact.html">Feedback</a>]</small></p>
+
+<hr width="80%" size="1" noshade="noshade" />
+
+<h2>Logging</h2>
+
+
+
+<p class="question"><b><a name="lgwhr">44.</a></b>
+Where does Postfix log its information?
+</p>
+
+<p class="answer"><b></b>
+Postfix logs messages to your system's <tt
+class="command">syslogd</tt> daemon. Check your system documentation
+to find the actual log file.
+</p>
+
+<p align="right"><small>[<a href="javascript:history.go(-1)">Back</a>][<a href="#top">Top</a>][<a href="/contact.html">Feedback</a>]</small></p>
+
+<hr width="80%" size="1" noshade="noshade" />
+
+<p class="question"><b><a name="lgsbj">45.</a></b>
+Is it possible to have Postfix log the subject of a message along
+with the other information like To and From addresses?
+</p>
+
+<p class="answer"><b></b>
+You can get the subject logged by adding an entry to your <tt
+class="literal">header_checks</tt> file that always matches the
+Subject: header and uses a result of 'WARN.'
+</p>
+
+<pre>
+/^subject:/      WARN
+</pre>
+
+<p align="right"><small>[<a href="javascript:history.go(-1)">Back</a>][<a href="#top">Top</a>][<a href="/contact.html">Feedback</a>]</small></p>
+
+<hr width="80%" size="1" noshade="noshade" />
+
+<p class="question"><b><a name="lginc">46.</a></b>
+Is there some kind of debug or verbose logging option so that I can
+see exactly what happens with my mail?
+</p>
+
+<p class="answer"><b></b>
+You can increase logging for a particular component by adding one or
+more <tt class="literal">-v</tt> options to the component's entry in
+your <tt class="filename">master.cf</tt>.
+</p>
+
+<pre>
+smtp      inet  n     -    n    -     -     smtpd -v
+</pre>
+
+<p class="answer">You can also get additional information on transactions with a
+particular site by adding the site's name to the <tt
+class="literal">debug_peer_list</tt> parameter in <tt
+class="filename">main.cf</tt>. Then adjust <tt
+class="literal">debug_peer_level</tt> to get the amount of
+information you need.
+</p>
+
+<pre>
+debug_peer_list = example.com
+debug_peer_level = 2
+</pre>
+
+<p align="right"><small>[<a href="javascript:history.go(-1)">Back</a>][<a href="#top">Top</a>][<a href="/contact.html">Feedback</a>]</small></p>
+
+<hr width="80%" size="1" noshade="noshade" />
+
+<p class="question"><b><a name="lgnofrm">47.</a></b>
+My log doesn't seem to have any entries with the From address logged?
+What gives?
+</p>
+
+<p class="answer"><b></b>
+The From address is logged by the queue manager. If you run <tt
+class="command">qmgr</tt> chrooted, you must have a syslog socket
+below <tt class="filename">/var/spool/postfix</tt>. Some platforms
+have a <tt class="command">syslogd</tt> daemon that allows you to
+specify additional sockets when it starts up. Others will be a bit
+trickier to get working within the chroot. See your system's syslog
+documentation.
+</p>
+
+<p align="right"><small>[<a href="javascript:history.go(-1)">Back</a>][<a href="#top">Top</a>][<a href="/contact.html">Feedback</a>]</small></p>
+
+<hr width="80%" size="1" noshade="noshade" />
+
+<p class="question"><b><a name="lganl">48.</a></b>
+Are there any good programs to analyze Postfix log entries?
+</p>
+
+<p class="answer"><b></b>
+See <a href="http://www.postfix.org/addon.html#logfile">Logfile
+analysis</a> on the Postfix home page.
+</p>
+
+<p align="right"><small>[<a href="javascript:history.go(-1)">Back</a>][<a href="#top">Top</a>][<a href="/contact.html">Feedback</a>]</small></p>
+
+<hr width="80%" size="1" noshade="noshade" />
+
+<p class="question"><b><a name="lgdbl">49.</a></b>
+The way I use virus scanning, all messages are re-injected back into
+Postfix. This causes everything to be logged twice. Is there  a way
+to configure Postfix not to log certain things?
+</p>
+
+<p class="answer"><b></b>
+You don't really want to limit what Postfix logs. It logs all kinds
+of information that you might need sometime. Instead, Unix is rich
+with tools that let you manipulate, filter, and otherwise get the
+exact information you are looking for. If, for example, the second
+injection of a message includes <tt class="literal">relay=vscan</tt>,
+filter those lines out when you perform your log analysis.
+</p>
+
+<pre>
+$ <b>grep -v "relay=vscan" maillog > analyze_log</b>
+</pre>
+
+<p align="right"><small>[<a href="javascript:history.go(-1)">Back</a>][<a href="#top">Top</a>][<a href="/contact.html">Feedback</a>]</small></p>
+
+<hr width="80%" size="1" noshade="noshade" />
+
+<p class="question"><b><a name="lgdftm">50.</a></b>
+My system time is correct but my mail log entries show a different
+time. What could be the problem?
+</p>
+
+<p class="answer"><b></b>
+You're running within a chroot. Make sure that whatever files your
+system uses to determine the TIMEZONE are below your chroot.
+</p>
+
+<p align="right"><small>[<a href="javascript:history.go(-1)">Back</a>][<a href="#top">Top</a>][<a href="/contact.html">Feedback</a>]</small></p>
+
+<hr width="80%" size="1" noshade="noshade" />
+
+<h2>DNS Issues</h2>
+
+
+
+<p class="question"><b><a name="dnshnf">51.</a></b>
+I get an error saying that the host cannot be found, but when I look
+up the host I get an answer. Why can't Postfix figure it out?
+</p>
+
+<p class="answer"><b></b>
+Postfix (like all MTAs) delivers mail to a mail exchanger (MX). When
+you're checking the DNS for a domain, be sure to look up the MX
+records.
+</p>
+
+<p align="right"><small>[<a href="javascript:history.go(-1)">Back</a>][<a href="#top">Top</a>][<a href="/contact.html">Feedback</a>]</small></p>
+
+<hr width="80%" size="1" noshade="noshade" />
+
+<p class="question"><b><a name="dnshnf2">52.</a></b>
+In my case, I'm doing <tt class="command">host -t MX
+example.com</tt>. I get an answer, but Postfix complains with "Host
+not found, try again".
+</p>
+
+<p class="answer"><b></b>
+Your Postfix is probably running within a chroot. Make sure you have
+all the necessary files within the chroot. Particularly common is a
+missing or incorrect <tt class="filename">resolv.conf</tt>. Be sure
+to check permissions on all necessary files to make sure that the <tt
+class="literal">postfix</tt> account can read them.
+</p>
+
+<p align="right"><small>[<a href="javascript:history.go(-1)">Back</a>][<a href="#top">Top</a>][<a href="/contact.html">Feedback</a>]</small></p>
+
+<hr width="80%" size="1" noshade="noshade" />
+
+<p class="question"><b><a name="dnsigmx">53.</a></b>
+Postfix seems to be ignoring the MX record and trying to deliver
+directly to the A record system. Is this normal?
+</p>
+
+<p class="answer"><b></b>
+It's normal if you have <tt class="literal"> disable_dns_lookups =
+yes </tt> specified in <tt class="filename">main.cf</tt>. You might
+also have a transport map specified in brackets, in which case
+Postfix delivers directly to the system in brackets.
+</p>
+
+<pre>
+example.com     smtp:[mail.example.com]
+</pre>
+
+<p align="right"><small>[<a href="javascript:history.go(-1)">Back</a>][<a href="#top">Top</a>][<a href="/contact.html">Feedback</a>]</small></p>
+
+<hr width="80%" size="1" noshade="noshade" />
+
+<h2>Virtual Domains</h2>
+
+
+
+<p class="question"><b><a name="vrtcmd">54.</a></b>
+Is there any way I can have a virtual alias deliver a message to a
+program?
+</p>
+
+<p class="answer"><b></b>
+Not directly. You have to use a virtual alias to rewrite the address
+to something that is delivered to a pipe transport or a local address
+on the system.
+</p>
+
+<p align="right"><small>[<a href="javascript:history.go(-1)">Back</a>][<a href="#top">Top</a>][<a href="/contact.html">Feedback</a>]</small></p>
+
+<hr width="80%" size="1" noshade="noshade" />
+
+<p class="question"><b><a name="vrtglal">55.</a></b>
+Is it possible to have global virtual aliases for addresses like <tt
+class="literal">postmaster</tt>, so that mail for <tt
+class="literal">postmaster</tt> at all of my domains can go to the
+same address?
+</p>
+
+<p class="answer"><b></b>
+In a word, no. We can only recommend that your processes and scripts
+to add new domains should include the steps to create the aliases you
+need.
+</p>
+
+<p align="right"><small>[<a href="javascript:history.go(-1)">Back</a>][<a href="#top">Top</a>][<a href="/contact.html">Feedback</a>]</small></p>
+
+<hr width="80%" size="1" noshade="noshade" />
+
+<h2>UBE Blocking</h2>
+
+
+
+<p class="question"><b><a name="ubeor1">56.</a></b>
+Help! I think I'm an open relay. I see lots of messages in my log
+that look like this:
+</p>
+
+<pre>
+Jun 20 06:38:46 scallop postfix/smtp[21383]: connect to 
+mail.example.com[10.11.12.13]: Connection refused (port 25)
+Jun 20 06:38:46 scallop postfix/smtp[21383]: 79AA4234A9: 
+to=&lt;jenny796@example.com&gt;, relay=none, delay=55262, 
+status=deferred (connect to mail.example.com[10.11.12.13]:
+Connection refused)
+</pre>
+
+<p class="question">I don't know anything about the <tt class="literal">example.com</tt>
+domain. Should I be worried?
+</p>
+
+<p class="answer"><b></b>
+Relax. That's most likely just a bounce notice that Postfix is trying
+to send for a bogus message that could not be delivered on your
+system. No doubt you have entries earlier in your logs for a message
+from <tt class="literal">jenny796@example.com</tt> that could not be
+delivered. You may not be an open relay, but you should configure
+your system not to accept messages for non-existent users. See
+information on <tt class="literal">local_recipient_maps</tt>.
+</p>
+
+<p align="right"><small>[<a href="javascript:history.go(-1)">Back</a>][<a href="#top">Top</a>][<a href="/contact.html">Feedback</a>]</small></p>
+
+<hr width="80%" size="1" noshade="noshade" />
+
+<p class="question"><b><a name="ubeor2">57.</a></b>
+Help! I think I might be an open relay. How can I check?
+</p>
+
+<p class="answer"><b></b>
+If you have access to a system outside of your network, use it to try
+to deliver a message through your system to an external address. From
+the outside system, set an email client to use your system as its
+SMTP server. Then try sending a message to an address that your
+system does not handle mail for. If it is delivered, then you're
+running an open relay.
+</p>
+
+<p align="right"><small>[<a href="javascript:history.go(-1)">Back</a>][<a href="#top">Top</a>][<a href="/contact.html">Feedback</a>]</small></p>
+
+<hr width="80%" size="1" noshade="noshade" />
+
+<p class="question"><b><a name="ubeor3">58.</a></b>
+Help! I'm definitely an open relay. I've been listed with various
+black lists and everything. I'm sure my Postfix configuration is
+correct. What could be causing my system to relay?
+</p>
+
+<p class="answer"><b></b>
+If you have a gateway machine like a firewall, router, or another
+mail system between the Internet and your Postfix system, the
+combination might be causing your network to relay mail freely. If
+the gateway system's IP address is in your <tt
+class="literal">mynetworks</tt> parameter, and it's configured to
+pass all mail to your Postfix system, it has carte blanche to relay
+anything. Removing the gateway system from your <tt
+class="literal">mynetworks</tt> parameter should fix it.
+</p>
+
+<p align="right"><small>[<a href="javascript:history.go(-1)">Back</a>][<a href="#top">Top</a>][<a href="/contact.html">Feedback</a>]</small></p>
+
+<hr width="80%" size="1" noshade="noshade" />
+
+<p class="question"><b><a name="ubeblea">59.</a></b>
+I get a lot of spam with a blank envelope sender address. How can I
+block these?
+</p>
+
+<p class="answer"><b></b>
+You don't want to block messages based on the fact that they have a
+null return path. Accepting null envelope addresses is required by
+the standards.	The technique is used to prevent looping of error
+notifications. You'll have to identify the spam by some other means.
+</p>
+
+<p align="right"><small>[<a href="javascript:history.go(-1)">Back</a>][<a href="#top">Top</a>][<a href="/contact.html">Feedback</a>]</small></p>
+
+<hr width="80%" size="1" noshade="noshade" />
+
+<p class="question"><b><a name="ubedly">60.</a></b>
+I have restrictions set up to block certain sender addresses. Why
+aren't messages from restricted senders blocked as soon as the client
+issues the <tt class="literal">MAIL FROM</tt> command?
+</p>
+
+<p class="answer"><b></b>
+By default Postfix does not reject clients until after it receives
+the <tt class="literal">RCPT TO</tt> command. The reason is that some
+SMTP clients do not recognize that they have been rejected, and they
+keep trying to send the message, causing connections to last longer
+than they should and a log full of warning messages. Another
+advantage to the default is that you get complete information about
+the connecting client before rejecting the message. You can change
+the default behavior by setting <tt
+class="literal">smtpd_delay_reject = no</tt>.
+</p>
+
+<p align="right"><small>[<a href="javascript:history.go(-1)">Back</a>][<a href="#top">Top</a>][<a href="/contact.html">Feedback</a>]</small></p>
+
+<hr width="80%" size="1" noshade="noshade" />
+
+<p class="question"><b><a name="ubewhchk">61.</a></b>
+Is there any way to know which entry for <tt
+class="literal">header_checks</tt> and <tt
+class="literal">body_checks</tt> caused a message to be rejected?
+</p>
+
+<p class="answer"><b></b>
+Not really. Most people include a unique marker on the RHS to
+identify their rules. You can do something as simple as numbering
+your rules. For example,
+</p>
+
+<pre>
+/freehotsex/    REJECT Message content rejected [182]
+</pre>
+
+<p class="answer">will log "Message content rejected [182]" when this rule is used to
+reject a message.
+</p>
+
+<p align="right"><small>[<a href="javascript:history.go(-1)">Back</a>][<a href="#top">Top</a>][<a href="/contact.html">Feedback</a>]</small></p>
+
+<hr width="80%" size="1" noshade="noshade" />
+
+<p class="question"><b><a name="ubenousr">62.</a></b>
+I get lots of mail for non-existent users that comes from servers
+that don't respond, so my queue is always full while it tries to
+deliver bounce notifications to these non-existent servers. How can I
+prevent this?
+</p>
+
+<p class="answer"><b></b>
+You must not accept messages for non-existent users. Since From
+addresses are usually forged, your system will be bouncing messages
+to people who never sent them. You must configure Postfix to
+<b>reject</b> them without accepting them into the queue. Set <tt
+class="literal">local_recipient_maps</tt> or <tt
+class="literal">relay_recipient_maps</tt> as appropriate for your
+situation.  You might also want to include the restriction rule <tt
+class="literal">reject_unknown_sender_domain</tt> among your smtpd
+restrictions. See <a
+href="http://www.porcupine.org/postfix-mirror/newdoc/LOCAL_RECIPIENT_
+README.html">LOCAL_RECIPIENT_README</a> for more information.
+</p>
+
+<p align="right"><small>[<a href="javascript:history.go(-1)">Back</a>][<a href="#top">Top</a>][<a href="/contact.html">Feedback</a>]</small></p>
+
+<hr width="80%" size="1" noshade="noshade" />
+
+<p class="question"><b><a name="ubechknw">63.</a></b>
+I added body and header checks to my configuration and set up the
+files with regular expressions to block certain subject lines and
+attachments, but when I test it, I can still send messages with
+subjects and attachments that should be blocked. What did I do wrong?
+</p>
+
+<p class="answer"><b></b>
+Did you restart Postfix?  Also, you should test your regular
+expressions with <tt class="command">postmap</tt> to make sure they
+do what you expect them to.
+</p>
+
+<p class="answer">Be aware that encoded messages (base64, etc.) will not be blocked
+although they'll appear normally in most email clients. Look for the
+header <tt class="literal">Content-Transfer-Encoding:</tt> to see
+whether the message originally arrived encoded.
+</p>
+
+<p align="right"><small>[<a href="javascript:history.go(-1)">Back</a>][<a href="#top">Top</a>][<a href="/contact.html">Feedback</a>]</small></p>
+
+<hr width="80%" size="1" noshade="noshade" />
+
+<p class="question"><b><a name="ubechknw2">64.</a></b>
+I added some body checks to my configuration that stop a lot of
+viruses. It mostly works well, but why is it that sometimes it
+doesn't seem to be used?
+</p>
+
+<p class="answer"><b></b>
+The messages that pass through are probably using base64 or another
+encoding. See the previous question.
+</p>
+
+<p align="right"><small>[<a href="javascript:history.go(-1)">Back</a>][<a href="#top">Top</a>][<a href="/contact.html">Feedback</a>]</small></p>
+
+<hr width="80%" size="1" noshade="noshade" />
+
+<p class="question"><b><a name="ubecdchk">65.</a></b>
+Using <tt class="literal">header_checks</tt> or <tt
+class="literal">body_checks</tt> can I make conditional comparisons?
+Something like, for example:
+</p>
+
+<pre>
+/^to: joey/ AND /^subject: hot deals/      REJECT
+</pre>
+
+<p class="question">so that certain subjects are blocked only for certain users.
+</p>
+
+<p class="answer"><b></b>
+This won't work because Postfix header and body checks can only
+consider one logical message line at a time. They're meant for simple
+checks. If you need anything more sophisticated, you should set up a
+content filter that has the smarts you need.
+</p>
+
+<p align="right"><small>[<a href="javascript:history.go(-1)">Back</a>][<a href="#top">Top</a>][<a href="/contact.html">Feedback</a>]</small></p>
+
+<hr width="80%" size="1" noshade="noshade" />
+
+<p class="question"><b><a name="ubewhtlstchk">66.</a></b>
+I'm using <tt class="literal">header_checks</tt> and <tt
+class="literal">body_checks</tt> to block spam, but some legitimate
+email is blocked by my checks. Is there any way to whitelist some
+mail so that the header and body checks are not applied?
+</p>
+
+<p class="answer"><b></b>
+No. Header and body checks are applied to every message and should be
+used for simple checks that can easily be applied to all mail. If you
+need anything more sophisticated, you should set up a content filter
+that has the smarts you need. However, if you just want to disable
+content checks for your own users, see the How-To "<a
+href="turning_off_body_checks.html"> Turning Off Body and Header
+Checks for Internal Users</a>."
+</p>
+
+<p class="answer">If you want to create your own content filter, you can certainly do
+that, but there are many spam-blocking tools already available such
+as SpamAssassin or Bogofilter. These tools generally allow you to
+specifiy whitelisting rules. See "Virus/SPAM content filters" on the
+<a href="http://www.postfix.org/addon.html">Postfix Add-on
+Software</a> page.
+</p>
+
+<p class="answer">See Also:
+</p>
+
+
+<ul class="answer">
+<li class="answer"><a href="http://www.postfix.org/CONTENT_INSPECTION_README.html"> 
+Postfix Content Inspection</a> (www.postfix.org)
+</p>
+
+</li>
+<li class="answer"><a href="http://www.postfix.org/BUILTIN_FILTER_README.html">  Postfix
+Built-in Content Inspection</a> (www.postfix.org)
+</p>
+
+</li>
+<li class="answer"><a href="http://www.postfix.org/FILTER_README.html">  Postfix
+After-Queue Content Filter</a> (www.postfix.org)
+</p>
+
+</li>
+<li class="answer"><u>Postfix: The Definitive Guide</u> pp. 144-147, 174-182
+</p>
+
+</li>
+</ul>
+<p align="right"><small>[<a href="javascript:history.go(-1)">Back</a>][<a href="#top">Top</a>][<a href="/contact.html">Feedback</a>]</small></p>
+
+<hr width="80%" size="1" noshade="noshade" />
+
+<p class="question"><b><a name="ubewhtlstrpt">67.</a></b>
+Okay, but I just want to be able to receive my reports that include
+blocked strings from the logs. Is there no way to receive these?
+</p>
+
+<p class="answer"><b></b>
+You could encode (base64, etc.) the report to get it past the checks,
+or compress it and send it as an attachment.
+</p>
+
+<p align="right"><small>[<a href="javascript:history.go(-1)">Back</a>][<a href="#top">Top</a>][<a href="/contact.html">Feedback</a>]</small></p>
+
+<hr width="80%" size="1" noshade="noshade" />
+
+<p class="question"><b><a name="ubewhtlstrbl">68.</a></b>
+I'm using one of the blacklists to block spam and it's working fine.
+Now one of our customers/partners has got themselves listed, so my
+mail server is dutifully rejecting their messages. Is there a way to
+allow just their messages but still use the blacklist?
+</p>
+
+<p class="answer"><b></b>
+You can create a whitelist that will accept messages from certain
+addresses or domains. For example:
+</p>
+
+<pre>
+#
+# main.cf
+#
+smtpd_recipient_restrictions =
+	permit_mynetworks
+	reject_unauth_destination
+	...
+	<b>check_sender_access hash:/etc/postfix/whitelist</b> 
+	<b>reject_rbl_client dnsbl.njabl.org</b>
+	...
+</pre>
+
+<p class="answer">
+</p>
+
+<pre>
+#
+# whitelist
+#
+@customer_domain.com	OK
+</pre>
+
+<p class="answer">Make sure the whitelist check occurs before the <tt
+class="literal">reject_rbl_client</tt> check.  Remember that email
+addresses are easily faked.  Whenever you add whitelisting to your
+configuration be very careful that you don't expose your server to
+open relaying.	Make sure that your whitelisting occurs after <tt
+class="literal">reject_unauth_destination</tt> (or another rejection
+restriction).
+</p>
+
+<p align="right"><small>[<a href="javascript:history.go(-1)">Back</a>][<a href="#top">Top</a>][<a href="/contact.html">Feedback</a>]</small></p>
+
+<hr width="80%" size="1" noshade="noshade" />
+
+<p class="question"><b><a name="ubetstchk">69.</a></b>
+How can I test the regular expressions I've created in my
+header_checks and body_checks?
+</p>
+
+<p class="answer"><b></b>
+Use the <tt class="command">postmap</tt> command. You can specify a
+string representing one line of a message:
+</p>
+
+<pre>
+$ postmap -q "Content-Type:..." regexp:/etc/header_checks
+</pre>
+
+<p class="answer">Or redirect a file with the contents of a message to test a whole
+message:
+</p>
+
+<pre>
+$ postmap -q - regexp:/etc/body_checks &lt; msg_file
+</pre>
+
+<p class="answer">There are a couple differences to be aware of when using <tt
+class="command">postmap</tt> versus when Postfix actually checks a
+message.  The <tt class="command">postmap</tt> command doesn't
+understand header lines that span multiple lines, and <tt
+class="command">postmap</tt> does not know the difference between
+header lines and body lines.  Also, if you are testing regexp maps
+that use <tt class="literal">/.../i</tt> for case-sensitive matching,
+<tt class="command">postmap</tt> needs the <tt
+class="literal">-f</tt> option.
+</p>
+
+<p align="right"><small>[<a href="javascript:history.go(-1)">Back</a>][<a href="#top">Top</a>][<a href="/contact.html">Feedback</a>]</small></p>
+
+<hr width="80%" size="1" noshade="noshade" />
+
+<p class="question"><b><a name="ubesbdm">70.</a></b>
+If I block a domain with an access map like
+</p>
+
+<pre>
+example.com     REJECT No spam accepted
+</pre>
+
+<p class="question">Does that mean that subdomains like <tt
+class="literal">host.example.com</tt> are also blocked?
+</p>
+
+<p class="answer"><b></b>
+It depends on your setting for <tt
+class="literal">parent_domain_matches_subdomains</tt>. If it includes
+"smtpd_access_maps," then yes subdomains are blocked. If you don't
+want this set <tt
+class="literal">parent_domain_matches_subdomains</tt> without
+"smtpd_access_maps."
+</p>
+
+<pre>
+parent_domain_matches_subdomains =
+      debug_peer_list,fast_flush_domains,mynetworks,
+      permit_mx_backup_networks,qmqpd_authorized_clients,
+      relay_domains
+</pre>
+
+<p class="answer">You can still block subdomains on specific domains by adding an entry
+that starts with a period.
+</p>
+
+<pre>
+example.com      REJECT No spam accepted
+.example.com     REJECT No spam accepted
+</pre>
+
+<p class="answer">This achieves the same effect, even after you remove
+"smtpd_access_maps" from <tt
+class="literal">parent_domain_matches_subdomains</tt>.
+</p>
+
+<p align="right"><small>[<a href="javascript:history.go(-1)">Back</a>][<a href="#top">Top</a>][<a href="/contact.html">Feedback</a>]</small></p>
+
+<hr width="80%" size="1" noshade="noshade" />
+
+<p class="question"><b><a name="ubestr7">71.</a></b>
+Do people generally have success with setting <tt
+class="literal">strict_7bit_headers = yes</tt>?
+</p>
+
+<p class="answer"><b></b>
+That parameter tends to be quite strict and rejects a lot of mail. If
+you just want to block messages with lots of garbage characters in
+the header, try the following regexp check in your <tt
+class="literal">header_checks</tt> map:
+</p>
+
+<pre>
+/[^[:print:]]{7}/  REJECT Your mailer is not RFC 2047 compliant
+</pre>
+
+<p class="answer">This will block messages with at least seven non-printable characters
+in a header.
+</p>
+
+<p align="right"><small>[<a href="javascript:history.go(-1)">Back</a>][<a href="#top">Top</a>][<a href="/contact.html">Feedback</a>]</small></p>
+
+<hr width="80%" size="1" noshade="noshade" />
+
+<p class="question"><b><a name="2mx">72.</a></b>
+I have two MX hosts configured in my DNS. I have great spam checking
+set up on my first MX system, but I'm getting a lot of spam delivered
+directly to the backup MX even though the primary is available. Is
+there a way to force mail to the primary when it's up?
+</p>
+
+<p class="answer"><b></b>
+There's no way to force spammers to deliver anywhere. If you run a
+secondary MX system, make sure that it's configured with exactly the
+same UBE checks or it will let spam through. If you can't configure
+it the same for some reason, just eliminate it. Many sites now
+operate with a single mail exchanger for this very reason. Since
+legitimate messages are normally retried for a matter of days, you
+will only lose mail if your mail server goes down for an extended
+period of time.
+</p>
+
+<p align="right"><small>[<a href="javascript:history.go(-1)">Back</a>][<a href="#top">Top</a>][<a href="/contact.html">Feedback</a>]</small></p>
+
+<hr width="80%" size="1" noshade="noshade" />
+
+<h2>Anti-Virus</h2>
+
+
+
+<p class="question"><b><a name="avblkatc">73.</a></b>
+Can I block certain attachments based on the extension of the file
+name?
+</p>
+
+<p class="answer"><b></b>
+Yes, you can achieve limited virus blocking with <tt
+class="literal">header_checks</tt>. Configure a check that will
+reject messages with attachments that have executable or otherwise
+dangerous extensions. Here's a check to get you started (regexp
+version):
+</p>
+
+<pre>
+/^content-(type|disposition):.*name*=.*\.(exe|pif)/    REJECT We cannot accept executable attachments</pre>
+
+<p class="answer">and in pcre:
+</p>
+
+<pre>
+/^content-(type|disposition):.*name\s*=.*\.(exe|pif)/    REJECT We cannot accept executable attachments
+</pre>
+
+<p class="answer">You should add in as many dangerous extensions as you need for your
+users' platform(s) in addition to "exe" and "pif" (hint: there are
+<b>a lot</b> for Windows). You're better off with an actual virus
+scanning package.
+</p>
+
+<p align="right"><small>[<a href="javascript:history.go(-1)">Back</a>][<a href="#top">Top</a>][<a href="/contact.html">Feedback</a>]</small></p>
+
+<hr width="80%" size="1" noshade="noshade" />
+
+</body>
+</html>

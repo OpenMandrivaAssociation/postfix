@@ -1,0 +1,17 @@
+# From: Carsten Hoeger (choeger@suse.de)
+# Date: Thu May 02 2002 - 14:38:06 CDT 
+
+function _postconf_ () 
+{ 
+	local cmd=${COMP_WORDS[COMP_CWORD]} 
+	local idx=0 
+	local clen=${#cmd} 
+	for pval in $(/usr/sbin/postconf | cut -d" " -f1); do 
+		if [ "$cmd" == "${pval:0:$clen}" ]; then 
+			COMPREPLY[$idx]=$pval 
+			idx=$[$idx+1] 
+		fi 
+	done 
+} 
+
+complete -F _postconf_ postconf 

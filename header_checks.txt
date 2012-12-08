@@ -1,0 +1,94 @@
+# Jim Seymour's Postfix anti-virus/worm/trojan header_checks recommendations.
+#
+# WARNING: Use at your own risk! No warranty of suitability or fitness for
+# any particular use is expressed or implied.
+#
+# NOTE: These are PCRE (map type "pcre:") expressions.  Your copy of Postfix
+# must have been built with PCRE support for these.
+#
+# Additional Notes
+#
+#   These checks are predicated on the fact that you're using a version
+#   of Postfix that's got MIME parsing.  I don't recall when that was
+#   added, but it's certainly in Postfix 2.x (which is what I use).  If
+#   in doubt: Join the postfix-users mailing list and ask!
+#
+#   In the postfix-users mailing list, Noel Jones asserts that:
+#
+#     "postfix mime_header_checks can miss broken mime headers that a
+#      mail client may decide are "close enough" to work.  A filename
+#      can be encoded to not match the regexp.
+#
+#      So just because you use mime_header_checks to reject these
+#      file types doesn't mean they won't be accepted anyway.  Be
+#      aware of the limitations."
+#
+#   These might more effectively be placed in a separate
+#   mime_header_checks file, so that they're not run against all the
+#   headers, but just the MIME headers.
+#
+#   These (mime) header checks *will* work on the "triple-extension"
+#   exploit (Ref: http://www.theregister.co.uk/content/56/29137.html),
+#   to the best of my knowledge.
+#
+# Information on header checks, and other Postfix anti-UCE measures, can
+# be found at http://jimsun.LinxNet.com/misc/postfix-anti-UCE.txt.  Also,
+# at the bottom of that URL, are references to additional Postfix anti-UCE
+# resources.
+
+#
+# Generic M$ email-borne worm/trojan/virus protection
+#
+# M$-Windoze vulnerable to all these as email-borne viruses/worms/trojans
+# Added .ade, .adp, .bas, .cpl, .crt, .hlp, .inf, .ins, .isp, .lnk, .mdb,
+# .mde, .msc, .msi, .msp, .mst, .pcd, .reg, .sct, .shs, .url, .vb, and .wsc
+# due to:
+# http://support.microsoft.com/support/kb/articles/q262/6/31.asp?LN=EN-US&SD=gn&FR=0
+# (As of 2003-08-24, this URL appears dead.  Thank you, M$)
+# Noel Jones supplied the following two informative URLS:
+#  http://support.microsoft.com/default.aspx?scid=kb;EN-US;q262631
+#  http://www.cknow.com/vtutor/vtextensions.htm
+# For .shs vulnerability, see: http://www.pc-help.org/security/scrap.htm
+# v2 list: (bat|chm|cmd|com|exe|hta|jse?|pif|scr|sh[bs]|vb[esx]|ws[fh])
+# v3 list: Added .asd, .dll, .ocx, .vxd as per Perry E. Metzger
+# <perry-at-piermont-dot-com>
+# v4 list: Added .386, .asp, .asx, .bin, .cab, .cgi, .cil, .cpe, .cvp, .eml,
+# .ex_, .inp, .jar, .keyreg, .mda, .mdw, .mp3, .nte, .nws, .pl, .pm, .pot,
+# .pps, .slb, .swf, .swt, .sys, .vir, .vmx, .wmd, .wms, .wmz, .xlw, .xms
+# as per Tim Boyer (tim@denmantire.com)
+# v5 list: As per "manatworkyes moderator" <devekboy@hotmail.com>
+# in firewall-wizards mailing list on Wed Jan 29 10:31:32 2003,
+# added: .htr
+# v6 list: Missed the following in the M$ bulletin: .app, .csh, .fxp, .ksh,
+# .mdt, .ops, .prg.  If .ksh and .csh belong, so does .sh - added.
+# v7 list: added .dot, extension for M$ Office templates could possibly
+# contain harmful macros.
+# v8 list: added .adt, .btm, .cbt, .cla(ss)?, .cs[cs], .drv, .email, .fon,
+# .ini, .lib, .mht(m|ml)?, .mso, .obj, .ov., .pgm, .smm.  Expanded .xlw to
+# .xl.  (Ref: http://www.cknow.com/vtutor/vtextensions.htm)
+# (.doc, .html?, .ppt, .prc, .rtf not added, but probably should be.)
+# ("Source" [.asm, .c, .cpp., .pas, .for] seem unlikely to me)
+# v9 list: added CLSIDs (e.g.: "name.{FBF23B40-E3F0-101B-8488-00AA003E56F8}")
+# (Complements of Victor Duchovni and Noel Jones)
+# v10 list: added .cbl
+#
+/^Content-(Disposition|Type):\s+.+?(?:file)?name="?.+?\.(386|ad[ept]|app|as[dpx]|ba[st]|bin|btm|cab|cb[lt]|cgi|chm|cil|cla(ss)?|cmd|cp[el]|crt|cs[chs]|cvp|dll|dot|drv|em(ai)?l|ex[_e]|fon|fxp|hlp|ht[ar]|in[fips]|isp|jar|jse?|keyreg|ksh|lib|lnk|md[abetw]|mht(m|ml)?|mp3|ms[ciopt]|nte|nws|obj|ocx|ops|ov.|pcd|pgm|pif|p[lm]|pot|pps|prg|reg|sc[rt]|sh[bs]?|slb|smm|sw[ft]|sys|url|vb[esx]?|vir|vmx|vxd|wm[dsz]|ws[cfh]|xl.|xms|\{[\da-f]{8}(?:-[\da-f]{4}){3}-[\da-f]{12}\})\b/	REJECT ".$2" file attachment types not allowed
+# ".com" handled differently as above lines would catch attachments like
+# "user@example.com PGP Keys.txt"
+# "(\.\S{2,4})?(\?=)?"?(;|$)" terminator idea (modified) compliments of
+# Noel Jones
+/^Content-(Disposition|Type):\s+.+?(file)?name="?.+?\.com(\.\S{2,4})?(\?=)?"?(;|$)/	REJECT ".com" file attachment types not allowed
+# Disallow message fragmentation, as it will bypass the other tests
+# Ref: http://www.securiteam.com/securitynews/5YP0A0K8CM.html
+/^Content-(Disposition|Type):\s+.*?message\/partial\b/	REJECT
+
+# Specific virus/worm/trojan attachments that we cannot block by file
+# type/extension (yet?)
+#
+# Sobig.E: your_details|application|document|screensaver|movie
+# 
+/^Content-(Disposition|Type):\s+.*?(file)?name="?.*?(your_details|application|document|screensaver|movie)\.zip/	 REJECT
+
+# *Any* zip file: just log a warning...
+/^Content-(Disposition|Type):\s+.+?(file)?name="?.+?\.zip\b/	WARN
+

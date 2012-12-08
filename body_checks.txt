@@ -1,0 +1,89 @@
+# Jim Seymour's Postfix anti-virus/worm/trojan body_checks recommendations.
+#
+# WARNING: Use at your own risk! No warranty of suitability or fitness for
+# any particular use is expressed or implied.
+#
+# NOTE: These are PCRE (map type "pcre:") expressions.  Your copy of Postfix
+# must have been built with PCRE support for these.
+#
+# Information on body checks, and other Postfix anti-UCE measures, can
+# be found at http://jimsun.LinxNet.com/misc/postfix-anti-UCE.txt.  Also,
+# at the bottom of that URL, are references to additional Postfix anti-UCE
+# resources.
+
+#
+# As per Tom Betz <tbetz-at-pobox-dot-com> in NANAE:
+#  I just block everything that is a base-64 starting with this:
+#  TVqQAAMAAAAEAAAA
+#  It blocks all Windows executables.
+# As per *Hobbit* <hobbit-at-avian-dot-orb> in the postfix-users mailing list:
+#  These two body_checks regexes detect several real-life observed VARIANTS
+#  of winbloze PE headers and are THE most reliable way I've found to nail
+#  this stuff:
+#     /^TV[nopqr]....[AB]..A.A....*AAAA...*AAAA/i  REJECT EXE files denied
+#     /^M35[GHIJK].`..`..*````/i		   REJECT EXE files denied
+# I'll compromise on the first one--making it a cross between Tom's and
+# *Hobbit*'s
+/^TV[nopqr]....[AB]..A.A/i  REJECT Email with EXE files attached denied
+/^M35[GHIJK].`..`..*````/i  REJECT Email with EXE files attached denied
+
+# Skip further analysis of base64-encoded lines
+# See: http://www.fourmilab.ch/webtools/base64/rfc1341.html
+/^[A-Za-z0-9+\/=]{4,76}$/	OK
+
+# Skip pflogsumm report lines
+/^ {6,11}\d{1,6}[ km] /	OK
+/^ {4}blocked using /	OK
+
+#
+# Generic M$ email-borne worm/trojan/virus protection
+#
+# Note that this catches uuencoded executables in the email body, *not*
+# MIME attachments.
+#
+# M$-Windoze vulnerable to all these as email-borne viruses/worms/trojans
+# Added .ade, .adp, .bas, .cpl, .crt, .hlp, .inf, .ins, .isp, .lnk, .mdb,
+# .mde, .msc, .msi, .msp, .mst, .pcd, .reg, .sct, .shs, .url, .vb, and .wsc
+# due to:
+# http://support.microsoft.com/support/kb/articles/q262/6/31.asp?LN=EN-US&SD=gn&FR=0
+# (As of 2003-08-24, this URL appears dead.  Thank you, M$)
+# Noel Jones supplied the following two informative URLS:
+#  http://support.microsoft.com/default.aspx?scid=kb;EN-US;q262631
+#  http://www.cknow.com/vtutor/vtextensions.htm
+# For .shs vulnerability, see: http://www.pc-help.org/security/scrap.htm
+# v2 list: (bat|chm|cmd|com|exe|hta|jse?|pif|scr|sh[bs]|vb[esx]|ws[fh])
+# v3 list: Added .asd, .dll, .ocx, .vxd as per Perry E. Metzger
+# <perry-at-piermont-dot-com>
+# v4 list: Added .386, .asp, .asx, .bin, .cab, .cgi, .cil, .cpe, .cvp, .eml,
+# .ex_, .inp, .jar, .keyreg, .mda, .mdw, .mp3, .nte, .nws, .pl, .pm, .pot,
+# .pps, .slb, .swf, .swt, .sys, .vir, .vmx, .wmd, .wms, .wmz, .xlw, .xms
+# as per Tim Boyer (tim@denmantire.com)
+# v5 list: As per "manatworkyes moderator" <devekboy@hotmail.com>
+# in firewall-wizards mailing list on Wed Jan 29 10:31:32 2003,
+# added: .htr
+# v6 list: Missed the following in the M$ bulletin: .app, .csh, .fxp, .ksh,
+# .mdt, .ops, .prg.  If .ksh and .csh belong, so does .sh - added.
+# v7 list: added .dot, extension for M$ Office templates could possibly
+# contain harmful macros.
+# v8 list: added .adt, .btm, .cbt, .cla(ss)?, .cs[cs], .drv, .email, .fon,
+# .ini, .lib, .mht(m|ml)?, .mso, .obj, .ov., .pgm, .smm.  Expanded .xlw to
+# .xl.  (Ref: http://www.cknow.com/vtutor/vtextensions.htm)
+# (.doc, .html?, .ppt, .prc, .rtf not added, but probably should be.)
+# ("Source" [.asm, .c, .cpp., .pas, .for] seem unlikely to me)
+# v8.1 list: Put missing .com in!
+# v9 list: added CLSIDs (e.g.: "name.{FBF23B40-E3F0-101B-8488-00AA003E56F8}")
+# (Complements of Victor Duchovni and Noel Jones)
+# v10 list: added .cbl
+#
+/^begin\s+\d+\s+.+?\.(386|ad[ept]|app|as[dpx]|ba[st]|bin|btm|cab|cb[lt]|cgi|chm|cil|cla(ss)?|cmd|com|cp[el]|crt|cs[chs]|cvp|dll|dot|drv|em(ai)?l|ex[_e]|fon|fxp|hlp|ht[ar]|in[fips]|isp|jar|jse?|keyreg|ksh|lib|lnk|md[abetw]|mht(m|ml)?|mp3|ms[ciopt]|nte|nws|obj|ocx|ops|ov.|pcd|pgm|pif|p[lm]|pot|pps|prg|reg|sc[rt]|sh[bs]?|slb|smm|sw[ft]|sys|url|vb[esx]?|vir|vmx|vxd|wm[dsz]|ws[cfh]|xl.|xms|\{[\da-f]{8}(?:-[\da-f]{4}){3}-[\da-f]{12}\})\b/	REJECT ".$1" filetype not allowed
+
+#
+# Possibly script embedded in email that attempts to write a .exe that'll
+# install a proxy on victim's 'doze PeeCee
+# (ref: Message-ID: <40adf117$0$17764$cc9e4d1f@news.dial.pipex.com> in
+# news.admin.net-abuse.email)
+#
+/<\s*(object\s+data)\s*=/			REJECT Email with "$1" tags not allowed
+/<\s*(script\s+language\s*="vbs")/		REJECT Email with "$1" tags not allowed
+/<\s*(script\s+language\s*="VBScript\.Encode")/	REJECT Email with "$1" tags not allowed
+

@@ -1,0 +1,235 @@
+#!/bin/sh
+#
+# postfix      Postfix Mail Transfer Agent
+#
+# chkconfig: 2345 80 30
+# description: Postfix is a Mail Transport Agent, which is the program \
+#              that moves mail from one machine to another.
+# processname: master
+# pidfile: /var/spool/postfix/pid/master.pid
+# config: /etc/postfix/main.cf
+# config: /etc/postfix/master.cf
+
+### BEGIN INIT INFO
+# Provides: postfix
+# Required-Start: $network
+# Required-Stop: $network
+# Should-Start: $named mysqld postgresql ldap saslauthd
+# Should-Stop: $named mysqld postgresql ldap saslauthd
+# Default-Start: 2 3 4 5
+# Short-Description: Starts the postfix daemons
+# Description: Postfix is a Mail Transport Agent, which is the program \
+#              that moves mail from one machine to another.
+### END INIT INFO
+
+# Source function library.
+. /etc/rc.d/init.d/functions
+
+# Source networking configuration.
+. /etc/sysconfig/network
+
+# Source package configuration.
+CHROOT=0
+REBUILD_ALIASES=1
+REBUILD_MAPS=1
+. /etc/sysconfig/postfix
+
+
+# Check that networking is up.
+[ ${NETWORKING} = "no" ] && exit 0
+
+[ -x /usr/sbin/postfix ] || exit 5 #program is not installed
+[ -f /etc/postfix/main.cf ] || exit 6 #program is not configured
+[ -d /var/spool/postfix ] || exit 06 #program is not configured
+
+RETVAL=0
+
+readconf() {
+	# postconf will also print defaults
+	/usr/sbin/postconf -c $1
+	# postconf does not print unknown parameters
+	awk '
+		/^[[:space:]]*#/ {next}
+		/^[[:space:]]*$/ {next}
+		/^[[:space:]]/ {l = l $0; next}
+		{print l; l = $0}
+		END {print l}
+	' $1/main.cf
+	# some options could be overridden in master.cf
+	awk '
+		function opt(l) {
+		  $0 = l
+		  for (i=1;i<NF;i++) {
+			if ($i == "-o") {i++;print $i}
+			  }
+		}
+		/^[[:space:]]*#/ {next}
+		/^[[:space:]]*$/ {next}
+		/^[[:space:]]/ {l = l $0; next}
+		{nl=$0; opt(l); l = nl}
+		END {opt(l)}
+	' $1/master.cf
+}
+		
+refresh() {
+	local d
+	local i
+	for d in "$@"; do
+		# refresh aliases
+		[ "${REBUILD_ALIASES}" = "1" ] && for i in `readconf $d | perl -ne '
+				/^alias_(database|maps)[[:space:]]*=/ || next;
+				while (/(hash|btree|cdb|sdbm|dbm):([^,\s]+)/g) {$a{"$1:$2"}=1;}
+				END {print join(" ",keys %a),"\n";}'`; do
+			case ${i%:*} in
+				hash|btree) [ -e ${i#*:} -a ! -e ${i#*:}.db -o ${i#*:} -nt ${i#*:}.db ] && /usr/sbin/postalias -c $d $i ;;
+				cdb) [ -e ${i#*:} -a ! -e ${i#*:}.cdb -o ${i#*:} -nt ${i#*:}.cdb ] && /usr/sbin/postalias -c $d $i ;;
+				sdbm|dbm) [ -e ${i#*:} -a ! -e ${i#*:}.dir -o ${i#*:} -nt ${i#*:}.dir -o ! -e ${i#*:}.pag -o ${i#*:} -nt ${i#*:}.pag  ] && /usr/sbin/postalias -c $d $i ;;
+			esac
+		done
+		# refresh other maps
+		[ "${REBUILD_MAPS}" = "1" ] && for i in `readconf $d | perl -ne '
+				/^alias_(database|maps)\s*=/ && next;
+				while (/(hash|btreecdb|sdbm|dbm):([^,\s]+)/g) {$a{"$1:$2"}=1;}
+				END {print join(" ",keys %a),"\n";}'`; do
+			case ${i%:*} in
+				hash|btree) [ -e ${i#*:} -a ! -e ${i#*:}.db -o ${i#*:} -nt ${i#*:}.db ] && /usr/sbin/postmap -c $d $i ;;
+				cdb) [ -e ${i#*:} -a ! -e ${i#*:}.cdb -o ${i#*:} -nt ${i#*:}.cdb ] && /usr/sbin/postmap -c $d $i ;;
+				sdbm|dbm) [ -e ${i#*:} -a ! -e ${i#*:}.dir -o ${i#*:} -nt ${i#*:}.dir -o ! -e ${i#*:}.pag -o ${i#*:} -nt ${i#*:}.pag  ] && /usr/sbin/postmap -c $d $i ;;
+			esac
+		done
+	done
+}
+
+postfix_cmd() {
+	local _rc=0
+	local i
+	if [ "$MANAGE_MULTI_INSTANCES" = "1" ]; then
+		if [ -n "${MANAGE_ONLY_INSTANCES}" -o -n "${MANAGE_ONLY_INSTANCE_GROUPS}" ]; then
+			for i in ${MANAGE_ONLY_INSTANCES}; do
+				/usr/sbin/postmulti -i $i -p "$@" 2>/dev/null 1>&2
+				_rc=$(( $rc + $? ))
+			done
+			for i in ${MANAGE_ONLY_INSTANCE_GROUPS};do
+				/usr/sbin/postmulti -g $i -p "$@" 2>/dev/null 1>&2
+				_rc=$(( $rc + $? ))
+			done
+		else
+			/usr/sbin/postfix "$@" 2>/dev/null 1>&2
+			_rc=$?
+		fi
+	else
+		/usr/sbin/postmulti -i - -p "$@" 2>/dev/null 1>&2
+		_rc=$?
+	fi
+	return $_rc
+}
+
+start() {
+	local i
+	echo -n "Starting postfix: "
+	# refresh chroot
+	[ "${CHROOT}" = "1" ] && /usr/sbin/postfix-chroot.sh -q check_update
+
+	if [ "$MANAGE_MULTI_INSTANCES" = "1" ]; then
+		if [ -n "${MANAGE_ONLY_INSTANCES}" -o -n "${MANAGE_ONLY_INSTANCE_GROUPS}" ]; then
+			for i in ${MANAGE_ONLY_INSTANCES}; do
+				refresh `postmulti -i $i -l | awk '$3 == "y" {print $4}'`
+			done
+			for i in ${MANAGE_ONLY_INSTANCE_GROUPS};do
+				refresh `postmulti -g $i -l | awk '$3 == "y" {print $4}'`
+			done
+		else
+			refresh `postmulti -l | awk '$3 == "y" {print $4}'`
+		fi
+	else
+		refresh /etc/postfix
+	fi
+	postfix_cmd start && success || failure
+	RETVAL=$?
+
+	[ $RETVAL -eq 0 ] && touch /var/lock/subsys/postfix
+        echo
+	return $RETVAL
+}
+
+stop() {
+	echo -n "Shutting down postfix: "
+	postfix_cmd stop && success || failure
+	RETVAL=$?
+	[ $RETVAL -eq 0 ] && rm -f /var/lock/subsys/postfix
+	echo
+	return $RETVAL
+}
+
+reload() {
+	echo -n "Reloading postfix: "
+	postfix_cmd reload && success || failure
+	RETVAL=$?
+	echo
+	return $RETVAL
+}
+
+abort() {
+	postfix_cmd abort && success || failure
+	RETVAL=$?
+	return $RETVAL
+}
+
+flush() {
+	postfix_cmd flush && success || failure
+	RETVAL=$?
+	return $RETVAL
+}
+
+check() {
+	postfix_cmd check && success || failure
+	RETVAL=$?
+	return $RETVAL
+}
+
+restart() {
+	stop
+	start
+	return $?
+}
+
+# See how we were called.
+case "$1" in
+  start)
+	start
+	;;
+  stop)
+	stop
+	;;
+  restart)
+	restart
+	;;
+  force-reload|reload)
+	reload
+	;;
+  abort)
+	abort
+	;;
+  flush)
+	flush
+	;;
+  check)
+	check
+	;;
+  status)
+  	status master
+	;;
+  try-restart|condrestart)
+	if [ -f /var/lock/subsys/postfix ]; then
+	    restart
+	else
+	    RETVAL=7 # program is not running
+	fi
+	;;
+  *)
+	echo "Usage: postfix {start|stop|restart|force-reload|reload|abort|flush|check|status|try-restart|condrestart}"
+	exit 2 # invalid or excess argument(s)
+	;;
+esac
+
+exit $RETVAL

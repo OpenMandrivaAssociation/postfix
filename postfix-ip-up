@@ -1,0 +1,17 @@
+#!/bin/sh
+default_config_directory=/etc/postfix
+postconf=/usr/sbin/postconf
+[ -d ${default_config_directory} ] || exit 0
+[ -x ${postconf} ] || exit 0
+
+if grep -qs "# ppp temp entry" /etc/resolv.conf; then
+	multi_instance_directories=`postconf -c ${default_config_directory} -h multi_instance_directories 2>/dev/null`
+	for confdir in ${default_config_directory} ${multi_instance_directories}; do
+		chroot=`${postconf} -c ${confdir} -h queue_directory 2>/dev/null`
+		chroot_resolv=${chroot}/etc/resolv.conf
+			[ -n "${chroot}" -a -f ${chroot_resolv} ] && cp -pf /etc/resolv.conf $chroot_resolv
+	done
+	[ -f /var/lock/subsys/postfix ] && /usr/sbin/postfix reload 2>/dev/null
+fi
+
+[ -f /var/lock/subsys/postfix ] && /usr/sbin/postfix flush 2>/dev/null
