@@ -35,7 +35,7 @@ License:	IBM Public License
 Group:		System/Servers
 URL:		http://www.postfix.org/
 Source0: 	ftp://ftp.porcupine.org/mirrors/postfix-release/official/%{name}-%{version}.tar.gz
-Source1: 	ftp://ftp.porcupine.org/mirrors/postfix-release/official/%{SOURCE0}.sig
+Source1: 	ftp://ftp.porcupine.org/mirrors/postfix-release/official/%{name}-%{version}.tar.gz.sig
 Source2: 	postfix-main.cf
 Source3: 	postfix-etc-init.d-postfix
 Source4:	postfix-etc-pam.d-smtp
