@@ -76,9 +76,10 @@ Patch6:		postfix-2.2.4-smtpstone.patch
 
 BuildRequires:	db-devel
 BuildRequires:	gawk
+BuildRequires:	html2text
 BuildRequires:	perl-base
 BuildRequires:	sed
-BuildRequires:	html2text
+BuildRequires:	pkgconfig(libtirpc)
 %if %{with sasl}
 BuildRequires:	libsasl-devel >= 2.0
 %endif
