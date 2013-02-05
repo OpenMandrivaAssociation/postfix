@@ -29,7 +29,7 @@
 Summary:	Postfix Mail Transport Agent
 Name:		postfix
 Epoch:		1
-Version:	2.9.5
+Version:	2.9.6
 Release:	1
 License:	IBM Public License
 Group:		System/Servers
@@ -179,7 +179,7 @@ This package provides support for Postgres SQL maps in Postfix.
 %package sqlite
 Summary:	SQLite map support for Postfix
 Group:		System/Servers
-BuildRequires:	sqlite3-devel
+BuildRequires:	pkgconfig(sqlite3)
 Requires:	%{name} = %EVRD
 
 %description sqlite
@@ -190,7 +190,7 @@ This package provides support for SQLite maps in Postfix.
 %package cdb
 Summary:	CDB map support for Postfix
 Group:		System/Servers
-BuildRequires:	libtinycdb-devel
+BuildRequires:	pkgconfig(libcdb)
 Requires:	%{name} = %EVRD
 
 %description cdb
