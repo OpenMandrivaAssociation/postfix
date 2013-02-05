@@ -1,2 +1,5 @@
-sources:
+removed_sources:
   postfix-2.9.5.tar.gz: 8602cd54e63b1af02a8f994b5da69d01d73ec8cc
+sources:
+  postfix-2.9.6.tar.gz: 9d7af8670fd13fd5e5290ff2e3f00d724178f0fb
+  postfix-2.9.6.tar.gz.sig: 923d45a9e0c410e662dec628d2064c275b5f338a
