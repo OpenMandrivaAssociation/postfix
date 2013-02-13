@@ -29,7 +29,7 @@
 Summary:	Postfix Mail Transport Agent
 Name:		postfix
 Epoch:		1
-Version:	2.9.6
+Version:	2.10.0
 Release:	1
 License:	IBM Public License
 Group:		System/Servers
@@ -222,7 +222,7 @@ cp %{SOURCE2} conf/main.cf
 # ugly hack for 32/64 arches
 if [ %{_lib} != lib ]; then
 	sed -i -e 's@^/usr/lib/@%{_libdir}/@' conf/postfix-files
-	sed -i -e "s@/lib/@/%{_lib}@g" conf/main.cf
+	sed -i -e "s@/lib/@/%{_lib}/@g" conf/main.cf
 fi
 
 install -m644 %{SOURCE10} README.MDK

@@ -1,5 +1,5 @@
---- postfix-2.9.1/conf/master.cf.0001~	2011-12-14 18:44:24.000000000 +0100
-+++ postfix-2.9.1/conf/master.cf	2012-05-11 15:26:04.940314767 +0200
+--- postfix-2.10.0/conf/master.cf.0001~	2012-09-25 02:10:16.000000000 +0200
++++ postfix-2.10.0/conf/master.cf	2013-02-13 18:01:43.451351167 +0100
 @@ -4,6 +4,9 @@
  #
  # Do not forget to execute "postfix reload" after editing this file.
@@ -10,16 +10,16 @@
  # ==========================================================================
  # service type  private unpriv  chroot  wakeup  maxproc command + args
  #               (yes)   (yes)   (yes)   (never) (100)
-@@ -27,6 +30,8 @@ smtp      inet  n       -       n
+@@ -35,6 +38,8 @@ smtp      inet  n       -       n
  #  -o milter_macro_daemon_name=ORIGINATING
  #628       inet  n       -       n       -       -       qmqpd
- pickup    fifo  n       -       n       60      1       pickup
+ pickup    unix  n       -       n       60      1       pickup
 +  -o content_filter=
 +  -o receive_override_options=
  cleanup   unix  n       -       n       -       0       cleanup
- qmgr      fifo  n       -       n       300     1       qmgr
- #qmgr     fifo  n       -       n       300     1       oqmgr
-@@ -65,33 +70,30 @@ scache    unix  -       -       n
+ qmgr      unix  n       -       n       300     1       qmgr
+ #qmgr     unix  n       -       n       300     1       oqmgr
+@@ -73,33 +78,30 @@ scache    unix  -       -       n
  # Also specify in main.cf: maildrop_destination_recipient_limit=1
  #
  #maildrop  unix  -       n       n       -       -       pipe
@@ -74,7 +74,7 @@
  #
  # ====================================================================
  #
-@@ -103,6 +105,7 @@ scache    unix  -       -       n
+@@ -111,6 +113,7 @@ scache    unix  -       -       n
  # ====================================================================
  #
  # Other external delivery methods.
@@ -82,7 +82,7 @@
  #
  #ifmail    unix  -       n       n       -       -       pipe
  #  flags=F user=ftn argv=/usr/lib/ifmail/ifmail -r $nexthop ($recipient)
-@@ -117,3 +120,55 @@ scache    unix  -       -       n
+@@ -125,3 +128,55 @@ scache    unix  -       -       n
  #mailman   unix  -       n       n       -       -       pipe
  #  flags=FR user=list argv=/usr/lib/mailman/bin/postfix-to-mailman.py
  #  ${nexthop} ${user}
@@ -138,8 +138,8 @@
 +#
 +##### END OF CONTENT FILTER CUSTOMIZATIONS #####
 +
---- postfix-2.9.1/conf/postfix-files.0001~	2012-05-11 15:26:04.934314767 +0200
-+++ postfix-2.9.1/conf/postfix-files	2012-05-11 15:26:04.940314767 +0200
+--- postfix-2.10.0/conf/postfix-files.0001~	2013-02-13 17:54:57.996153984 +0100
++++ postfix-2.10.0/conf/postfix-files	2013-02-13 17:54:58.000153937 +0100
 @@ -125,8 +125,6 @@ $command_directory/postqueue:f:root:$set
  $sendmail_path:f:root:-:755
  $newaliases_path:l:$sendmail_path
@@ -173,8 +173,8 @@
  $readme_directory/RESTRICTION_CLASS_README:f:root:-:644
  $readme_directory/SASL_README:f:root:-:644
  $readme_directory/SCHEDULER_README:f:root:-:644
---- postfix-2.9.1/HISTORY.0001~	2012-02-18 13:13:45.000000000 +0100
-+++ postfix-2.9.1/HISTORY	2012-05-11 15:26:04.942314765 +0200
+--- postfix-2.10.0/HISTORY.0001~	2013-02-11 17:09:23.000000000 +0100
++++ postfix-2.10.0/HISTORY	2013-02-13 17:54:58.001153926 +0100
 @@ -6945,7 +6945,7 @@ Apologies for any names omitted.
  	This involved a further rewrite of the regexp map code.
  	File: util/dict_regexp.c.
@@ -193,19 +193,19 @@
  
  	Workaround: IRIX 6 can't do ioctl FIONREAD on pipes. This
  	breaks the in_flow_delay feature.  File:  util/sys_defs.h.
---- postfix-2.9.1/proto/INSTALL.html.0001~	2012-01-17 20:53:14.000000000 +0100
-+++ postfix-2.9.1/proto/INSTALL.html	2012-05-11 15:26:04.942314765 +0200
-@@ -151,6 +151,8 @@ Linux Slackware 3.x, 4.x, 7.x <br>
- Linux SuSE 5.x, 6.x, 7.x <br>
- Linux Ubuntu 4.10..7.04<br>
+--- postfix-2.10.0/proto/INSTALL.html.0001~	2013-02-13 17:54:58.002153915 +0100
++++ postfix-2.10.0/proto/INSTALL.html	2013-02-13 18:02:28.851808261 +0100
+@@ -150,6 +150,8 @@ Linux Slackware 3.x and later <br>
+ Linux SuSE 5.x and later <br>
+ Linux Ubuntu 4.10 and later<br>
  Mac OS X <br>
-+Mandrakelinux 7.x - 10.x <br>
-+Mandriva Linux 2005 - 2012
++Mandrakelinux 7.x-10.x <br>
++Mandriva Linux 2005 - 2013 <br>
  NEXTSTEP 3.x <br>
- NetBSD 1.x <br>
+ NetBSD 1.x and later <br>
  OPENSTEP 4.x <br>
---- postfix-2.9.1/proto/LDAP_README.html.0001~	2010-12-02 17:23:41.000000000 +0100
-+++ postfix-2.9.1/proto/LDAP_README.html	2012-05-11 15:26:04.942314765 +0200
+--- postfix-2.10.0/proto/LDAP_README.html.0001~	2010-12-02 17:23:41.000000000 +0100
++++ postfix-2.10.0/proto/LDAP_README.html	2013-02-13 17:54:58.002153915 +0100
 @@ -63,9 +63,9 @@ package.  </p>
  <p> Note 1: Postfix no longer supports the LDAP version 1 interface.
  </p>
@@ -219,8 +219,8 @@
  
  <p> You need to have LDAP libraries and include files installed
  somewhere on your system, and you need to configure the Postfix
---- postfix-2.9.1/proto/MYSQL_README.html.0001~	2008-01-12 03:11:23.000000000 +0100
-+++ postfix-2.9.1/proto/MYSQL_README.html	2012-05-11 15:26:04.942314765 +0200
+--- postfix-2.10.0/proto/MYSQL_README.html.0001~	2008-01-12 03:11:23.000000000 +0100
++++ postfix-2.10.0/proto/MYSQL_README.html	2013-02-13 17:54:58.002153915 +0100
 @@ -38,9 +38,9 @@ code as described in the INSTALL documen
  be required if you build Postfix from a vendor-specific source
  package.  </p>
@@ -234,8 +234,8 @@
  
  <p> The Postfix MySQL client utilizes the mysql client library,
  which can be obtained from: </p>
---- postfix-2.9.1/proto/PCRE_README.html.0001~	2008-01-12 03:14:37.000000000 +0100
-+++ postfix-2.9.1/proto/PCRE_README.html	2012-05-11 15:26:04.942314765 +0200
+--- postfix-2.10.0/proto/PCRE_README.html.0001~	2008-01-12 03:14:37.000000000 +0100
++++ postfix-2.10.0/proto/PCRE_README.html	2013-02-13 17:54:58.002153915 +0100
 @@ -37,9 +37,9 @@ code as described in the INSTALL documen
  be required if you build Postfix from a vendor-specific source
  package.  </p>
@@ -249,8 +249,8 @@
  
  <p> In some future, Postfix will have a plug-in interface for adding
  map types. Until then, you need to compile PCRE support into Postfix.
---- postfix-2.9.1/proto/PGSQL_README.html.0001~	2008-01-12 03:11:34.000000000 +0100
-+++ postfix-2.9.1/proto/PGSQL_README.html	2012-05-11 15:26:04.942314765 +0200
+--- postfix-2.10.0/proto/PGSQL_README.html.0001~	2008-01-12 03:11:34.000000000 +0100
++++ postfix-2.10.0/proto/PGSQL_README.html	2013-02-13 17:54:58.002153915 +0100
 @@ -38,9 +38,9 @@ code as described in the INSTALL documen
  be required if you build Postfix from a vendor-specific source
  package.  </p>
@@ -264,19 +264,19 @@
  
  <p> In order to build Postfix with pgsql map support, you specify
  -DHAS_PGSQL, the directory with the PostgreSQL header files, and
---- postfix-2.9.1/README_FILES/INSTALL.0001~	2012-01-17 20:58:01.000000000 +0100
-+++ postfix-2.9.1/README_FILES/INSTALL	2012-05-11 15:26:04.943314765 +0200
-@@ -90,6 +90,8 @@ At some point in time, a version of Post
-     Linux SuSE 5.x, 6.x, 7.x
-     Linux Ubuntu 4.10..7.04
+--- postfix-2.10.0/README_FILES/INSTALL.0001~	2013-02-13 17:54:58.002153915 +0100
++++ postfix-2.10.0/README_FILES/INSTALL	2013-02-13 18:03:09.771319843 +0100
+@@ -89,6 +89,8 @@ At some point in time, a version of Post
+     Linux SuSE 5.x and later
+     Linux Ubuntu 4.10 and later
      Mac OS X
 +    Mandrakelinux 7.x - 10.x
-+    Mandriva Linux 2005 - 2012.x
++    Mandriva Linux 2005 - 2013.x
      NEXTSTEP 3.x
-     NetBSD 1.x
+     NetBSD 1.x and later
      OPENSTEP 4.x
---- postfix-2.9.1/README_FILES/LDAP_README.0001~	2010-12-02 17:23:59.000000000 +0100
-+++ postfix-2.9.1/README_FILES/LDAP_README	2012-05-11 15:26:04.943314765 +0200
+--- postfix-2.10.0/README_FILES/LDAP_README.0001~	2010-12-02 17:23:59.000000000 +0100
++++ postfix-2.10.0/README_FILES/LDAP_README	2013-02-13 17:54:58.002153915 +0100
 @@ -32,9 +32,9 @@ from a vendor-specific source package.
  
  Note 1: Postfix no longer supports the LDAP version 1 interface.
@@ -290,8 +290,8 @@
  
  You need to have LDAP libraries and include files installed somewhere on your
  system, and you need to configure the Postfix Makefiles accordingly.
---- postfix-2.9.1/README_FILES/MYSQL_README.0001~	2008-01-12 03:14:53.000000000 +0100
-+++ postfix-2.9.1/README_FILES/MYSQL_README	2012-05-11 15:26:04.943314765 +0200
+--- postfix-2.10.0/README_FILES/MYSQL_README.0001~	2008-01-12 03:14:53.000000000 +0100
++++ postfix-2.10.0/README_FILES/MYSQL_README	2013-02-13 17:54:58.002153915 +0100
 @@ -21,9 +21,9 @@ These instructions assume that you build
  in the INSTALL document. Some modification may be required if you build Postfix
  from a vendor-specific source package.
@@ -305,8 +305,8 @@
  
  The Postfix MySQL client utilizes the mysql client library, which can be
  obtained from:
---- postfix-2.9.1/README_FILES/PCRE_README.0001~	2008-01-12 03:14:54.000000000 +0100
-+++ postfix-2.9.1/README_FILES/PCRE_README	2012-05-11 15:26:04.943314765 +0200
+--- postfix-2.10.0/README_FILES/PCRE_README.0001~	2008-01-12 03:14:54.000000000 +0100
++++ postfix-2.10.0/README_FILES/PCRE_README	2013-02-13 17:54:58.002153915 +0100
 @@ -20,9 +20,9 @@ These instructions assume that you build
  in the INSTALL document. Some modification may be required if you build Postfix
  from a vendor-specific source package.
@@ -320,8 +320,8 @@
  
  In some future, Postfix will have a plug-in interface for adding map types.
  Until then, you need to compile PCRE support into Postfix.
---- postfix-2.9.1/README_FILES/PGSQL_README.0001~	2008-01-12 03:14:54.000000000 +0100
-+++ postfix-2.9.1/README_FILES/PGSQL_README	2012-05-11 15:26:04.943314765 +0200
+--- postfix-2.10.0/README_FILES/PGSQL_README.0001~	2008-01-12 03:14:54.000000000 +0100
++++ postfix-2.10.0/README_FILES/PGSQL_README	2013-02-13 17:54:58.002153915 +0100
 @@ -21,9 +21,9 @@ These instructions assume that you build
  in the INSTALL document. Some modification may be required if you build Postfix
  from a vendor-specific source package.
@@ -335,8 +335,8 @@
  
  In order to build Postfix with pgsql map support, you specify -DHAS_PGSQL, the
  directory with the PostgreSQL header files, and the location of the libpq
---- postfix-2.9.1/src/global/mail_params.h.0001~	2012-01-15 01:36:37.000000000 +0100
-+++ postfix-2.9.1/src/global/mail_params.h	2012-05-11 15:26:04.943314765 +0200
+--- postfix-2.10.0/src/global/mail_params.h.0001~	2013-02-03 19:22:21.000000000 +0100
++++ postfix-2.10.0/src/global/mail_params.h	2013-02-13 17:54:58.003153904 +0100
 @@ -468,11 +468,7 @@ extern bool var_percent_hack;
    * Local delivery: alias databases.
    */
@@ -349,8 +349,8 @@
  extern char *var_alias_maps;
  
   /*
---- postfix-2.9.1/src/util/sys_defs.h.0001~	2012-01-17 17:29:55.000000000 +0100
-+++ postfix-2.9.1/src/util/sys_defs.h	2012-05-11 15:27:46.191311747 +0200
+--- postfix-2.10.0/src/util/sys_defs.h.0001~	2012-09-25 01:53:56.000000000 +0200
++++ postfix-2.10.0/src/util/sys_defs.h	2013-02-13 17:54:58.003153904 +0100
 @@ -54,7 +54,7 @@
  #define ALIAS_DB_MAP   "hash:/etc/mail/aliases"	/* OpenBSD 2.7 */
  #endif
@@ -360,7 +360,7 @@
  #endif
  #define GETTIMEOFDAY(t)	gettimeofday(t,(struct timezone *) 0)
  #define ROOT_PATH	"/bin:/usr/bin:/sbin:/usr/sbin"
-@@ -757,7 +757,7 @@ extern int initgroups(const char *, int)
+@@ -754,7 +754,7 @@ extern int initgroups(const char *, int)
  #define HAS_FSYNC
  #define HAS_DB
  #define DEF_DB_TYPE	"hash"
@@ -369,7 +369,7 @@
  #ifndef NO_NIS
  #define HAS_NIS
  #endif
-@@ -772,7 +772,7 @@ extern int initgroups(const char *, int)
+@@ -769,7 +769,7 @@ extern int initgroups(const char *, int)
  #define NATIVE_MAILQ_PATH "/usr/bin/mailq"
  #define NATIVE_NEWALIAS_PATH "/usr/bin/newaliases"
  #define NATIVE_COMMAND_DIR "/usr/sbin"
@@ -378,7 +378,7 @@
  #ifdef __GLIBC_PREREQ
  # define HAVE_GLIBC_API_VERSION_SUPPORT(maj, min) __GLIBC_PREREQ(maj, min)
  #else
-@@ -834,7 +834,7 @@ extern int initgroups(const char *, int)
+@@ -831,7 +831,7 @@ extern int initgroups(const char *, int)
  #define HAS_FSYNC
  #define HAS_DB
  #define DEF_DB_TYPE	"hash"
@@ -387,7 +387,7 @@
  #ifndef NO_NIS
  #define HAS_NIS
  #endif
-@@ -868,7 +868,7 @@ extern int initgroups(const char *, int)
+@@ -865,7 +865,7 @@ extern int initgroups(const char *, int)
  #define HAS_FSYNC
  #define HAS_DB
  #define DEF_DB_TYPE	"hash"
@@ -396,7 +396,7 @@
  #ifndef NO_NIS
  #define HAS_NIS
  #endif
-@@ -958,7 +958,7 @@ extern int h_errno;			/* <netdb.h> impor
+@@ -955,7 +955,7 @@ extern int h_errno;			/* <netdb.h> impor
  #define NATIVE_MAILQ_PATH "/usr/bin/mailq"
  #define NATIVE_NEWALIAS_PATH "/usr/bin/newaliases"
  #define NATIVE_COMMAND_DIR "/usr/sbin"
@@ -405,7 +405,7 @@
  #endif
  
  #ifdef HPUX10
-@@ -997,7 +997,7 @@ extern int h_errno;			/* <netdb.h> impor
+@@ -994,7 +994,7 @@ extern int h_errno;			/* <netdb.h> impor
  #define NATIVE_MAILQ_PATH "/usr/bin/mailq"
  #define NATIVE_NEWALIAS_PATH "/usr/bin/newaliases"
  #define NATIVE_COMMAND_DIR "/usr/sbin"

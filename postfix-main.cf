@@ -19,11 +19,18 @@ mail_owner = postfix
 
 # User configurable parameters
 
+# List all domains you wish to receive mail for in /etc/postfix/domains,
+# and run "postmap /etc/postfix/domain" to add/remove domains at runtime.
+mydestination = $myhostname, $mydomain, localhost, localhost.$mydomain, hash:/etc/postfix/domains
+local_recipient_maps = unix:passwd.byname $alias_maps
+virtual_alias_maps = hash:/etc/postfix/virtual
+
+# Use "inet_interfaces = all" to listen on all interfaces/IP addresses
 inet_interfaces = localhost
 inet_protocols = all
 mynetworks_style = host
 #delay_warning_time = 4h
-smtpd_banner = $myhostname ESMTP $mail_name ($mail_version) (Mandriva Linux)
+smtpd_banner = $myhostname ESMTP $mail_name ($mail_version) (OpenMandriva)
 unknown_local_recipient_reject_code = 450
 smtp-filter_destination_concurrency_limit = 2
 lmtp-filter_destination_concurrency_limit = 2

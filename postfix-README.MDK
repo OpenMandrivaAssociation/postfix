@@ -6,6 +6,7 @@ Contents
 	Running a mail server
 	Dynamic Maps
 	Chroot
+	Dovecot
 	Cyrus Imapd
 	SMTP Authentication (SASL)
 	Defending against UCE, Spam and Viruses
@@ -25,7 +26,7 @@ so on a default install you will not risk on being a prey to spammers.
 If you want to run a mailserver change the Postfix inet_interfaces
 parameter, run:
 	postconf -e 'inet_interfaces=your.ip.add.ress'
-or the simplier
+or the simpler
 	postconf -e 'inet_interfaces=all'
 then restart postfix
 
@@ -90,6 +91,13 @@ The chroot script is controlled by settings found in
 Also remember that in a chrooted environment the parameters
 "smtp_tls_CApath" and "smtpd_tls_CApath" do not work unless you copy the whole
 directory to the chroot, use "smtp_tls_CAfile" and "smtpd_tls_CAfile" instead.
+
+
+Dovecot
+-------
+If you wish to use postfix in combination with dovecot, amavisd-new and clamav,
+install the postfix-dovecot-config package.
+It configures all the tools to work together out of the box.
 
 
 Cyrus Imapd
@@ -185,7 +193,7 @@ Defending against UCE, Spam and Viruses
 ---------------------------------------
 Mandriva provides some prepackaged tools to complement postfix and aid
 in defending your mail servera gainst unwanted content. Some are
-content filters, like amavisd-new and spampd, other are policy
+content filters, like amavisd-new and spamassassin, other are policy
 daemons, like policyd and postgrey.
 
 Read the documentation that comes with those packages as well as the
@@ -194,6 +202,10 @@ Read the documentation that comes with those packages as well as the
 You should also read the postfix-anti-UCE.txt document and the sample
 body_checks.txt and header_checks.txt in the
 /usr/share/doc/postfix/UCE directory.
+
+The postfix-dovecot-config package contains default configuration files that
+integrate postfix, dovecot, amavisd-new, clamav and spamassassin by default.
+
 
 Content filters
 ---------------
