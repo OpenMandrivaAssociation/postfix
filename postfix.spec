@@ -168,7 +168,7 @@ This package provides support for MYSQL maps in Postfix.
 %package pgsql
 Summary:	Postgres SQL map support for Postfix
 Group:		System/Servers
-BuildRequires:	postgresql9.0-devel
+BuildRequires:	postgresql-devel
 Requires:	%{name} = %EVRD
 
 %description pgsql
