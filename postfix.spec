@@ -30,7 +30,7 @@ Summary:	Postfix Mail Transport Agent
 Name:		postfix
 Epoch:		1
 Version:	2.10.0
-Release:	1
+Release:	2
 License:	IBM Public License
 Group:		System/Servers
 URL:		http://www.postfix.org/
@@ -73,6 +73,9 @@ Patch4:		postfix-2.7.0-sdbm.patch
 
 # Shamelessy stolen from debian
 Patch6:		postfix-2.2.4-smtpstone.patch
+
+# systemd integration
+Source100:	postfix.service
 
 BuildRequires:	db-devel
 BuildRequires:	gawk
@@ -352,9 +355,6 @@ mv %{buildroot}%{_docdir}/%{name}/README_FILES DOC/README_FILES
 mkdir -p %{buildroot}%{_sysconfdir}/sasl2
 cp %{SOURCE15} %{buildroot}%{_sysconfdir}/sasl2/smtpd.conf
 
-# This installs into the /etc/rc.d/init.d directory
-mkdir -p %{buildroot}%{_initrddir}
-install -c %{SOURCE3} %{buildroot}%{_initrddir}/postfix
 mkdir -p %{buildroot}%{_sysconfdir}/pam.d
 install -c %{SOURCE4} %{buildroot}%{_sysconfdir}/pam.d/smtp
 
@@ -385,6 +385,10 @@ install -m 0755 %{SOURCE21} %{buildroot}%{_sbindir}/postfinger
 # install qshape
 install -m755 auxiliary/qshape/qshape.pl %{buildroot}%{_sbindir}/qshape
 cp man/man1/qshape.1 %{buildroot}%{_mandir}/man1/qshape.1
+
+# systemd
+mkdir -p %buildroot/lib/systemd/system
+install -c -m 644 %SOURCE100 %buildroot/lib/systemd/system/
 
 # RPM compresses man pages automatically.
 # - Edit postfix-files to reflect this, so post-install won't get confused
@@ -419,6 +423,8 @@ if grep -qs "^IGNORE_NSS_LIBS='^$'$" /etc/sysconfig/postfix; then
 fi
 
 %post
+%systemd_post %{name}.service
+
 # we don't have these maps anymore as separate packages/plugins:
 # cidr, tcp and sdbm (2007.0)
 if [ "$1" -eq "2" ]; then
@@ -476,6 +482,8 @@ fi
 %{_sbindir}/postfix-chroot.sh -q update
 
 %preun
+%systemd_preun %name.service
+
 rmqueue() {
 	[ $2 -gt 0 ] || return
 	local i
@@ -516,6 +524,7 @@ fi
 if [ ! -e %{sendmail_command} ]; then
 	/usr/sbin/update-alternatives --remove sendmail-command %{sendmail_command} 
 fi
+%_systemd_postun_with_restart %{name}.service
 
 %files
 %dir %{_sysconfdir}/postfix
@@ -531,7 +540,7 @@ fi
 %config(noreplace) %{_sysconfdir}/postfix/virtual
 %{_sysconfdir}/postfix/makedefs.out
 %config(noreplace) %{_sysconfdir}/postfix/dynamicmaps.cf
-%attr(0755, root, root) %{_initrddir}/postfix
+%attr(0644, root, root) /lib/systemd/system/%{name}.service
 %attr(0644, root, root) %config(noreplace) %{_sysconfdir}/pam.d/smtp
 %attr(0755, root, root) %config(noreplace) %{_sysconfdir}/ppp/ip-up.d/postfix
 %attr(0755, root, root) %config(noreplace) %{_sysconfdir}/ppp/ip-down.d/postfix
