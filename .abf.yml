@@ -1,3 +1,6 @@
-sources:
+removed_sources:
   postfix-2.10.0.tar.gz: dd9bfc7afee416aa9f2368d084a4b202718e42df
+sources:
   postfix-2.10.0.tar.gz.sig: dc37edeaf73e0bce547ca1eaa5b32a9645146be5
+  postfix-2.10.1.tar.gz: 3e236cf95a7439750e92d9ef5cd510c00e603eb2
+  postfix-2.10.1.tar.gz.sig: 3397b0560c1a4a371fb00866904a50b70e867518
