@@ -58,19 +58,19 @@
 +  user=cyrus argv=/usr/lib/cyrus-imapd/deliver -e -r ${sender} -m ${extension} ${user}
 +#
 +# for default cyrus socket placement
-+cyrus     unix  -       n       n       -       -       lmtp
-+  -o lmtp_cache_connection=yes
++#cyrus     unix  -       n       n       -       -       lmtp
++#  -o lmtp_cache_connection=yes
 +#
 +# if you configure cyrus socket in the chroot jail
-+cyrus-chroot     unix  -       -       y       -       -       lmtp
-+  -o lmtp_cache_connection=yes
++#cyrus-chroot     unix  -       -       y       -       -       lmtp
++#  -o lmtp_cache_connection=yes
 +#
 +# for lmtp to cyrus via tcp
 +cyrus-inet     unix  -       -       n       -       -       lmtp
-+  -o lmtp_cache_connection=yes
 +  -o lmtp_sasl_auth_enable=yes
 +  -o lmtp_sasl_password_maps=hash:/etc/postfix/cyrus_lmtp_sasl_pass
 +  -o lmtp_sasl_security_options=noanonymous
++#  -o lmtp_cache_connection=yes
  #
  # ====================================================================
  #
@@ -128,8 +128,8 @@
 +lmtp-filter    unix    -      -        n       -       -       lmtp
 +  -o lmtp_data_done_timeout=1200
 +  -o lmtp_send_xforward_command=yes
-+  -o lmtp_cache_connection=no
 +  -o max_use=20
++#  -o lmtp_cache_connection=no
 +#
 +smtp-filter    unix    -      -        n       -       -       smtp
 +  -o smtp_data_done_timeout=1200
