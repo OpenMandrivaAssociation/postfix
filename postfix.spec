@@ -1,5 +1,12 @@
 %define _disable_ld_no_undefined 1
-%define libname %mklibname postfix 1
+%define major 1
+%define	libdns %mklibname %{name}-dns %{major}
+%define	libglobal %mklibname %{name}-global %{major}
+%define	libmaster %mklibname %{name}-master %{major}
+%define	libutil %mklibname %{name}-util %{major}
+%define	libtls %mklibname %{name}-tls %{major}
+%define	libmilter %mklibname %{name}-milter %{major}
+%define	libxsasl %mklibname %{name}-xsasl %{major}
 %define sendmail_command %{_sbindir}/sendmail.postfix
 
 %define post_install_parameters	daemon_directory=%{_libdir}/postfix command_directory=%{_sbindir} queue_directory=%{queue_directory} sendmail_path=%{sendmail_command} newaliases_path=%{_bindir}/newaliases mailq_path=%{_bindir}/mailq mail_owner=postfix setgid_group=%{maildrop_group} manpage_directory=%{_mandir} readme_directory=%{_docdir}/%{name}/README_FILES html_directory=%{_docdir}/%{name}/html data_directory=/var/lib/postfix
@@ -30,14 +37,14 @@ Summary:	Postfix Mail Transport Agent
 Name:		postfix
 Epoch:		1
 Version:	2.10.2
-Release:	1
+Release:	2
 License:	IBM Public License
 Group:		System/Servers
-URL:		http://www.postfix.org/
-Source0: 	ftp://ftp.porcupine.org/mirrors/postfix-release/official/%{name}-%{version}.tar.gz
-Source1: 	ftp://ftp.porcupine.org/mirrors/postfix-release/official/%{name}-%{version}.tar.gz.sig
-Source2: 	postfix-main.cf
-Source3: 	postfix-etc-init.d-postfix
+Url:		http://www.postfix.org/
+Source0:	ftp://ftp.porcupine.org/mirrors/postfix-release/official/%{name}-%{version}.tar.gz
+Source1:	ftp://ftp.porcupine.org/mirrors/postfix-release/official/%{name}-%{version}.tar.gz.sig
+Source2:	postfix-main.cf
+Source3:	postfix-etc-init.d-postfix
 Source4:	postfix-etc-pam.d-smtp
 Source5:	postfix-aliases
 Source6:	postfix-ip-up
@@ -87,7 +94,7 @@ BuildRequires:	pkgconfig(libtirpc)
 BuildRequires:	sasl-devel >= 2.0
 %endif
 %if %{with tls}
-BuildRequires:	openssl-devel >= 0.9.7
+BuildRequires:	pkgconfig(openssl)
 %endif
 
 Provides:	mail-server
@@ -96,21 +103,20 @@ Provides:	sendmail-command
 # which was bug-prone
 Conflicts:	syslog-ng < 3.1-0.beta2.2
 # http://archives.mandrivalinux.com/cooker/2005-06/msg01987.php
-Requires(post): chkconfig
-Requires: initscripts
-Requires: syslog-daemon
-Requires: coreutils
-Requires: diffutils
-Requires: gawk
-Requires(pre,post,postun,preun): rpm-helper >= 0.3
+Requires(post):	chkconfig
+Requires:	initscripts
+Requires:	syslog-daemon
+Requires:	coreutils
+Requires:	diffutils
+Requires:	gawk
+Requires(pre,post,postun,preun):	rpm-helper >= 0.3
 Requires(pre,post):	sed
 %if %{with tls}
 Requires(post):	openssl
 %endif
-Requires(post,preun): update-alternatives
-Requires(post,preun): %{libname} >= %EVRD
-Requires(pre): %name-config
-Requires: %name-config >= 2.9.0-1
+Requires(post,preun):	update-alternatives
+Requires(pre):	%{name}-config
+Requires:	%{name}-config >= 2.9.0-1
 
 %description
 Postfix is a Mail Transport Agent (MTA), supporting LDAP, SMTP AUTH (SASL),
@@ -127,19 +133,68 @@ of 1998 as the IBM Secure Mailer. From then on it has lived on as Postfix.
 
 PLEASE READ THE %{_defaultdocdir}/%{name}/README.MDK FILE.
 
-%package -n %{libname}
-Summary:	Shared libraries required to run Postfix
+%package -n %{libdns}
+Summary:	Shared library required to run Postfix
 Group:		System/Servers
+Obsoletes:	%{_lib}postfix1< 1:2.10.2-2
 
-%description -n %{libname}
-This package contains shared libraries used by Postfix.
+%description -n %{libdns}
+This package contains a shared library used by Postfix.
+
+%package -n %{libglobal}
+Summary:	Shared library required to run Postfix
+Group:		System/Servers
+Conflicts:	%{_lib}postfix1< 1:2.10.2-2
+
+%description -n %{libglobal}
+This package contains a shared library used by Postfix.
+
+%package -n %{libmaster}
+Summary:	Shared library required to run Postfix
+Group:		System/Servers
+Conflicts:	%{_lib}postfix1< 1:2.10.2-2
+
+%description -n %{libmaster}
+This package contains a shared library used by Postfix.
+
+%package -n %{libutil}
+Summary:	Shared library required to run Postfix
+Group:		System/Servers
+Conflicts:	%{_lib}postfix1< 1:2.10.2-2
+
+%description -n %{libutil}
+This package contains a shared library used by Postfix.
+
+%package -n %{libtls}
+Summary:	Shared library required to run Postfix
+Group:		System/Servers
+Conflicts:	%{_lib}postfix1< 1:2.10.2-2
+
+%description -n %{libtls}
+This package contains a shared library used by Postfix.
+
+%package -n %{libmilter}
+Summary:	Shared library required to run Postfix
+Group:		System/Servers
+Conflicts:	%{_lib}postfix1< 1:2.10.2-2
+
+%description -n %{libmilter}
+This package contains a shared library used by Postfix.
+
+%package -n %{libxsasl}
+Summary:	Shared library required to run Postfix
+Group:		System/Servers
+Conflicts:	%{_lib}postfix1< 1:2.10.2-2
+
+%description -n %{libxsasl}
+This package contains a shared library used by Postfix.
 
 %if %{with ldap}
 %package ldap
 Summary:	LDAP map support for Postfix
 Group:		System/Servers
 BuildRequires:	openldap-devel >= 2.1
-Requires:	%{name} = %EVRD
+Requires:	%{name} = %{EVRD}
 
 %description ldap
 This package provides support for LDAP maps in Postfix.
@@ -149,8 +204,8 @@ This package provides support for LDAP maps in Postfix.
 %package pcre
 Summary:	PCRE map support for Postfix
 Group:		System/Servers
-BuildRequires:	pcre-devel
-Requires:	%{name} = %EVRD
+BuildRequires:	pkgconfig(libpcre)
+Requires:	%{name} = %{EVRD}
 
 %description pcre
 This package provides support for PCRE (perl compatible regular expression)
@@ -162,7 +217,7 @@ maps in Postfix.
 Summary:	MYSQL map support for Postfix
 Group:		System/Servers
 BuildRequires:	mysql-devel
-Requires:	%{name} = %EVRD
+Requires:	%{name} = %{EVRD}
 
 %description mysql
 This package provides support for MYSQL maps in Postfix.
@@ -173,7 +228,7 @@ This package provides support for MYSQL maps in Postfix.
 Summary:	Postgres SQL map support for Postfix
 Group:		System/Servers
 BuildRequires:	postgresql-devel
-Requires:	%{name} = %EVRD
+Requires:	%{name} = %{EVRD}
 
 %description pgsql
 This package provides support for Postgres SQL maps in Postfix.
@@ -184,7 +239,7 @@ This package provides support for Postgres SQL maps in Postfix.
 Summary:	SQLite map support for Postfix
 Group:		System/Servers
 BuildRequires:	pkgconfig(sqlite3)
-Requires:	%{name} = %EVRD
+Requires:	%{name} = %{EVRD}
 
 %description sqlite
 This package provides support for SQLite maps in Postfix.
@@ -195,22 +250,22 @@ This package provides support for SQLite maps in Postfix.
 Summary:	CDB map support for Postfix
 Group:		System/Servers
 BuildRequires:	pkgconfig(libcdb)
-Requires:	%{name} = %EVRD
+Requires:	%{name} = %{EVRD}
 
 %description cdb
 This package provides support for CDB maps in Postfix.
 %endif
 
 %package config-standalone
-Summary: Default configuration files for running Postfix standalone
-Provides: %name-config = %version-%release
-Conflicts: %name-config-dovecot
+Summary:	Default configuration files for running Postfix standalone
+Provides:	%{name}-config = %{version}-%{release}
+Conflicts:	%{name}-config-dovecot
 
 %description config-standalone
 Default configuration files for running Postfix standalone.
 
 Use this config if you intend to run Postfix without dovecot.
-Alternatively, install %name-config-dovecot for the
+Alternatively, install %{name}-config-dovecot for the
 postfix/dovecot combo.
 
 %prep
@@ -483,7 +538,7 @@ fi
 %{_sbindir}/postfix-chroot.sh -q update
 
 %preun
-%systemd_preun %name.service
+%systemd_preun %{name}.service
 
 rmqueue() {
 	[ $2 -gt 0 ] || return
@@ -643,16 +698,30 @@ fi
 %attr(0755, root, root) %{_bindir}/mailq
 %attr(0755, root, root) %{_bindir}/newaliases
 %attr(0755, root, root) %{_bindir}/rmail
-%{_mandir}/*/*
+%{_mandir}/man1/*
+%{_mandir}/man5/*
+%{_mandir}/man8/*
 
-%files -n %{libname}
-%attr(0755, root, root) %{_libdir}/libpostfix-dns.so.1
-%attr(0755, root, root) %{_libdir}/libpostfix-global.so.1
-%attr(0755, root, root) %{_libdir}/libpostfix-master.so.1
-%attr(0755, root, root) %{_libdir}/libpostfix-util.so.1
-%attr(0755, root, root) %{_libdir}/libpostfix-tls.so.1
-%attr(0755, root, root) %{_libdir}/libpostfix-milter.so.1
-%attr(0755, root, root) %{_libdir}/libpostfix-xsasl.so.1
+%files -n %{libdns}
+%{_libdir}/libpostfix-dns.so.%{major}
+
+%files -n %{libglobal}
+%{_libdir}/libpostfix-global.so.%{major}
+
+%files -n %{libmaster}
+%{_libdir}/libpostfix-master.so.%{major}
+
+%files -n %{libutil}
+%{_libdir}/libpostfix-util.so.%{major}
+
+%files -n %{libtls}
+%{_libdir}/libpostfix-tls.so.%{major}
+
+%files -n %{libmilter}
+%{_libdir}/libpostfix-milter.so.%{major}
+
+%files -n %{libxsasl}
+%{_libdir}/libpostfix-xsasl.so.%{major}
 
 %if %{with ldap}
 %files ldap
