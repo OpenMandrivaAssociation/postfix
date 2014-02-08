@@ -30,7 +30,7 @@ Summary:	Postfix Mail Transport Agent
 Name:		postfix
 Epoch:		1
 Version:	2.10.2
-Release:	1
+Release:	2
 License:	IBM Public License
 Group:		System/Servers
 URL:		http://www.postfix.org/
