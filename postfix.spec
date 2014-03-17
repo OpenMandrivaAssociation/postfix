@@ -76,6 +76,8 @@ Patch6:		postfix-2.2.4-smtpstone.patch
 
 # systemd integration
 Source100:	postfix.service
+Source101:	postfix.aliasesdb
+Source102:	postfix-chroot-update
 
 BuildRequires:	db-devel
 BuildRequires:	gawk
@@ -379,6 +381,8 @@ cp -f %{SOURCE5} %{buildroot}%{_sysconfdir}/postfix/aliases
 chmod 644 %{buildroot}%{_sysconfdir}/postfix/aliases
 touch %{buildroot}%{_sysconfdir}/postfix/aliases.db
 
+touch %{buildroot}%{_sysconfdir}/postfix/domains
+
 # install chroot script and postfinger
 install -m 0755 %{SOURCE14} %{buildroot}%{_sbindir}/postfix-chroot.sh
 install -m 0755 %{SOURCE21} %{buildroot}%{_sbindir}/postfinger
@@ -390,6 +394,8 @@ cp man/man1/qshape.1 %{buildroot}%{_mandir}/man1/qshape.1
 # systemd
 mkdir -p %buildroot/lib/systemd/system
 install -c -m 644 %SOURCE100 %buildroot/lib/systemd/system/
+install -m 755 %{SOURCE101} %{buildroot}%{_sysconfdir}/postfix/aliasesdb
+install -m 755 %{SOURCE102} %{buildroot}%{_sysconfdir}/postfix/chroot-update
 
 # RPM compresses man pages automatically.
 # - Edit postfix-files to reflect this, so post-install won't get confused
@@ -424,6 +430,9 @@ if grep -qs "^IGNORE_NSS_LIBS='^$'$" /etc/sysconfig/postfix; then
 fi
 
 %post
+#ensure the db files are created
+%{_sbindir}/postmap /etc/postfix/virtual
+%{_sbindir}/postmap /etc/postfix/domains
 %systemd_post %{name}.service
 
 # we don't have these maps anymore as separate packages/plugins:
@@ -539,6 +548,9 @@ fi
 %config(noreplace) %{_sysconfdir}/postfix/relocated
 %config(noreplace) %{_sysconfdir}/postfix/transport
 %config(noreplace) %{_sysconfdir}/postfix/virtual
+%config(noreplace) %{_sysconfdir}/postfix/domains
+%{_sysconfdir}/postfix/chroot-update
+%{_sysconfdir}/postfix/aliasesdb
 %{_sysconfdir}/postfix/makedefs.out
 %config(noreplace) %{_sysconfdir}/postfix/dynamicmaps.cf
 %attr(0644, root, root) /lib/systemd/system/%{name}.service
