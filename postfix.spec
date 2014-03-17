@@ -81,6 +81,8 @@ Patch4:		postfix-2.7.0-sdbm.patch
 # Shamelessy stolen from debian
 Patch6:		postfix-2.2.4-smtpstone.patch
 
+Patch7:		postfix-2.10.2-db6.patch
+
 # systemd integration
 Source100:	postfix.service
 Source101:	postfix.aliasesdb
