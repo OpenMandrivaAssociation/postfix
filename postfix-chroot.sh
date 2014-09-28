@@ -80,8 +80,7 @@ copy() {
         ln -sf $L $T
 	copy $L
     else
-	ln -f $1 $T 2>/dev/null || \
-	    cp -pf $1 $T
+	cp -pf $1 $T
     fi
 }
 
