@@ -1,21 +1,17 @@
-diff -Naurp postfix-2.9.1/src/postmap/postmap.c postfix-2.9.1.dlucio/src/postmap/postmap.c
---- postfix-2.9.1/src/postmap/postmap.c	2012-03-16 15:37:48.551885684 -0400
-+++ postfix-2.9.1.dlucio/src/postmap/postmap.c	2012-03-16 15:43:58.732126366 -0400
-@@ -766,8 +766,8 @@ static int postmap_upgrade(const char *m
+--- postfix-3.0.0/src/postmap/postmap.c.0003~	2015-03-17 09:41:06.159895696 +0100
++++ postfix-3.0.0/src/postmap/postmap.c	2015-03-17 09:41:56.418111678 +0100
+@@ -801,7 +801,7 @@ static void postmap_seq(const char *map_
  
  static NORETURN usage(char *myname)
  {
--    msg_fatal("usage: %s [-Nfinoprsvw] [-c config_dir] [-d key] [-q key] [map_type:]file...",
--	      myname);
-+     msg_fatal("usage: %s [-Nfhimnoprsuvw] [-c config_dir] [-d key] [-q key] [map_type:]file...",
-+              myname);
+-    msg_fatal("usage: %s [-NfinoprsuUvw] [-c config_dir] [-d key] [-q key] [map_type:]file...",
++    msg_fatal("usage: %s [-NfhimnoprsuUvw] [-c config_dir] [-d key] [-q key] [map_type:]file...",
+ 	      myname);
  }
  
- MAIL_VERSION_STAMP_DECLARE;
-diff -Naurp postfix-2.9.1/src/util/dict_dbm.c postfix-2.9.1.dlucio/src/util/dict_dbm.c
---- postfix-2.9.1/src/util/dict_dbm.c	2012-03-16 15:37:48.554885669 -0400
-+++ postfix-2.9.1.dlucio/src/util/dict_dbm.c	2012-03-16 15:40:06.757228849 -0400
-@@ -437,6 +437,10 @@ DICT   *dict_dbm_open(const char *path,
+--- postfix-3.0.0/src/util/dict_dbm.c.0003~	2014-11-17 19:28:01.000000000 +0100
++++ postfix-3.0.0/src/util/dict_dbm.c	2015-03-17 09:41:06.159895696 +0100
+@@ -445,6 +445,10 @@ DICT   *dict_dbm_open(const char *path,
  	    msg_fatal("shared-lock database %s for open: %m", dbm_path);
      }
  

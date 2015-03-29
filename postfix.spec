@@ -1,15 +1,17 @@
 %define _disable_ld_no_undefined 1
-%define major 1
+%define major %{nil}
 %define	libdns %mklibname %{name}-dns %{major}
 %define	libglobal %mklibname %{name}-global %{major}
 %define	libmaster %mklibname %{name}-master %{major}
 %define	libutil %mklibname %{name}-util %{major}
 %define	libtls %mklibname %{name}-tls %{major}
-%define	libmilter %mklibname %{name}-milter %{major}
-%define	libxsasl %mklibname %{name}-xsasl %{major}
+### REMOVED in 3.0.0
+%define	libmilter %mklibname %{name}-milter 1
+### REMOVED in 3.0.0
+%define	libxsasl %mklibname %{name}-xsasl 1
 %define sendmail_command %{_sbindir}/sendmail.postfix
 
-%define post_install_parameters	daemon_directory=%{_libdir}/postfix command_directory=%{_sbindir} queue_directory=%{queue_directory} sendmail_path=%{sendmail_command} newaliases_path=%{_bindir}/newaliases mailq_path=%{_bindir}/mailq mail_owner=postfix setgid_group=%{maildrop_group} manpage_directory=%{_mandir} readme_directory=%{_docdir}/%{name}/README_FILES html_directory=%{_docdir}/%{name}/html data_directory=/var/lib/postfix
+%define post_install_parameters	daemon_directory=%{_libexecdir}/postfix command_directory=%{_sbindir} queue_directory=%{queue_directory} sendmail_path=%{sendmail_command} newaliases_path=%{_bindir}/newaliases mailq_path=%{_bindir}/mailq mail_owner=postfix setgid_group=%{maildrop_group} manpage_directory=%{_mandir} readme_directory=%{_docdir}/%{name}/README_FILES html_directory=%{_docdir}/%{name}/html data_directory=/var/lib/postfix
 
 # use bcond_with if default is disabled
 # use bcond_without if default is enabled
@@ -17,6 +19,7 @@
 %bcond_without ldap
 %bcond_without mysql
 %bcond_without pgsql
+%bcond_without sdbm
 %bcond_without sqlite
 %bcond_without pcre
 %bcond_without sasl
@@ -30,14 +33,14 @@
 %define queue_directory	%{_var}/spool/postfix
 
 # Macro: %{dynmap_add_cmd <name> [<soname>] [-m]}
-%define dynmap_add_cmd(m) FILE=%{_sysconfdir}/postfix/dynamicmaps.cf; if ! grep -q "^%{1}[[:space:]]" ${FILE}; then echo "%{1}	%{_libdir}/postfix/dict_%{?2:%{2}}%{?!2:%{1}}.so	dict_%{1}_open%{-m:	mkmap_%{1}_open}" >> ${FILE}; fi;
+%define dynmap_add_cmd(m) FILE=%{_sysconfdir}/postfix/dynamicmaps.cf; if ! grep -q "^%{1}[[:space:]]" ${FILE}; then echo "%{1}	%{_libdir}/postfix-%{?2:%{2}}%{?!2:%{1}}.so	dict_%{1}_open%{-m:	mkmap_%{1}_open}" >> ${FILE}; fi;
 %define dynmap_rm_cmd() FILE=%{_sysconfdir}/postfix/dynamicmaps.cf; if [ $1 = 0 -a -s $FILE ]; then  cp -p ${FILE} ${FILE}.$$; grep -v "^%{1}[[:space:]]" ${FILE}.$$ > ${FILE}; rm -f ${FILE}.$$; fi;
 
 Summary:	Postfix Mail Transport Agent
 Name:		postfix
 Epoch:		1
-Version:	2.10.2
-Release:	11
+Version:	3.0.0
+Release:	1
 License:	IBM Public License
 Group:		System/Servers
 Url:		http://www.postfix.org/
@@ -64,10 +67,6 @@ Source25:	http://jimsun.LinxNet.com/misc/postfix-anti-UCE.txt
 Source26:	http://jimsun.LinxNet.com/misc/header_checks.txt
 Source27:	http://jimsun.LinxNet.com/misc/body_checks.txt
 
-# Dynamic map patch taken from debian's package
-Patch0:		postfix-2.9.1-dynamicmaps.diff
-Patch5:		postfix-2.9.1-dynamicmaps2.diff
-
 Patch1:		postfix-2.9.1-mdkconfig.diff
 Patch2:		postfix-alternatives-mdk.patch
 
@@ -79,8 +78,6 @@ Patch4:		postfix-2.7.0-sdbm.patch
 
 # Shamelessy stolen from debian
 Patch6:		postfix-2.2.4-smtpstone.patch
-
-Patch7:		postfix-2.10.2-db6.patch
 
 # systemd integration
 Source100:	postfix.service
@@ -120,6 +117,9 @@ Requires(post):	openssl
 Requires(post,preun):	update-alternatives
 Requires(pre):	%{name}-config
 Requires:	%{name}-config >= 2.9.0-1
+
+Obsoletes:	%{libmilter} < %{EVRD}
+Obsoletes:	%{libxsasl} < %{EVRD}
 
 %description
 Postfix is a Mail Transport Agent (MTA), supporting LDAP, SMTP AUTH (SASL),
@@ -237,6 +237,16 @@ Requires:	%{name} = %{EVRD}
 This package provides support for Postgres SQL maps in Postfix.
 %endif
 
+%if %{with sdbm}
+%package sdbm
+Summary:	SDBM map support for Postfix
+Group:		System/Servers
+Requires:	%{name} = %{EVRD}
+
+%description sdbm
+This package provides support for SDBM maps in Postfix.
+%endif
+
 %if %{with sqlite}
 %package sqlite
 Summary:	SQLite map support for Postfix
@@ -335,15 +345,19 @@ AUXLIBS=`echo $AUXLIBS|sed -e 's|-fPIE||g'`
 
 %if %{with ldap}
   CCARGS="${CCARGS} -DHAS_LDAP"
+  AUXLIBS_LDAP="-lldap -llber"
 %endif
 %if %{with pcre}
   CCARGS="${CCARGS} -DHAS_PCRE"
+  AUXLIBS_PCRE="$(pcre-config --libs)"
 %endif
 %if %{with mysql}
   CCARGS="${CCARGS} -DHAS_MYSQL -I/usr/include/mysql"
+  AUXLIBS_MYSQL="$(pkg-config --libs mariadb)"
 %endif
 %if %{with pgsql}
   CCARGS="${CCARGS} -DHAS_PGSQL -I/usr/include/pgsql"
+  AUXLIBS_PGSQL="$(pkg-config --libs libpq)"
 %endif
 %if %{with sasl}
   CCARGS="${CCARGS} -DUSE_SASL_AUTH -DUSE_CYRUS_SASL -I/usr/include/sasl"
@@ -358,19 +372,15 @@ AUXLIBS=`echo $AUXLIBS|sed -e 's|-fPIE||g'`
 %endif
 %if %{with cdb}
   CCARGS="${CCARGS} -DHAS_CDB"
+  AUXLIBS="${AUXLIBS} -lcdb"
 %endif
 
-export CCARGS AUXLIBS OPT DEBUG
-make -f Makefile.init makefiles
+export CCARGS AUXLIBS AUXLIBS_PCRE AUXLIBS_LDAP AUXLIBS_MYSQL AUXLIBS_PGSQL OPT DEBUG
+make -f Makefile.init makefiles dynamicmaps=yes shlib_directory="%{_libdir}"
 
 unset CCARGS AUXLIBS DEBUG OPT
 make
 make manpages
-
-for i in lib/*.a; do
-	j=${i#lib/lib}
-	ln -s ${i#lib/} lib/libpostfix-${j%.a}.so.1
-done
 
 # generate main.cf.default here, since in make it will fail
 cat > conf/main.cf.default << EOF
@@ -398,11 +408,6 @@ make non-interactive-package \
 	|| exit 1
 
 mkdir -p %{buildroot}/var/lib/postfix
-
-for i in lib/*.a; do
-	j=${i#lib/lib}
-	install $i %{buildroot}%{_libdir}/libpostfix-${j%.a}.so.1
-done
 
 # rpm %%doc macro wants to take his files in buildroot
 rm -fr DOC
@@ -456,10 +461,10 @@ install -m 755 %{SOURCE102} %{buildroot}%{_sysconfdir}/postfix/chroot-update
 # RPM compresses man pages automatically.
 # - Edit postfix-files to reflect this, so post-install won't get confused
 #   when called during package installation.
-sed -i -e "s@\(/man[158]/.*\.[158]\):@\1%{_extension}:@" %{buildroot}%{_libdir}/postfix/postfix-files
+sed -i -e "s@\(/man[158]/.*\.[158]\):@\1%{_extension}:@" %{buildroot}%{_sysconfdir}/postfix/postfix-files
 
 # remove files that are not in the main package
-sed -i -e "/dict_.*\.so/d" %{buildroot}%{_libdir}/postfix/postfix-files
+sed -i -e "/dict_.*\.so/d" %{buildroot}%{_sysconfdir}/postfix/postfix-files
 
 # remove sample_directory from main.cf (#15297)
 # the default is /etc/postfix
@@ -653,40 +658,40 @@ fi
 %doc postfix-users-faq.html
 %doc UCE
 
-%dir %{_libdir}/postfix
-%attr(0644, root, root) %{_libdir}/postfix/postfix-files
-%attr(0755, root, root) %{_libdir}/postfix/anvil
-%attr(0755, root, root) %{_libdir}/postfix/bounce
-%attr(0755, root, root) %{_libdir}/postfix/cleanup
-%attr(0755, root, root) %{_libdir}/postfix/discard
-%attr(0755, root, root) %{_libdir}/postfix/dnsblog
-%attr(0755, root, root) %{_libdir}/postfix/error
-%attr(0755, root, root) %{_libdir}/postfix/flush
-%attr(0755, root, root) %{_libdir}/postfix/lmtp
-%attr(0755, root, root) %{_libdir}/postfix/local
-%attr(0755, root, root) %{_libdir}/postfix/master
-%attr(0755, root, root) %{_libdir}/postfix/nqmgr
-%attr(0755, root, root) %{_libdir}/postfix/oqmgr
-%attr(0755, root, root) %{_libdir}/postfix/pickup
-%attr(0755, root, root) %{_libdir}/postfix/pipe
-%attr(0755, root, root) %{_libdir}/postfix/postfix-script
-%attr(0755, root, root) %{_libdir}/postfix/postfix-wrapper
-%attr(0755, root, root) %{_libdir}/postfix/post-install
-%attr(0755, root, root) %{_libdir}/postfix/postmulti-script
-%attr(0755, root, root) %{_libdir}/postfix/postscreen
-%attr(0755, root, root) %{_libdir}/postfix/proxymap
-%attr(0755, root, root) %{_libdir}/postfix/qmgr
-%attr(0755, root, root) %{_libdir}/postfix/qmqpd
-%attr(0755, root, root) %{_libdir}/postfix/scache
-%attr(0755, root, root) %{_libdir}/postfix/showq
-%attr(0755, root, root) %{_libdir}/postfix/smtp
-%attr(0755, root, root) %{_libdir}/postfix/smtpd
-%attr(0755, root, root) %{_libdir}/postfix/spawn
-%attr(0755, root, root) %{_libdir}/postfix/tlsmgr
-%attr(0755, root, root) %{_libdir}/postfix/tlsproxy
-%attr(0755, root, root) %{_libdir}/postfix/trivial-rewrite
-%attr(0755, root, root) %{_libdir}/postfix/verify
-%attr(0755, root, root) %{_libdir}/postfix/virtual
+%dir %{_libexecdir}/postfix
+%attr(0644, root, root) %{_sysconfdir}/postfix/postfix-files
+%attr(0755, root, root) %{_libexecdir}/postfix/anvil
+%attr(0755, root, root) %{_libexecdir}/postfix/bounce
+%attr(0755, root, root) %{_libexecdir}/postfix/cleanup
+%attr(0755, root, root) %{_libexecdir}/postfix/discard
+%attr(0755, root, root) %{_libexecdir}/postfix/dnsblog
+%attr(0755, root, root) %{_libexecdir}/postfix/error
+%attr(0755, root, root) %{_libexecdir}/postfix/flush
+%attr(0755, root, root) %{_libexecdir}/postfix/lmtp
+%attr(0755, root, root) %{_libexecdir}/postfix/local
+%attr(0755, root, root) %{_libexecdir}/postfix/master
+%attr(0755, root, root) %{_libexecdir}/postfix/nqmgr
+%attr(0755, root, root) %{_libexecdir}/postfix/oqmgr
+%attr(0755, root, root) %{_libexecdir}/postfix/pickup
+%attr(0755, root, root) %{_libexecdir}/postfix/pipe
+%attr(0755, root, root) %{_libexecdir}/postfix/postfix-script
+%attr(0755, root, root) %{_libexecdir}/postfix/postfix-wrapper
+%attr(0755, root, root) %{_libexecdir}/postfix/post-install
+%attr(0755, root, root) %{_libexecdir}/postfix/postmulti-script
+%attr(0755, root, root) %{_libexecdir}/postfix/postscreen
+%attr(0755, root, root) %{_libexecdir}/postfix/proxymap
+%attr(0755, root, root) %{_libexecdir}/postfix/qmgr
+%attr(0755, root, root) %{_libexecdir}/postfix/qmqpd
+%attr(0755, root, root) %{_libexecdir}/postfix/scache
+%attr(0755, root, root) %{_libexecdir}/postfix/showq
+%attr(0755, root, root) %{_libexecdir}/postfix/smtp
+%attr(0755, root, root) %{_libexecdir}/postfix/smtpd
+%attr(0755, root, root) %{_libexecdir}/postfix/spawn
+%attr(0755, root, root) %{_libexecdir}/postfix/tlsmgr
+%attr(0755, root, root) %{_libexecdir}/postfix/tlsproxy
+%attr(0755, root, root) %{_libexecdir}/postfix/trivial-rewrite
+%attr(0755, root, root) %{_libexecdir}/postfix/verify
+%attr(0755, root, root) %{_libexecdir}/postfix/virtual
 
 %attr(0755, root, root) %{_sbindir}/postalias
 %attr(0755, root, root) %{_sbindir}/postcat
@@ -716,29 +721,23 @@ fi
 %{_mandir}/man8/*
 
 %files -n %{libdns}
-%{_libdir}/libpostfix-dns.so.%{major}
+%{_libdir}/libpostfix-dns.so
 
 %files -n %{libglobal}
-%{_libdir}/libpostfix-global.so.%{major}
+%{_libdir}/libpostfix-global.so
 
 %files -n %{libmaster}
-%{_libdir}/libpostfix-master.so.%{major}
+%{_libdir}/libpostfix-master.so
 
 %files -n %{libutil}
-%{_libdir}/libpostfix-util.so.%{major}
+%{_libdir}/libpostfix-util.so
 
 %files -n %{libtls}
-%{_libdir}/libpostfix-tls.so.%{major}
-
-%files -n %{libmilter}
-%{_libdir}/libpostfix-milter.so.%{major}
-
-%files -n %{libxsasl}
-%{_libdir}/libpostfix-xsasl.so.%{major}
+%{_libdir}/libpostfix-tls.so
 
 %if %{with ldap}
 %files ldap
-%attr(755, root, root) %{_libdir}/postfix/dict_ldap.so
+%attr(755, root, root) %{_libdir}/postfix-ldap.so
 
 %post ldap
 %dynmap_add_cmd ldap
@@ -748,7 +747,7 @@ fi
 
 %if %{with mysql}
 %files mysql
-%attr(755, root, root) %{_libdir}/postfix/dict_mysql.so 
+%attr(755, root, root) %{_libdir}/postfix-mysql.so 
 
 %post mysql
 %dynmap_add_cmd mysql
@@ -756,9 +755,19 @@ fi
 %dynmap_rm_cmd mysql
 %endif
 
+%if %{with sdbm}
+%files sdbm
+%attr(755, root, root) %{_libdir}/postfix-sdbm.so 
+
+%post sdbm
+%dynmap_add_cmd sdbm
+%postun sdbm
+%dynmap_rm_cmd sdbm
+%endif
+
 %if %{with pcre}
 %files pcre
-%attr(755, root, root) %{_libdir}/postfix/dict_pcre.so
+%attr(755, root, root) %{_libdir}/postfix-pcre.so
 
 %post pcre
 %dynmap_add_cmd pcre
@@ -768,7 +777,7 @@ fi
 
 %if %{with pgsql}
 %files pgsql
-%attr(755, root, root) %{_libdir}/postfix/dict_pgsql.so
+%attr(755, root, root) %{_libdir}/postfix-pgsql.so
 
 %post pgsql
 %dynmap_add_cmd pgsql
@@ -778,7 +787,7 @@ fi
 
 %if %{with sqlite}
 %files sqlite
-%attr(755, root, root) %{_libdir}/postfix/dict_sqlite.so
+#attr(755, root, root) %{_libdir}/postfix-sqlite.so
 
 %post sqlite
 %dynmap_add_cmd sqlite
@@ -788,7 +797,7 @@ fi
 
 %if %{with cdb}
 %files cdb
-%attr(755, root, root) %{_libdir}/postfix/dict_cdb.so
+%attr(755, root, root) %{_libdir}/postfix-cdb.so
 
 %post cdb
 %dynmap_add_cmd cdb -m
@@ -801,8 +810,8 @@ fi
 # http://archives.mandrivalinux.com/cooker/2005-07/msg01109.php
 %{_sysconfdir}/postfix/main.cf.dist
 %{_sysconfdir}/postfix/main.cf.default
+%{_sysconfdir}/postfix/main.cf.proto
 %{_sysconfdir}/postfix/bounce.cf.default
 %config(noreplace) %{_sysconfdir}/postfix/master.cf
-%attr(0644, root, root) %{_libdir}/postfix/main.cf
-%attr(0644, root, root) %{_libdir}/postfix/master.cf
+%attr(0644, root, root) %{_sysconfdir}/postfix/master.cf.proto
 
