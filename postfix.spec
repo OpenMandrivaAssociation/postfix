@@ -39,7 +39,7 @@
 Summary:	Postfix Mail Transport Agent
 Name:		postfix
 Epoch:		1
-Version:	3.0.4
+Version:	3.1.0
 Release:	1
 License:	IBM Public License
 Group:		System/Servers
@@ -675,6 +675,7 @@ fi
 %attr(0755, root, root) %{_libexecdir}/postfix/pickup
 %attr(0755, root, root) %{_libexecdir}/postfix/pipe
 %attr(0755, root, root) %{_libexecdir}/postfix/postfix-script
+%attr(0755, root, root) %{_libexecdir}/postfix/postfix-tls-script
 %attr(0755, root, root) %{_libexecdir}/postfix/postfix-wrapper
 %attr(0755, root, root) %{_libexecdir}/postfix/post-install
 %attr(0755, root, root) %{_libexecdir}/postfix/postmulti-script
