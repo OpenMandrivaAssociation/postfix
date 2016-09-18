@@ -1,0 +1,29 @@
+--- postfix-3.1.2/conf/postfix-script.omv~	2016-09-18 19:27:42.745900037 +0200
++++ postfix-3.1.2/conf/postfix-script	2016-09-18 19:28:48.099990302 +0200
+@@ -258,7 +258,7 @@ check-warn)
+ 	    -prune ! -user root \
+ 	    -exec $WARN not owned by root: {} \;
+ 
+-	find $queue_directory/. $queue_directory/pid \
++	find -L $queue_directory/. $queue_directory/pid \
+ 	    -prune \( -perm -020 -o -perm -002 \) \
+ 	    -exec $WARN group or other writable: {} \;
+ 
+@@ -275,7 +275,7 @@ check-warn)
+ 	find $todo ! -user root \
+ 	    -exec $WARN not owned by root: {} \;
+ 
+-	find $todo \( -perm -020 -o -perm -002 \) \
++	find -L $todo \( -perm -020 -o -perm -002 \) \
+ 	    -exec $WARN group or other writable: {} \;
+ 
+ 	# Check Postfix mail_owner-owned directory tree owner/permissions.
+@@ -283,7 +283,7 @@ check-warn)
+ 	find $data_directory/. ! -user $mail_owner \
+ 	    -exec $WARN not owned by $mail_owner: {} \;
+ 
+-	find $data_directory/. \( -perm -020 -o -perm -002 \) \
++	find -L $data_directory/. \( -perm -020 -o -perm -002 \) \
+ 	    -exec $WARN group or other writable: {} \;
+ 
+ 	# Check Postfix mail_owner-owned directory tree owner.

@@ -76,8 +76,16 @@ Patch3:		postfix-2.9.1-dbupgrade.diff
 # sdbm patch patch split from dynamicmaps one
 Patch4:		postfix-2.7.0-sdbm.patch
 
+# Don't warn about symlinks being group- or other-writable
+# (they always are)
+Patch5:		postfix-3.1.2-dont-warn-about-symlinks.patch
+
 # Shamelessy stolen from debian
 Patch6:		postfix-2.2.4-smtpstone.patch
+
+# Teach postfix about dovecot delivery
+# (in most cases, using lmtp is preferable though...)
+Patch7:		postfix-3.1.2-dovecot-delivery.patch
 
 # systemd integration
 Source100:	postfix.service
