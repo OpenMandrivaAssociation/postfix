@@ -39,7 +39,7 @@
 Summary:	Postfix Mail Transport Agent
 Name:		postfix
 Epoch:		1
-Version:	3.1.2
+Version:	3.1.3
 Release:	1
 License:	IBM Public License
 Group:		System/Servers
@@ -98,6 +98,7 @@ BuildRequires:	html2text
 BuildRequires:	perl-base
 BuildRequires:	sed
 BuildRequires:	pkgconfig(libtirpc)
+BuildRequires:	pkgconfig(icu-uc)
 %if %{with sasl}
 BuildRequires:	sasl-devel >= 2.0
 %endif
