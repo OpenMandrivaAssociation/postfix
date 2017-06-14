@@ -1,2 +1,3 @@
 sources:
-  postfix-3.1.1.tar.gz: e1c8ba08cd2ef1ee0d01d1946e2b3272708e6a7d
+  postfix-3.2.1.tar.gz: 9e00de4a79ba6d5e58dc81394c75e5cb2d916770
+  postfix-3.2.1.tar.gz.sig: 1ab682c8f6b8c33fa4f39ead70166e94d829bd94

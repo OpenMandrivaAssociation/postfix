@@ -39,7 +39,7 @@
 Summary:	Postfix Mail Transport Agent
 Name:		postfix
 Epoch:		1
-Version:	3.1.1
+Version:	3.2.1
 Release:	1
 License:	IBM Public License
 Group:		System/Servers
@@ -99,7 +99,7 @@ BuildRequires:	pkgconfig(openssl)
 
 Provides:	mail-server
 Provides:	sendmail-command
-# syslog-ng before this version needed a different chroot script, 
+# syslog-ng before this version needed a different chroot script,
 # which was bug-prone
 Conflicts:	syslog-ng < 3.1-0.beta2.2
 # http://archives.mandrivalinux.com/cooker/2005-06/msg01987.php
@@ -125,14 +125,14 @@ Obsoletes:	%{libxsasl} < %{EVRD}
 Postfix is a Mail Transport Agent (MTA), supporting LDAP, SMTP AUTH (SASL),
 TLS and running in a chroot environment.
 
-Postfix is Wietse Venema's mailer that started life as an alternative 
+Postfix is Wietse Venema's mailer that started life as an alternative
 to the widely-used Sendmail program.
-Postfix attempts to be fast, easy to administer, and secure, while at 
-the same time being sendmail compatible enough to not upset existing 
-users. Thus, the outside has a sendmail-ish flavor, but the inside is 
+Postfix attempts to be fast, easy to administer, and secure, while at
+the same time being sendmail compatible enough to not upset existing
+users. Thus, the outside has a sendmail-ish flavor, but the inside is
 completely different.
 This software was formerly known as VMailer. It was released by the end
-of 1998 as the IBM Secure Mailer. From then on it has lived on as Postfix. 
+of 1998 as the IBM Secure Mailer. From then on it has lived on as Postfix.
 
 PLEASE READ THE %{_defaultdocdir}/%{name}/README.MDK FILE.
 
@@ -473,7 +473,7 @@ sed -i -e "/^sample_directory/d" %{buildroot}%{_sysconfdir}/postfix/main.cf
 %pre
 %_pre_useradd postfix %{queue_directory} /bin/false
 %_pre_groupadd %{maildrop_group} postfix
-# disable chroot of spawn service in /etc/sysconfig/postfix, 
+# disable chroot of spawn service in /etc/sysconfig/postfix,
 # but do it only once and only if user did not
 # modify /etc/sysconfig/postfix manually
 if grep -qs "^NEVER_CHROOT_PROGRAM='^(proxymap|local|pipe|virtual)$'$" /etc/sysconfig/postfix; then
@@ -481,7 +481,7 @@ if grep -qs "^NEVER_CHROOT_PROGRAM='^(proxymap|local|pipe|virtual)$'$" /etc/sysc
 		perl -pi -e "s/^NEVER_CHROOT_PROGRAM=.*\$/NEVER_CHROOT_PROGRAM=\'^(proxymap|local|pipe|virtual|spawn)\\\$\'/" /etc/sysconfig/postfix
 	fi
 fi
-# disable some unneeded and potentially harmful nss libraries in 
+# disable some unneeded and potentially harmful nss libraries in
 # /etc/sysconfig/postfix, but do it only once and only if user did not
 # modify /etc/sysconfig/postfix manually
 if grep -qs "^IGNORE_NSS_LIBS='^$'$" /etc/sysconfig/postfix; then
@@ -593,7 +593,7 @@ fi
 %_postun_userdel postfix
 %_postun_groupdel %{maildrop_group}
 if [ ! -e %{sendmail_command} ]; then
-	/usr/sbin/update-alternatives --remove sendmail-command %{sendmail_command} 
+	/usr/sbin/update-alternatives --remove sendmail-command %{sendmail_command}
 fi
 %_systemd_postun_with_restart %{name}.service
 
@@ -748,7 +748,7 @@ fi
 
 %if %{with mysql}
 %files mysql
-%attr(755, root, root) %{_libdir}/postfix-mysql.so 
+%attr(755, root, root) %{_libdir}/postfix-mysql.so
 
 %post mysql
 %dynmap_add_cmd mysql
@@ -758,7 +758,7 @@ fi
 
 %if %{with sdbm}
 %files sdbm
-%attr(755, root, root) %{_libdir}/postfix-sdbm.so 
+%attr(755, root, root) %{_libdir}/postfix-sdbm.so
 
 %post sdbm
 %dynmap_add_cmd sdbm
