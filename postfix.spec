@@ -31,16 +31,17 @@
 # Postfix requires one exlusive uid/gid and a 2nd exclusive gid for its own use.
 %define maildrop_group	postdrop
 %define queue_directory	%{_var}/spool/postfix
+%define postfix_shlib_dir %{_libdir}/postfix
 
 # Macro: %{dynmap_add_cmd <name> [<soname>] [-m]}
-%define dynmap_add_cmd(m) FILE=%{_sysconfdir}/postfix/dynamicmaps.cf; if ! grep -q "^%{1}[[:space:]]" ${FILE}; then echo "%{1}	%{_libdir}/postfix-%{?2:%{2}}%{?!2:%{1}}.so	dict_%{1}_open%{-m:	mkmap_%{1}_open}" >> ${FILE}; fi;
+%define dynmap_add_cmd(m) FILE=%{_sysconfdir}/postfix/dynamicmaps.cf; if ! grep -q "^%{1}[[:space:]]" ${FILE}; then echo "%{1}	%{_libdir}/postfix/postfix-%{?2:%{2}}%{?!2:%{1}}.so	dict_%{1}_open%{-m:	mkmap_%{1}_open}" >> ${FILE}; fi;
 %define dynmap_rm_cmd() FILE=%{_sysconfdir}/postfix/dynamicmaps.cf; if [ $1 = 0 -a -s $FILE ]; then  cp -p ${FILE} ${FILE}.$$; grep -v "^%{1}[[:space:]]" ${FILE}.$$ > ${FILE}; rm -f ${FILE}.$$; fi;
 
 Summary:	Postfix Mail Transport Agent
 Name:		postfix
 Epoch:		1
 Version:	3.2.2
-Release:	1
+Release:	2
 License:	IBM Public License
 Group:		System/Servers
 Url:		http://www.postfix.org/
@@ -108,7 +109,7 @@ BuildRequires:	pkgconfig(openssl)
 
 Provides:	mail-server
 Provides:	sendmail-command
-# syslog-ng before this version needed a different chroot script, 
+# syslog-ng before this version needed a different chroot script,
 # which was bug-prone
 Conflicts:	syslog-ng < 3.1-0.beta2.2
 # http://archives.mandrivalinux.com/cooker/2005-06/msg01987.php
@@ -134,14 +135,14 @@ Obsoletes:	%{libxsasl} < %{EVRD}
 Postfix is a Mail Transport Agent (MTA), supporting LDAP, SMTP AUTH (SASL),
 TLS and running in a chroot environment.
 
-Postfix is Wietse Venema's mailer that started life as an alternative 
+Postfix is Wietse Venema's mailer that started life as an alternative
 to the widely-used Sendmail program.
-Postfix attempts to be fast, easy to administer, and secure, while at 
-the same time being sendmail compatible enough to not upset existing 
-users. Thus, the outside has a sendmail-ish flavor, but the inside is 
+Postfix attempts to be fast, easy to administer, and secure, while at
+the same time being sendmail compatible enough to not upset existing
+users. Thus, the outside has a sendmail-ish flavor, but the inside is
 completely different.
 This software was formerly known as VMailer. It was released by the end
-of 1998 as the IBM Secure Mailer. From then on it has lived on as Postfix. 
+of 1998 as the IBM Secure Mailer. From then on it has lived on as Postfix.
 
 PLEASE READ THE %{_defaultdocdir}/%{name}/README.MDK FILE.
 
@@ -300,6 +301,11 @@ mkdir -p conf/dist
 mv conf/main.cf conf/dist
 cp %{SOURCE2} conf/main.cf
 
+# Change DEF_SHLIB_DIR according to build host
+sed -i \
+'s|^\(\s*#define\s\+DEF_SHLIB_DIR\s\+\)"/usr/lib/postfix"|\1"%{_libdir}/postfix"|' \
+src/global/mail_params.h
+
 # ugly hack for 32/64 arches
 if [ %{_lib} != lib ]; then
 	sed -i -e 's@^/usr/lib/@%{_libdir}/@' conf/postfix-files
@@ -360,6 +366,10 @@ AUXLIBS=`echo $AUXLIBS|sed -e 's|-fPIE||g'`
   CCARGS="${CCARGS} -DHAS_PCRE"
   AUXLIBS_PCRE="$(pcre-config --libs)"
 %endif
+%if %{with sqlite}
+  CCARGS="${CCARGS} -DHAS_SQLITE `pkg-config --cflags sqlite3`"
+  AUXLIBS_SQLITE="`pkg-config --libs sqlite3`"
+%endif
 %if %{with mysql}
   CCARGS="${CCARGS} -DHAS_MYSQL -I/usr/include/mysql"
   AUXLIBS_MYSQL="$(pkg-config --libs mariadb)"
@@ -385,7 +395,13 @@ AUXLIBS=`echo $AUXLIBS|sed -e 's|-fPIE||g'`
 %endif
 
 export CCARGS AUXLIBS AUXLIBS_PCRE AUXLIBS_LDAP AUXLIBS_MYSQL AUXLIBS_PGSQL OPT DEBUG
-make -f Makefile.init makefiles dynamicmaps=yes shlib_directory="%{_libdir}"
+export CC=%{__cc}
+export CXX=%{__cxx}
+make -f Makefile.init makefiles dynamicmaps=yes \
+	shlib_directory="%{_libdir}" \
+	SHLIB_RPATH="-Wl,-rpath,%{postfix_shlib_dir} %{ldflags}" \
+	OPT="$RPM_OPT_FLAGS -fno-strict-aliasing -Wno-comment" \
+	POSTFIX_INSTALL_OPTS=-keep-build-mtime
 
 unset CCARGS AUXLIBS DEBUG OPT
 make
@@ -412,6 +428,7 @@ mv conf/dist/main.cf conf/main.cf.dist
 LD_LIBRARY_PATH=$PWD/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH} \
 make non-interactive-package \
 	install_root=%{buildroot} \
+	shlib_directory=%{postfix_shlib_dir} \
 	config_directory=%{_sysconfdir}/postfix \
 	%post_install_parameters \
 	|| exit 1
@@ -482,7 +499,7 @@ sed -i -e "/^sample_directory/d" %{buildroot}%{_sysconfdir}/postfix/main.cf
 %pre
 %_pre_useradd postfix %{queue_directory} /bin/false
 %_pre_groupadd %{maildrop_group} postfix
-# disable chroot of spawn service in /etc/sysconfig/postfix, 
+# disable chroot of spawn service in /etc/sysconfig/postfix,
 # but do it only once and only if user did not
 # modify /etc/sysconfig/postfix manually
 if grep -qs "^NEVER_CHROOT_PROGRAM='^(proxymap|local|pipe|virtual)$'$" /etc/sysconfig/postfix; then
@@ -490,7 +507,7 @@ if grep -qs "^NEVER_CHROOT_PROGRAM='^(proxymap|local|pipe|virtual)$'$" /etc/sysc
 		perl -pi -e "s/^NEVER_CHROOT_PROGRAM=.*\$/NEVER_CHROOT_PROGRAM=\'^(proxymap|local|pipe|virtual|spawn)\\\$\'/" /etc/sysconfig/postfix
 	fi
 fi
-# disable some unneeded and potentially harmful nss libraries in 
+# disable some unneeded and potentially harmful nss libraries in
 # /etc/sysconfig/postfix, but do it only once and only if user did not
 # modify /etc/sysconfig/postfix manually
 if grep -qs "^IGNORE_NSS_LIBS='^$'$" /etc/sysconfig/postfix; then
@@ -602,7 +619,7 @@ fi
 %_postun_userdel postfix
 %_postun_groupdel %{maildrop_group}
 if [ ! -e %{sendmail_command} ]; then
-	/usr/sbin/update-alternatives --remove sendmail-command %{sendmail_command} 
+	/usr/sbin/update-alternatives --remove sendmail-command %{sendmail_command}
 fi
 %_systemd_postun_with_restart %{name}.service
 
@@ -731,23 +748,23 @@ fi
 %{_mandir}/man8/*
 
 %files -n %{libdns}
-%{_libdir}/libpostfix-dns.so
+%{_libdir}/postfix/libpostfix-dns.so
 
 %files -n %{libglobal}
-%{_libdir}/libpostfix-global.so
+%{_libdir}/postfix/libpostfix-global.so
 
 %files -n %{libmaster}
-%{_libdir}/libpostfix-master.so
+%{_libdir}/postfix/libpostfix-master.so
 
 %files -n %{libutil}
-%{_libdir}/libpostfix-util.so
+%{_libdir}/postfix/libpostfix-util.so
 
 %files -n %{libtls}
-%{_libdir}/libpostfix-tls.so
+%{_libdir}/postfix/libpostfix-tls.so
 
 %if %{with ldap}
 %files ldap
-%attr(755, root, root) %{_libdir}/postfix-ldap.so
+%attr(755, root, root) %{_libdir}/postfix/postfix-ldap.so
 
 %post ldap
 %dynmap_add_cmd ldap
@@ -757,7 +774,7 @@ fi
 
 %if %{with mysql}
 %files mysql
-%attr(755, root, root) %{_libdir}/postfix-mysql.so 
+%attr(755, root, root) %{_libdir}/postfix/postfix-mysql.so
 
 %post mysql
 %dynmap_add_cmd mysql
@@ -767,7 +784,7 @@ fi
 
 %if %{with sdbm}
 %files sdbm
-%attr(755, root, root) %{_libdir}/postfix-sdbm.so 
+%attr(755, root, root) %{_libdir}/postfix/postfix-sdbm.so
 
 %post sdbm
 %dynmap_add_cmd sdbm
@@ -777,7 +794,7 @@ fi
 
 %if %{with pcre}
 %files pcre
-%attr(755, root, root) %{_libdir}/postfix-pcre.so
+%attr(755, root, root) %{_libdir}/postfix/postfix-pcre.so
 
 %post pcre
 %dynmap_add_cmd pcre
@@ -787,7 +804,7 @@ fi
 
 %if %{with pgsql}
 %files pgsql
-%attr(755, root, root) %{_libdir}/postfix-pgsql.so
+%attr(755, root, root) %{_libdir}/postfix/postfix-pgsql.so
 
 %post pgsql
 %dynmap_add_cmd pgsql
@@ -797,7 +814,7 @@ fi
 
 %if %{with sqlite}
 %files sqlite
-#attr(755, root, root) %{_libdir}/postfix-sqlite.so
+%attr(755, root, root) %{_libdir}/postfix/postfix-sqlite.so
 
 %post sqlite
 %dynmap_add_cmd sqlite
@@ -807,7 +824,7 @@ fi
 
 %if %{with cdb}
 %files cdb
-%attr(755, root, root) %{_libdir}/postfix-cdb.so
+%attr(755, root, root) %{_libdir}/postfix/postfix-cdb.so
 
 %post cdb
 %dynmap_add_cmd cdb -m
