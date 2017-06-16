@@ -31,16 +31,17 @@
 # Postfix requires one exlusive uid/gid and a 2nd exclusive gid for its own use.
 %define maildrop_group	postdrop
 %define queue_directory	%{_var}/spool/postfix
+%define postfix_shlib_dir %{_libdir}/postfix
 
 # Macro: %{dynmap_add_cmd <name> [<soname>] [-m]}
-%define dynmap_add_cmd(m) FILE=%{_sysconfdir}/postfix/dynamicmaps.cf; if ! grep -q "^%{1}[[:space:]]" ${FILE}; then echo "%{1}	%{_libdir}/postfix-%{?2:%{2}}%{?!2:%{1}}.so	dict_%{1}_open%{-m:	mkmap_%{1}_open}" >> ${FILE}; fi;
+%define dynmap_add_cmd(m) FILE=%{_sysconfdir}/postfix/dynamicmaps.cf; if ! grep -q "^%{1}[[:space:]]" ${FILE}; then echo "%{1}	%{_libdir}/postfix/postfix-%{?2:%{2}}%{?!2:%{1}}.so	dict_%{1}_open%{-m:	mkmap_%{1}_open}" >> ${FILE}; fi;
 %define dynmap_rm_cmd() FILE=%{_sysconfdir}/postfix/dynamicmaps.cf; if [ $1 = 0 -a -s $FILE ]; then  cp -p ${FILE} ${FILE}.$$; grep -v "^%{1}[[:space:]]" ${FILE}.$$ > ${FILE}; rm -f ${FILE}.$$; fi;
 
 Summary:	Postfix Mail Transport Agent
 Name:		postfix
 Epoch:		1
-Version:	3.2.1
-Release:	1
+Version:	3.2.2
+Release:	2
 License:	IBM Public License
 Group:		System/Servers
 Url:		http://www.postfix.org/
@@ -76,8 +77,16 @@ Patch3:		postfix-2.9.1-dbupgrade.diff
 # sdbm patch patch split from dynamicmaps one
 Patch4:		postfix-2.7.0-sdbm.patch
 
+# Don't warn about symlinks being group- or other-writable
+# (they always are)
+Patch5:		postfix-3.1.2-dont-warn-about-symlinks.patch
+
 # Shamelessy stolen from debian
 Patch6:		postfix-2.2.4-smtpstone.patch
+
+# Teach postfix about dovecot delivery
+# (in most cases, using lmtp is preferable though...)
+Patch7:		postfix-3.1.2-dovecot-delivery.patch
 
 # systemd integration
 Source100:	postfix.service
@@ -90,6 +99,7 @@ BuildRequires:	html2text
 BuildRequires:	perl-base
 BuildRequires:	sed
 BuildRequires:	pkgconfig(libtirpc)
+BuildRequires:	pkgconfig(icu-uc)
 %if %{with sasl}
 BuildRequires:	sasl-devel >= 2.0
 %endif
@@ -291,6 +301,11 @@ mkdir -p conf/dist
 mv conf/main.cf conf/dist
 cp %{SOURCE2} conf/main.cf
 
+# Change DEF_SHLIB_DIR according to build host
+sed -i \
+'s|^\(\s*#define\s\+DEF_SHLIB_DIR\s\+\)"/usr/lib/postfix"|\1"%{_libdir}/postfix"|' \
+src/global/mail_params.h
+
 # ugly hack for 32/64 arches
 if [ %{_lib} != lib ]; then
 	sed -i -e 's@^/usr/lib/@%{_libdir}/@' conf/postfix-files
@@ -351,6 +366,10 @@ AUXLIBS=`echo $AUXLIBS|sed -e 's|-fPIE||g'`
   CCARGS="${CCARGS} -DHAS_PCRE"
   AUXLIBS_PCRE="$(pcre-config --libs)"
 %endif
+%if %{with sqlite}
+  CCARGS="${CCARGS} -DHAS_SQLITE `pkg-config --cflags sqlite3`"
+  AUXLIBS_SQLITE="`pkg-config --libs sqlite3`"
+%endif
 %if %{with mysql}
   CCARGS="${CCARGS} -DHAS_MYSQL -I/usr/include/mysql"
   AUXLIBS_MYSQL="$(pkg-config --libs mariadb)"
@@ -376,7 +395,13 @@ AUXLIBS=`echo $AUXLIBS|sed -e 's|-fPIE||g'`
 %endif
 
 export CCARGS AUXLIBS AUXLIBS_PCRE AUXLIBS_LDAP AUXLIBS_MYSQL AUXLIBS_PGSQL OPT DEBUG
-make -f Makefile.init makefiles dynamicmaps=yes shlib_directory="%{_libdir}"
+export CC=%{__cc}
+export CXX=%{__cxx}
+make -f Makefile.init makefiles dynamicmaps=yes \
+	shlib_directory="%{_libdir}" \
+	SHLIB_RPATH="-Wl,-rpath,%{postfix_shlib_dir} %{ldflags}" \
+	OPT="$RPM_OPT_FLAGS -fno-strict-aliasing -Wno-comment" \
+	POSTFIX_INSTALL_OPTS=-keep-build-mtime
 
 unset CCARGS AUXLIBS DEBUG OPT
 make
@@ -403,6 +428,7 @@ mv conf/dist/main.cf conf/main.cf.dist
 LD_LIBRARY_PATH=$PWD/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH} \
 make non-interactive-package \
 	install_root=%{buildroot} \
+	shlib_directory=%{postfix_shlib_dir} \
 	config_directory=%{_sysconfdir}/postfix \
 	%post_install_parameters \
 	|| exit 1
@@ -722,23 +748,23 @@ fi
 %{_mandir}/man8/*
 
 %files -n %{libdns}
-%{_libdir}/libpostfix-dns.so
+%{_libdir}/postfix/libpostfix-dns.so
 
 %files -n %{libglobal}
-%{_libdir}/libpostfix-global.so
+%{_libdir}/postfix/libpostfix-global.so
 
 %files -n %{libmaster}
-%{_libdir}/libpostfix-master.so
+%{_libdir}/postfix/libpostfix-master.so
 
 %files -n %{libutil}
-%{_libdir}/libpostfix-util.so
+%{_libdir}/postfix/libpostfix-util.so
 
 %files -n %{libtls}
-%{_libdir}/libpostfix-tls.so
+%{_libdir}/postfix/libpostfix-tls.so
 
 %if %{with ldap}
 %files ldap
-%attr(755, root, root) %{_libdir}/postfix-ldap.so
+%attr(755, root, root) %{_libdir}/postfix/postfix-ldap.so
 
 %post ldap
 %dynmap_add_cmd ldap
@@ -747,8 +773,7 @@ fi
 %endif
 
 %if %{with mysql}
-%files mysql
-%attr(755, root, root) %{_libdir}/postfix-mysql.so
+%attr(755, root, root) %{_libdir}/postfix/postfix-mysql.so
 
 %post mysql
 %dynmap_add_cmd mysql
@@ -758,7 +783,7 @@ fi
 
 %if %{with sdbm}
 %files sdbm
-%attr(755, root, root) %{_libdir}/postfix-sdbm.so
+%attr(755, root, root) %{_libdir}/postfix/postfix-sdbm.so
 
 %post sdbm
 %dynmap_add_cmd sdbm
@@ -768,7 +793,7 @@ fi
 
 %if %{with pcre}
 %files pcre
-%attr(755, root, root) %{_libdir}/postfix-pcre.so
+%attr(755, root, root) %{_libdir}/postfix/postfix-pcre.so
 
 %post pcre
 %dynmap_add_cmd pcre
@@ -778,7 +803,7 @@ fi
 
 %if %{with pgsql}
 %files pgsql
-%attr(755, root, root) %{_libdir}/postfix-pgsql.so
+%attr(755, root, root) %{_libdir}/postfix/postfix-pgsql.so
 
 %post pgsql
 %dynmap_add_cmd pgsql
@@ -788,7 +813,7 @@ fi
 
 %if %{with sqlite}
 %files sqlite
-#attr(755, root, root) %{_libdir}/postfix-sqlite.so
+%attr(755, root, root) %{_libdir}/postfix/postfix-sqlite.so
 
 %post sqlite
 %dynmap_add_cmd sqlite
@@ -798,7 +823,7 @@ fi
 
 %if %{with cdb}
 %files cdb
-%attr(755, root, root) %{_libdir}/postfix-cdb.so
+%attr(755, root, root) %{_libdir}/postfix/postfix-cdb.so
 
 %post cdb
 %dynmap_add_cmd cdb -m
