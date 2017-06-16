@@ -773,6 +773,7 @@ fi
 %endif
 
 %if %{with mysql}
+%files mysql
 %attr(755, root, root) %{_libdir}/postfix/postfix-mysql.so
 
 %post mysql
