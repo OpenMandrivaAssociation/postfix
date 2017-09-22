@@ -115,7 +115,6 @@ Conflicts:	syslog-ng < 3.1-0.beta2.2
 # http://archives.mandrivalinux.com/cooker/2005-06/msg01987.php
 Requires(post):	chkconfig
 Requires:	initscripts
-Requires:	syslog-daemon
 Requires:	coreutils
 Requires:	diffutils
 Requires:	gawk
@@ -343,7 +342,7 @@ cp -p mantools/postlink.sed mantools/postlink.posix
 sed -e 's/\[\[:<:\]\]/\\</g; s/\[\[:>:\]\]/\\>/g' mantools/postlink.posix > mantools/postlink
 
 %build
-%serverbuild
+%serverbuild_hardened
 # it does not work with -fPIE and someone added that to the serverbuild macro...
 CFLAGS=`echo $CFLAGS|sed -e 's|-fPIE||g'`
 CXXFLAGS=`echo $CXXFLAGS|sed -e 's|-fPIE||g'`
@@ -397,7 +396,7 @@ AUXLIBS=`echo $AUXLIBS|sed -e 's|-fPIE||g'`
 export CCARGS AUXLIBS AUXLIBS_PCRE AUXLIBS_LDAP AUXLIBS_MYSQL AUXLIBS_PGSQL OPT DEBUG
 export CC=%{__cc}
 export CXX=%{__cxx}
-make -f Makefile.init makefiles dynamicmaps=yes \
+make -f Makefile.init makefiles dynamicmaps=yes pie=yes \
 	shlib_directory="%{_libdir}" \
 	SHLIB_RPATH="-Wl,-rpath,%{postfix_shlib_dir} %{ldflags}" \
 	OPT="$RPM_OPT_FLAGS -fno-strict-aliasing -Wno-comment" \
@@ -483,6 +482,10 @@ mkdir -p %buildroot/lib/systemd/system
 install -c -m 644 %SOURCE100 %buildroot/lib/systemd/system/
 install -m 755 %{SOURCE101} %{buildroot}%{_sysconfdir}/postfix/aliasesdb
 install -m 755 %{SOURCE102} %{buildroot}%{_sysconfdir}/postfix/chroot-update
+install -d %{buildroot}%{_presetdir}
+cat > %{buildroot}%{_presetdir}/86-postfix.preset << EOF
+enable postfix.service
+EOF
 
 # RPM compresses man pages automatically.
 # - Edit postfix-files to reflect this, so post-install won't get confused
@@ -570,7 +573,6 @@ else
 	%{_sbindir}/postfix-chroot.sh -q create_sysconfig
 %endif
 fi
-%_post_service postfix
 
 /usr/sbin/update-alternatives --install %{_sbindir}/sendmail sendmail-command %{sendmail_command} 30 --slave %{_prefix}/lib/sendmail sendmail-command-in_libdir %{sendmail_command}
 
@@ -607,8 +609,6 @@ for dir in corrupt maildrop pid private public trace; do
 done
 }
 
-%_preun_service postfix
-
 if [ $1 = 0 ]; then
 	# Clean up chroot environment and spool directory
 	%{_sbindir}/postfix-chroot.sh -q remove
@@ -621,7 +621,7 @@ fi
 if [ ! -e %{sendmail_command} ]; then
 	/usr/sbin/update-alternatives --remove sendmail-command %{sendmail_command}
 fi
-%_systemd_postun_with_restart %{name}.service
+%systemd_postun_with_restart %{name}.service
 
 %files
 %dir %{_sysconfdir}/postfix
@@ -640,7 +640,8 @@ fi
 %{_sysconfdir}/postfix/aliasesdb
 %{_sysconfdir}/postfix/makedefs.out
 %config(noreplace) %{_sysconfdir}/postfix/dynamicmaps.cf
-%attr(0644, root, root) /lib/systemd/system/%{name}.service
+%{_presetdir}/86-postfix.preset
+%attr(0644, root, root) %{_unitdir}/%{name}.service
 %attr(0644, root, root) %config(noreplace) %{_sysconfdir}/pam.d/smtp
 %attr(0755, root, root) %config(noreplace) %{_sysconfdir}/ppp/ip-up.d/postfix
 %attr(0755, root, root) %config(noreplace) %{_sysconfdir}/ppp/ip-down.d/postfix
