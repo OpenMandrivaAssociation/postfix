@@ -40,8 +40,8 @@
 Summary:	Postfix Mail Transport Agent
 Name:		postfix
 Epoch:		1
-Version:	3.2.2
-Release:	2
+Version:	3.2.4
+Release:	1
 License:	IBM Public License
 Group:		System/Servers
 Url:		http://www.postfix.org/
@@ -87,6 +87,8 @@ Patch6:		postfix-2.2.4-smtpstone.patch
 # Teach postfix about dovecot delivery
 # (in most cases, using lmtp is preferable though...)
 Patch7:		postfix-3.1.2-dovecot-delivery.patch
+
+Patch8:		postfix-3.2.4-lib-interdependencies.patch
 
 # systemd integration
 Source100:	postfix.service
@@ -350,7 +352,7 @@ RPM_OPT_FLAGS=`echo $RPM_OPT_FLAGS|sed -e 's|-fPIE||g'`
 
 OPT="$RPM_OPT_FLAGS"
 DEBUG=
-CCARGS=
+CCARGS="-DNO_NIS"
 AUXLIBS="%{?ldflags:%ldflags}"
 AUXLIBS=`echo $AUXLIBS|sed -e 's|-fPIE||g'`
 
