@@ -1,0 +1,15 @@
+--- postfix-3.2.4/src/tls/Makefile.in.omv~	2017-11-20 20:12:41.223247496 +0100
++++ postfix-3.2.4/src/tls/Makefile.in	2017-11-20 20:13:34.023165778 +0100
+@@ -41,10 +41,10 @@ tests:
+ 
+ root_tests:
+ 
+-$(LIB):	$(OBJS)
++$(LIB):	$(OBJS) $(LIB_DIR)/libpostfix-dns.so
+ 	$(AR) $(ARFL) $(LIB) $?
+ 	$(RANLIB) $(LIB)
+-	$(SHLIB_LD) $(SHLIB_RPATH) -o $(LIB) $(OBJS) $(SHLIB_SYSLIBS)
++	$(SHLIB_LD) $(SHLIB_RPATH) -o $(LIB) $(OBJS) $(SHLIB_SYSLIBS) -L$(LIB_DIR) -lpostfix-dns
+ 
+ $(LIB_DIR)/$(LIB): $(LIB)
+ 	cp $(LIB) $(LIB_DIR)
