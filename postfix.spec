@@ -98,6 +98,7 @@ BuildRequires:	gawk
 BuildRequires:	html2text
 BuildRequires:	perl-base
 BuildRequires:	sed
+BuildRequires:	pkgconfig(libnsl)
 BuildRequires:	pkgconfig(libtirpc)
 BuildRequires:	pkgconfig(icu-uc)
 %if %{with sasl}
