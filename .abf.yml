@@ -1,3 +1,5 @@
-sources:
+removed_sources:
   postfix-3.2.2.tar.gz: 1a0d01e79ced46b38e8bd5b7a726a1622cf1bc07
-  postfix-3.2.2.tar.gz.sig: 51420263b8c8f501b935630e22d753a3b521c735
+sources:
+  postfix-3.2.6.tar.gz: 100c27a8b145d447bce30d94ae180fcfbbe76e3e
+  postfix-3.2.6.tar.gz.sig: 5824631988311598cba43fcbb767ad5debd25ce5
