@@ -39,8 +39,7 @@
 
 Summary:	Postfix Mail Transport Agent
 Name:		postfix
-Epoch:		1
-Version:	3.3.2
+Version:	3.3.3
 Release:	1
 License:	IBM Public License
 Group:		System/Servers
@@ -61,7 +60,7 @@ Source14:	postfix-chroot.sh
 Source15:	postfix-smtpd.conf
 
 # Simon J. Mudd stuff
-Source21:	ftp://ftp.wl0.org/postfinger/postfinger-1.30
+Source21:	https://ftp.wl0.org/SOURCES/postfinger
 
 # Jim Seymour stuff
 Source25:	http://jimsun.LinxNet.com/misc/postfix-anti-UCE.txt
@@ -153,7 +152,6 @@ PLEASE READ THE %{_defaultdocdir}/%{name}/README.MDK FILE.
 %package -n %{libdns}
 Summary:	Shared library required to run Postfix
 Group:		System/Servers
-Obsoletes:	%{_lib}postfix1< 1:2.10.2-2
 
 %description -n %{libdns}
 This package contains a shared library used by Postfix.
@@ -161,7 +159,6 @@ This package contains a shared library used by Postfix.
 %package -n %{libglobal}
 Summary:	Shared library required to run Postfix
 Group:		System/Servers
-Conflicts:	%{_lib}postfix1< 1:2.10.2-2
 
 %description -n %{libglobal}
 This package contains a shared library used by Postfix.
@@ -169,7 +166,6 @@ This package contains a shared library used by Postfix.
 %package -n %{libmaster}
 Summary:	Shared library required to run Postfix
 Group:		System/Servers
-Conflicts:	%{_lib}postfix1< 1:2.10.2-2
 
 %description -n %{libmaster}
 This package contains a shared library used by Postfix.
@@ -177,7 +173,6 @@ This package contains a shared library used by Postfix.
 %package -n %{libutil}
 Summary:	Shared library required to run Postfix
 Group:		System/Servers
-Conflicts:	%{_lib}postfix1< 1:2.10.2-2
 
 %description -n %{libutil}
 This package contains a shared library used by Postfix.
@@ -185,7 +180,6 @@ This package contains a shared library used by Postfix.
 %package -n %{libtls}
 Summary:	Shared library required to run Postfix
 Group:		System/Servers
-Conflicts:	%{_lib}postfix1< 1:2.10.2-2
 
 %description -n %{libtls}
 This package contains a shared library used by Postfix.
@@ -193,7 +187,6 @@ This package contains a shared library used by Postfix.
 %package -n %{libmilter}
 Summary:	Shared library required to run Postfix
 Group:		System/Servers
-Conflicts:	%{_lib}postfix1< 1:2.10.2-2
 
 %description -n %{libmilter}
 This package contains a shared library used by Postfix.
@@ -201,7 +194,6 @@ This package contains a shared library used by Postfix.
 %package -n %{libxsasl}
 Summary:	Shared library required to run Postfix
 Group:		System/Servers
-Conflicts:	%{_lib}postfix1< 1:2.10.2-2
 
 %description -n %{libxsasl}
 This package contains a shared library used by Postfix.
