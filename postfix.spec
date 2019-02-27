@@ -92,6 +92,9 @@ Patch8:		postfix-3.2.4-lib-interdependencies.patch
 # Make it build with db > 6.x
 Patch9:		postfix-3.3.2-db18.patch
 
+# Make it build with kernels > 4.x
+Patch10:	postfix-3.3.3-kernel-5.x-9.x.patch
+
 # systemd integration
 Source100:	postfix.service
 Source101:	postfix.aliasesdb
