@@ -39,7 +39,7 @@
 
 Summary:	Postfix Mail Transport Agent
 Name:		postfix
-Version:	3.3.3
+Version:	3.4.0
 Release:	1
 License:	IBM Public License
 Group:		System/Servers
@@ -69,9 +69,6 @@ Source27:	http://jimsun.LinxNet.com/misc/body_checks.txt
 
 Patch1:		postfix-2.9.1-mdkconfig.diff
 Patch2:		postfix-alternatives-mdk.patch
-
-# dbupgrade patch patch split from dynamicmaps one
-Patch3:		postfix-2.9.1-dbupgrade.diff
 
 # sdbm patch patch split from dynamicmaps one
 Patch4:		postfix-2.7.0-sdbm.patch
@@ -704,6 +701,7 @@ fi
 %attr(0755, root, root) %{_libexecdir}/postfix/postfix-script
 %attr(0755, root, root) %{_libexecdir}/postfix/postfix-tls-script
 %attr(0755, root, root) %{_libexecdir}/postfix/postfix-wrapper
+%attr(0755, root, root) %{_libexecdir}/postfix/postlogd
 %attr(0755, root, root) %{_libexecdir}/postfix/post-install
 %attr(0755, root, root) %{_libexecdir}/postfix/postmulti-script
 %attr(0755, root, root) %{_libexecdir}/postfix/postscreen
@@ -741,8 +739,8 @@ fi
 %attr(0755, root, root) %{_sbindir}/postfix-chroot.sh
 %attr(0755, root, root) %{_sbindir}/qshape
 %attr(0755, root, root) %{sendmail_command}
-%attr(0755, root, root) %{_bindir}/mailq
-%attr(0755, root, root) %{_bindir}/newaliases
+%{_bindir}/mailq
+%{_bindir}/newaliases
 %attr(0755, root, root) %{_bindir}/rmail
 %{_mandir}/man1/*
 %{_mandir}/man5/*
