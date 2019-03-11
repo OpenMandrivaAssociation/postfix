@@ -39,7 +39,7 @@
 
 Summary:	Postfix Mail Transport Agent
 Name:		postfix
-Version:	3.4.2
+Version:	3.4.3
 Release:	1
 License:	IBM Public License
 Group:		System/Servers
@@ -88,9 +88,6 @@ Patch8:		postfix-3.2.4-lib-interdependencies.patch
 
 # Make it build with db > 6.x
 Patch9:		postfix-3.3.2-db18.patch
-
-# And kernel >= 5.0
-Patch10:	postfix-3.4.2-kernel-5.x.patch
 
 # systemd integration
 Source100:	postfix.service
