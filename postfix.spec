@@ -287,7 +287,7 @@ postfix/dovecot combo.
 
 %prep
 %setup -q
-%apply_patches
+%autopatch -p1
 # no backup files here, otherwise they get included in %%doc
 find . -name \*.orig -exec rm {} \;
 
