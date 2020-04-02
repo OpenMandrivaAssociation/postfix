@@ -1,12 +1,14 @@
---- postfix-3.1.2/conf/master.cf.omv~	2016-09-18 19:32:49.856624113 +0200
-+++ postfix-3.1.2/conf/master.cf	2016-09-18 22:44:57.234850904 +0200
-@@ -84,6 +84,9 @@ scache	unix	-	-	y	-	1	scache
- #  flags=DRhu user=nobody argv=/usr/bin/maildrop -d ${recipient}
+diff -up postfix-3.5.0/conf/master.cf.6~ postfix-3.5.0/conf/master.cf
+--- postfix-3.5.0/conf/master.cf.6~	2020-04-03 00:25:25.948657720 +0200
++++ postfix-3.5.0/conf/master.cf	2020-04-03 00:26:08.752859781 +0200
+@@ -87,6 +87,10 @@ postlog   unix-dgram n  -       n
+ #  flags=DRXhu user=nobody argv=/usr/bin/maildrop -d ${recipient}
  #
  # ====================================================================
 +# Dovecot delivery
-+dovecot		unix	-	n	n	-	-	pipe
++dovecot                unix    -       n       n       -       -       pipe
 +  flags=DRhu user=vmail:mail argv=/usr/libexec/dovecot/deliver -f ${sender} -d ${recipient}
++# ====================================================================
  #
- # Please See the Postfix CYRUS_README file for details
- # deliver interface (deprecated), to use this also use
+ # Recent Cyrus versions can use the existing "lmtp" master.cf entry.
+ #

@@ -1,5 +1,6 @@
---- postfix-3.0.0/conf/master.cf.0001~	2015-01-31 23:54:26.000000000 +0100
-+++ postfix-3.0.0/conf/master.cf	2015-03-17 09:33:26.477504217 +0100
+diff -up postfix-3.5.0/conf/master.cf.1~ postfix-3.5.0/conf/master.cf
+--- postfix-3.5.0/conf/master.cf.1~	2019-12-30 18:02:10.000000000 +0100
++++ postfix-3.5.0/conf/master.cf	2020-04-03 00:22:54.043886192 +0200
 @@ -5,6 +5,9 @@
  #
  # Do not forget to execute "postfix reload" after editing this file.
@@ -10,7 +11,7 @@
  # ==========================================================================
  # service type  private unpriv  chroot  wakeup  maxproc command + args
  #               (yes)   (yes)   (no)    (never) (100)
-@@ -38,6 +41,8 @@ smtp      inet  n       -       n
+@@ -39,6 +42,8 @@ smtp      inet  n       -       n
  #  -o milter_macro_daemon_name=ORIGINATING
  #628       inet  n       -       n       -       -       qmqpd
  pickup    unix  n       -       n       60      1       pickup
@@ -19,62 +20,16 @@
  cleanup   unix  n       -       n       -       0       cleanup
  qmgr      unix  n       -       n       300     1       qmgr
  #qmgr     unix  n       -       n       300     1       oqmgr
-@@ -76,33 +81,30 @@ scache    unix  -       -       n
+@@ -79,7 +84,7 @@ postlog   unix-dgram n  -       n
  # Also specify in main.cf: maildrop_destination_recipient_limit=1
  #
  #maildrop  unix  -       n       n       -       -       pipe
--#  flags=DRhu user=vmail argv=/usr/local/bin/maildrop -d ${recipient}
-+#  flags=DRhu user=nobody argv=/usr/bin/maildrop -d ${recipient}
+-#  flags=DRXhu user=vmail argv=/usr/local/bin/maildrop -d ${recipient}
++#  flags=DRXhu user=nobody argv=/usr/bin/maildrop -d ${recipient}
  #
  # ====================================================================
  #
--# Recent Cyrus versions can use the existing "lmtp" master.cf entry.
--#
--# Specify in cyrus.conf:
--#   lmtp    cmd="lmtpd -a" listen="localhost:lmtp" proto=tcp4
--#
--# Specify in main.cf one or more of the following:
--#  mailbox_transport = lmtp:inet:localhost
--#  virtual_transport = lmtp:inet:localhost
--#
--# ====================================================================
--#
--# Cyrus 2.1.5 (Amos Gouaux)
--# Also specify in main.cf: cyrus_destination_recipient_limit=1
--#
--#cyrus     unix  -       n       n       -       -       pipe
--#  user=cyrus argv=/cyrus/bin/deliver -e -r ${sender} -m ${extension} ${user}
--#
--# ====================================================================
--#
--# Old example of delivery via Cyrus.
--#
--#old-cyrus unix  -       n       n       -       -       pipe
--#  flags=R user=cyrus argv=/cyrus/bin/deliver -e -m ${extension} ${user}
-+# Please See the Postfix CYRUS_README file for details
-+# deliver interface (deprecated), to use this also use
-+# postconf -e cyrus-deliver_destination_recipient_limit=1
-+cyrus-deliver     unix  -       n       n       -       -       pipe
-+  user=cyrus argv=/usr/lib/cyrus-imapd/deliver -e -r ${sender} -m ${extension} ${user}
-+#
-+# for default cyrus socket placement
-+#cyrus     unix  -       n       n       -       -       lmtp
-+#  -o lmtp_cache_connection=yes
-+#
-+# if you configure cyrus socket in the chroot jail
-+#cyrus-chroot     unix  -       -       y       -       -       lmtp
-+#  -o lmtp_cache_connection=yes
-+#
-+# for lmtp to cyrus via tcp
-+cyrus-inet     unix  -       -       n       -       -       lmtp
-+  -o lmtp_sasl_auth_enable=yes
-+  -o lmtp_sasl_password_maps=hash:/etc/postfix/cyrus_lmtp_sasl_pass
-+  -o lmtp_sasl_security_options=noanonymous
-+#  -o lmtp_cache_connection=yes
- #
- # ====================================================================
- #
-@@ -114,6 +116,7 @@ scache    unix  -       -       n
+@@ -117,6 +122,7 @@ postlog   unix-dgram n  -       n
  # ====================================================================
  #
  # Other external delivery methods.
@@ -82,9 +37,9 @@
  #
  #ifmail    unix  -       n       n       -       -       pipe
  #  flags=F user=ftn argv=/usr/lib/ifmail/ifmail -r $nexthop ($recipient)
-@@ -128,3 +131,55 @@ scache    unix  -       -       n
+@@ -131,3 +137,54 @@ postlog   unix-dgram n  -       n
  #mailman   unix  -       n       n       -       -       pipe
- #  flags=FR user=list argv=/usr/lib/mailman/bin/postfix-to-mailman.py
+ #  flags=FRX user=list argv=/usr/lib/mailman/bin/postfix-to-mailman.py
  #  ${nexthop} ${user}
 +#
 +##### START OF CONTENT FILTER CUSTOMIZATIONS #####
@@ -137,10 +92,10 @@
 +  -o max_use=20
 +#
 +##### END OF CONTENT FILTER CUSTOMIZATIONS #####
-+
---- postfix-3.0.0/conf/postfix-files.0001~	2014-06-25 22:06:00.000000000 +0200
-+++ postfix-3.0.0/conf/postfix-files	2015-03-17 09:33:48.834648885 +0100
-@@ -139,8 +139,6 @@ $command_directory/postqueue:f:root:$set
+diff -up postfix-3.5.0/conf/postfix-files.1~ postfix-3.5.0/conf/postfix-files
+--- postfix-3.5.0/conf/postfix-files.1~	2019-01-29 23:24:42.000000000 +0100
++++ postfix-3.5.0/conf/postfix-files	2020-04-03 00:16:31.073822297 +0200
+@@ -141,8 +141,6 @@ $command_directory/postqueue:f:root:$set
  $sendmail_path:f:root:-:755
  $newaliases_path:l:$sendmail_path
  $mailq_path:l:$sendmail_path
@@ -149,7 +104,7 @@
  $config_directory/access:f:root:-:644:p1
  $config_directory/aliases:f:root:-:644:p1
  $config_directory/bounce.cf.default:f:root:-:644:1
-@@ -151,6 +149,7 @@ $config_directory/generics:f:root:-:644:
+@@ -153,6 +151,7 @@ $config_directory/generics:f:root:-:644:
  $config_directory/header_checks:f:root:-:644:p1
  $config_directory/install.cf:f:root:-:644:o
  $config_directory/main.cf.default:f:root:-:644:1
@@ -157,7 +112,7 @@
  $config_directory/main.cf:f:root:-:644:p
  $config_directory/master.cf:f:root:-:644:p
  $config_directory/pcre_table:f:root:-:644:o
-@@ -250,6 +249,7 @@ $sample_directory/sample-misc.cf:f:root:
+@@ -254,6 +253,7 @@ $sample_directory/sample-misc.cf:f:root:
  $sample_directory/sample-pcre-access.cf:f:root:-:644:o
  $sample_directory/sample-pcre-body.cf:f:root:-:644:o
  $sample_directory/sample-pcre-header.cf:f:root:-:644:o
@@ -165,7 +120,7 @@
  $sample_directory/sample-pgsql-aliases.cf:f:root:-:644:o
  $sample_directory/sample-qmqpd.cf:f:root:-:644:o
  $sample_directory/sample-rate.cf:f:root:-:644:o
-@@ -305,7 +305,6 @@ $readme_directory/PGSQL_README:f:root:-:
+@@ -310,7 +310,6 @@ $readme_directory/PGSQL_README:f:root:-:
  $readme_directory/POSTSCREEN_README:f:root:-:644
  $readme_directory/QMQP_README:f:root:-:644:o
  $readme_directory/QSHAPE_README:f:root:-:644
@@ -173,8 +128,9 @@
  $readme_directory/RESTRICTION_CLASS_README:f:root:-:644
  $readme_directory/SASL_README:f:root:-:644
  $readme_directory/SCHEDULER_README:f:root:-:644
---- postfix-3.0.0/HISTORY.0001~	2015-02-08 18:04:52.000000000 +0100
-+++ postfix-3.0.0/HISTORY	2015-03-17 09:31:56.077824544 +0100
+diff -up postfix-3.5.0/HISTORY.1~ postfix-3.5.0/HISTORY
+--- postfix-3.5.0/HISTORY.1~	2020-03-16 00:15:53.000000000 +0100
++++ postfix-3.5.0/HISTORY	2020-04-03 00:16:31.076822304 +0200
 @@ -6945,7 +6945,7 @@ Apologies for any names omitted.
  	This involved a further rewrite of the regexp map code.
  	File: util/dict_regexp.c.
@@ -193,8 +149,9 @@
  
  	Workaround: IRIX 6 can't do ioctl FIONREAD on pipes. This
  	breaks the in_flow_delay feature.  File:  util/sys_defs.h.
---- postfix-3.0.0/proto/INSTALL.html.0001~	2015-02-08 21:08:45.000000000 +0100
-+++ postfix-3.0.0/proto/INSTALL.html	2015-03-17 09:31:56.078824553 +0100
+diff -up postfix-3.5.0/proto/INSTALL.html.1~ postfix-3.5.0/proto/INSTALL.html
+--- postfix-3.5.0/proto/INSTALL.html.1~	2017-03-02 12:38:26.000000000 +0100
++++ postfix-3.5.0/proto/INSTALL.html	2020-04-03 00:16:31.076822304 +0200
 @@ -163,6 +163,7 @@ Linux Slackware 3.x and later <br>
  Linux SuSE 5.x and later <br>
  Linux Ubuntu 4.10 and later<br>
@@ -203,8 +160,9 @@
  NEXTSTEP 3.x <br>
  NetBSD 1.x and later <br>
  OPENSTEP 4.x <br>
---- postfix-3.0.0/proto/LDAP_README.html.0001~	2015-01-29 23:33:24.000000000 +0100
-+++ postfix-3.0.0/proto/LDAP_README.html	2015-03-17 09:31:56.078824553 +0100
+diff -up postfix-3.5.0/proto/LDAP_README.html.1~ postfix-3.5.0/proto/LDAP_README.html
+--- postfix-3.5.0/proto/LDAP_README.html.1~	2015-01-29 23:33:24.000000000 +0100
++++ postfix-3.5.0/proto/LDAP_README.html	2020-04-03 00:16:31.076822304 +0200
 @@ -63,9 +63,9 @@ package.  </p>
  <p> Note 1: Postfix no longer supports the LDAP version 1 interface.
  </p>
@@ -218,8 +176,9 @@
  
  <p> You need to have LDAP libraries and include files installed
  somewhere on your system, and you need to configure the Postfix
---- postfix-3.0.0/proto/MYSQL_README.html.0001~	2015-01-29 23:33:24.000000000 +0100
-+++ postfix-3.0.0/proto/MYSQL_README.html	2015-03-17 09:31:56.079824562 +0100
+diff -up postfix-3.5.0/proto/MYSQL_README.html.1~ postfix-3.5.0/proto/MYSQL_README.html
+--- postfix-3.5.0/proto/MYSQL_README.html.1~	2016-10-02 14:17:53.000000000 +0200
++++ postfix-3.5.0/proto/MYSQL_README.html	2020-04-03 00:16:31.076822304 +0200
 @@ -38,9 +38,9 @@ code as described in the INSTALL documen
  be required if you build Postfix from a vendor-specific source
  package.  </p>
@@ -233,8 +192,9 @@
  
  <p> The Postfix MySQL client utilizes the mysql client library,
  which can be obtained from: </p>
---- postfix-3.0.0/proto/PCRE_README.html.0001~	2015-01-29 23:33:24.000000000 +0100
-+++ postfix-3.0.0/proto/PCRE_README.html	2015-03-17 09:31:56.079824562 +0100
+diff -up postfix-3.5.0/proto/PCRE_README.html.1~ postfix-3.5.0/proto/PCRE_README.html
+--- postfix-3.5.0/proto/PCRE_README.html.1~	2015-01-29 23:33:24.000000000 +0100
++++ postfix-3.5.0/proto/PCRE_README.html	2020-04-03 00:16:31.076822304 +0200
 @@ -37,9 +37,9 @@ code as described in the INSTALL documen
  be required if you build Postfix from a vendor-specific source
  package.  </p>
@@ -248,8 +208,9 @@
  
  <p> In some future, Postfix will have a plug-in interface for adding
  map types. Until then, you need to compile PCRE support into Postfix.
---- postfix-3.0.0/proto/PGSQL_README.html.0001~	2015-01-29 23:33:24.000000000 +0100
-+++ postfix-3.0.0/proto/PGSQL_README.html	2015-03-17 09:31:56.079824562 +0100
+diff -up postfix-3.5.0/proto/PGSQL_README.html.1~ postfix-3.5.0/proto/PGSQL_README.html
+--- postfix-3.5.0/proto/PGSQL_README.html.1~	2015-01-29 23:33:24.000000000 +0100
++++ postfix-3.5.0/proto/PGSQL_README.html	2020-04-03 00:16:31.077822307 +0200
 @@ -38,9 +38,9 @@ code as described in the INSTALL documen
  be required if you build Postfix from a vendor-specific source
  package.  </p>
@@ -263,8 +224,9 @@
  
  <p> In order to build Postfix with pgsql map support, you specify
  -DHAS_PGSQL, the directory with the PostgreSQL header files, and
---- postfix-3.0.0/README_FILES/INSTALL.0001~	2015-03-17 09:31:56.080824570 +0100
-+++ postfix-3.0.0/README_FILES/INSTALL	2015-03-17 09:34:43.671978614 +0100
+diff -up postfix-3.5.0/README_FILES/INSTALL.1~ postfix-3.5.0/README_FILES/INSTALL
+--- postfix-3.5.0/README_FILES/INSTALL.1~	2017-03-02 12:38:51.000000000 +0100
++++ postfix-3.5.0/README_FILES/INSTALL	2020-04-03 00:16:31.077822307 +0200
 @@ -157,7 +157,7 @@ Randomization):
  (Specify "make makefiles pie=no" to explicitly disable Postfix position-
  independent executable support).
@@ -274,8 +236,9 @@
  and 10, and NetBSD 6 (all with the default system compilers).
  
  Whether the "pie=yes" above has any effect depends on the compiler. Some
---- postfix-3.0.0/README_FILES/LDAP_README.0001~	2015-01-29 23:33:49.000000000 +0100
-+++ postfix-3.0.0/README_FILES/LDAP_README	2015-03-17 09:31:56.080824570 +0100
+diff -up postfix-3.5.0/README_FILES/LDAP_README.1~ postfix-3.5.0/README_FILES/LDAP_README
+--- postfix-3.5.0/README_FILES/LDAP_README.1~	2015-01-29 23:33:49.000000000 +0100
++++ postfix-3.5.0/README_FILES/LDAP_README	2020-04-03 00:16:31.077822307 +0200
 @@ -32,9 +32,9 @@ from a vendor-specific source package.
  
  Note 1: Postfix no longer supports the LDAP version 1 interface.
@@ -289,8 +252,9 @@
  
  You need to have LDAP libraries and include files installed somewhere on your
  system, and you need to configure the Postfix Makefiles accordingly.
---- postfix-3.0.0/README_FILES/MYSQL_README.0001~	2015-01-29 23:33:49.000000000 +0100
-+++ postfix-3.0.0/README_FILES/MYSQL_README	2015-03-17 09:31:56.080824570 +0100
+diff -up postfix-3.5.0/README_FILES/MYSQL_README.1~ postfix-3.5.0/README_FILES/MYSQL_README
+--- postfix-3.5.0/README_FILES/MYSQL_README.1~	2016-10-02 14:18:10.000000000 +0200
++++ postfix-3.5.0/README_FILES/MYSQL_README	2020-04-03 00:16:31.077822307 +0200
 @@ -21,9 +21,9 @@ These instructions assume that you build
  in the INSTALL document. Some modification may be required if you build Postfix
  from a vendor-specific source package.
@@ -304,8 +268,9 @@
  
  The Postfix MySQL client utilizes the mysql client library, which can be
  obtained from:
---- postfix-3.0.0/README_FILES/PCRE_README.0001~	2015-01-29 23:33:49.000000000 +0100
-+++ postfix-3.0.0/README_FILES/PCRE_README	2015-03-17 09:31:56.080824570 +0100
+diff -up postfix-3.5.0/README_FILES/PCRE_README.1~ postfix-3.5.0/README_FILES/PCRE_README
+--- postfix-3.5.0/README_FILES/PCRE_README.1~	2015-01-29 23:33:49.000000000 +0100
++++ postfix-3.5.0/README_FILES/PCRE_README	2020-04-03 00:16:31.077822307 +0200
 @@ -20,9 +20,9 @@ These instructions assume that you build
  in the INSTALL document. Some modification may be required if you build Postfix
  from a vendor-specific source package.
@@ -319,8 +284,9 @@
  
  In some future, Postfix will have a plug-in interface for adding map types.
  Until then, you need to compile PCRE support into Postfix.
---- postfix-3.0.0/README_FILES/PGSQL_README.0001~	2015-01-29 23:33:49.000000000 +0100
-+++ postfix-3.0.0/README_FILES/PGSQL_README	2015-03-17 09:31:56.081824579 +0100
+diff -up postfix-3.5.0/README_FILES/PGSQL_README.1~ postfix-3.5.0/README_FILES/PGSQL_README
+--- postfix-3.5.0/README_FILES/PGSQL_README.1~	2015-01-29 23:33:49.000000000 +0100
++++ postfix-3.5.0/README_FILES/PGSQL_README	2020-04-03 00:16:31.077822307 +0200
 @@ -21,9 +21,9 @@ These instructions assume that you build
  in the INSTALL document. Some modification may be required if you build Postfix
  from a vendor-specific source package.
@@ -334,9 +300,10 @@
  
  In order to build Postfix with pgsql map support, you specify -DHAS_PGSQL, the
  directory with the PostgreSQL header files, and the location of the libpq
---- postfix-3.0.0/src/global/mail_params.h.0001~	2015-01-18 01:06:00.000000000 +0100
-+++ postfix-3.0.0/src/global/mail_params.h	2015-03-17 09:31:56.082824588 +0100
-@@ -504,11 +504,7 @@ extern bool var_percent_hack;
+diff -up postfix-3.5.0/src/global/mail_params.h.1~ postfix-3.5.0/src/global/mail_params.h
+--- postfix-3.5.0/src/global/mail_params.h.1~	2020-01-26 21:36:42.000000000 +0100
++++ postfix-3.5.0/src/global/mail_params.h	2020-04-03 00:16:31.078822309 +0200
+@@ -524,11 +524,7 @@ extern bool var_percent_hack;
    * Local delivery: alias databases.
    */
  #define VAR_ALIAS_MAPS		"alias_maps"
@@ -348,9 +315,10 @@
  extern char *var_alias_maps;
  
   /*
---- postfix-3.0.0/src/util/sys_defs.h.0001~	2014-12-25 23:33:02.000000000 +0100
-+++ postfix-3.0.0/src/util/sys_defs.h	2015-03-17 09:39:08.640338577 +0100
-@@ -55,7 +55,7 @@
+diff -up postfix-3.5.0/src/util/sys_defs.h.1~ postfix-3.5.0/src/util/sys_defs.h
+--- postfix-3.5.0/src/util/sys_defs.h.1~	2019-10-13 17:32:18.000000000 +0200
++++ postfix-3.5.0/src/util/sys_defs.h	2020-04-03 00:16:31.078822309 +0200
+@@ -59,7 +59,7 @@
  #define ALIAS_DB_MAP   DEF_DB_TYPE ":/etc/mail/aliases"	/* OpenBSD 2.7 */
  #endif
  #ifndef ALIAS_DB_MAP
@@ -359,7 +327,7 @@
  #endif
  #define GETTIMEOFDAY(t)	gettimeofday(t,(struct timezone *) 0)
  #define ROOT_PATH	"/bin:/usr/bin:/sbin:/usr/sbin"
-@@ -230,7 +230,7 @@
+@@ -233,7 +233,7 @@
  #define HAS_DB
  #define HAS_SA_LEN
  #define NATIVE_DB_TYPE	"hash"
@@ -368,7 +336,7 @@
  #define GETTIMEOFDAY(t) gettimeofday(t,(struct timezone *) 0)
  #define ROOT_PATH	"/bin:/usr/bin:/sbin:/usr/sbin"
  #define USE_STATFS
-@@ -287,11 +287,11 @@
+@@ -290,11 +290,11 @@
  /* might be set by makedef */
  #ifdef HAS_DB
  #define NATIVE_DB_TYPE	"hash"
@@ -382,7 +350,7 @@
  #endif
  extern int optind;
  extern char *optarg;
-@@ -770,7 +770,7 @@ extern int initgroups(const char *, int)
+@@ -762,7 +762,7 @@ extern int initgroups(const char *, int)
  #define HAS_FSYNC
  #define HAS_DB
  #define NATIVE_DB_TYPE	"hash"
@@ -391,7 +359,7 @@
  #ifndef NO_NIS
  #define HAS_NIS
  #endif
-@@ -848,7 +848,7 @@ extern int initgroups(const char *, int)
+@@ -842,7 +842,7 @@ extern int initgroups(const char *, int)
  #define HAS_FSYNC
  #define HAS_DB
  #define NATIVE_DB_TYPE	"hash"
@@ -400,7 +368,7 @@
  #ifndef NO_NIS
  #define HAS_NIS
  #endif
-@@ -882,7 +882,7 @@ extern int initgroups(const char *, int)
+@@ -875,7 +875,7 @@ extern int initgroups(const char *, int)
  #define HAS_FSYNC
  #define HAS_DB
  #define NATIVE_DB_TYPE	"hash"

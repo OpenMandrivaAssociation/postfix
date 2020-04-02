@@ -39,7 +39,7 @@
 
 Summary:	Postfix Mail Transport Agent
 Name:		postfix
-Version:	3.4.9
+Version:	3.5.0
 Release:	1
 License:	IBM Public License
 Group:		System/Servers
@@ -69,7 +69,6 @@ Source27:	http://jimsun.LinxNet.com/misc/body_checks.txt
 
 Patch1:		postfix-2.9.1-mdkconfig.diff
 Patch2:		postfix-alternatives-mdk.patch
-Patch3:		postfix-3.4.8-glibc-2.30.patch
 
 # sdbm patch patch split from dynamicmaps one
 Patch4:		postfix-2.7.0-sdbm.patch
