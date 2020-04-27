@@ -1,2 +1,3 @@
 sources:
-  postfix-3.5.0.tar.gz: 5f7d5b04c856fa3c893dfe19b693613aad712b12
+  postfix-3.5.1.tar.gz: 2a18e312772ae322aa84cf2a16cd206ee85b0480
+  postfix-3.5.1.tar.gz.sig: 64004514abbc4162d835e274b2dac38c5bfa8d6d
