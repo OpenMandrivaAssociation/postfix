@@ -40,7 +40,7 @@
 Summary:	Postfix Mail Transport Agent
 Name:		postfix
 Version:	3.5.6
-Release:	1
+Release:	2
 License:	IBM Public License
 Group:		System/Servers
 Url:		http://www.postfix.org/
@@ -115,7 +115,6 @@ Provides:	sendmail-command
 Conflicts:	syslog-ng < 3.1-0.beta2.2
 # http://archives.mandrivalinux.com/cooker/2005-06/msg01987.php
 Requires(post):	chkconfig
-Requires:	initscripts
 Requires:	coreutils
 Requires:	diffutils
 Requires:	gawk
