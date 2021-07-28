@@ -1,25 +1,39 @@
---- postfix-3.0.0/src/util/Makefile.in.0004~	2015-03-17 09:42:14.030187578 +0100
-+++ postfix-3.0.0/src/util/Makefile.in	2015-03-17 09:44:34.404796236 +0100
-@@ -19,7 +19,7 @@ SRCS	= alldig.c allprint.c argv.c argv_s
- 	neuter.c non_blocking.c nvtable.c open_as.c open_limit.c open_lock.c \
- 	peekfd.c percentm.c posix_signals.c printable.c rand_sleep.c \
+diff -up postfix-3.6.2/src/global/mkmap_sdbm.c.3~ postfix-3.6.2/src/global/mkmap_sdbm.c
+--- postfix-3.6.2/src/global/mkmap_sdbm.c.3~	2004-12-08 00:01:11.000000000 +0100
++++ postfix-3.6.2/src/global/mkmap_sdbm.c	2021-07-28 17:19:00.761215473 +0200
+@@ -50,7 +50,7 @@
+ 
+ #ifdef HAS_SDBM
+ 
+-#include <sdbm.h>
++#include "../util/sdbm.h"
+ 
+ typedef struct MKMAP_SDBM {
+     MKMAP   mkmap;			/* parent class */
+diff -up postfix-3.6.2/src/util/Makefile.in.3~ postfix-3.6.2/src/util/Makefile.in
+--- postfix-3.6.2/src/util/Makefile.in.3~	2021-07-28 17:19:00.760215457 +0200
++++ postfix-3.6.2/src/util/Makefile.in	2021-07-28 17:34:59.792162363 +0200
+@@ -20,7 +20,7 @@ SRCS	= alldig.c allprint.c argv.c argv_s
+ 	peekfd.c posix_signals.c printable.c rand_sleep.c \
  	readlline.c ring.c safe_getenv.c safe_open.c \
--	sane_accept.c sane_connect.c sane_link.c sane_rename.c \
-+	sane_accept.c sane_connect.c sane_link.c sane_rename.c sdbm.c \
- 	sane_socketpair.c sane_time.c scan_dir.c set_eugid.c set_ugid.c \
+ 	sane_accept.c sane_connect.c sane_link.c sane_rename.c \
+-	sane_socketpair.c sane_time.c scan_dir.c set_eugid.c set_ugid.c \
++	sane_socketpair.c sane_time.c scan_dir.c sdbm.c set_eugid.c set_ugid.c \
  	load_lib.c \
  	sigdelay.c skipblanks.c sock_addr.c spawn_command.c split_at.c \
-@@ -61,7 +61,7 @@ OBJS	= alldig.o allprint.o argv.o argv_s
- 	neuter.o non_blocking.o nvtable.o open_as.o open_limit.o open_lock.o \
- 	peekfd.o percentm.o posix_signals.o printable.o rand_sleep.o \
+ 	split_nameval.c stat_as.c strcasecmp.c stream_connect.c \
+@@ -65,7 +65,7 @@ OBJS	= alldig.o allprint.o argv.o argv_s
+ 	peekfd.o posix_signals.o printable.o rand_sleep.o \
  	readlline.o ring.o safe_getenv.o safe_open.o \
--	sane_accept.o sane_connect.o sane_link.o sane_rename.o \
-+	sane_accept.o sane_connect.o sane_link.o sane_rename.o sdbm.o \
- 	sane_socketpair.o sane_time.o scan_dir.o set_eugid.o set_ugid.o \
+ 	sane_accept.o sane_connect.o sane_link.o sane_rename.o \
+-	sane_socketpair.o sane_time.o scan_dir.o set_eugid.o set_ugid.o \
++	sane_socketpair.o sane_time.o scan_dir.o sdbm.o set_eugid.o set_ugid.o \
  	sigdelay.o skipblanks.o sock_addr.o spawn_command.o split_at.o \
  	split_nameval.o stat_as.o $(STRCASE) stream_connect.o \
---- postfix-3.0.0/src/util/sdbm.c.0004~	2015-03-17 09:42:14.033187591 +0100
-+++ postfix-3.0.0/src/util/sdbm.c	2015-03-17 09:42:14.032187587 +0100
+ 	stream_listen.o stream_recv_fd.o stream_send_fd.o stream_trigger.o \
+diff -up postfix-3.6.2/src/util/sdbm.c.3~ postfix-3.6.2/src/util/sdbm.c
+--- postfix-3.6.2/src/util/sdbm.c.3~	2021-07-28 17:19:00.761215473 +0200
++++ postfix-3.6.2/src/util/sdbm.c	2021-07-28 17:19:00.761215473 +0200
 @@ -0,0 +1,972 @@
 +/*++
 +/* NAME
@@ -993,8 +1007,9 @@
 +    return db;
 +}
 +
---- postfix-3.0.0/src/util/sdbm.h.0004~	2015-03-17 09:42:14.033187591 +0100
-+++ postfix-3.0.0/src/util/sdbm.h	2015-03-17 09:42:14.033187591 +0100
+diff -up postfix-3.6.2/src/util/sdbm.h.3~ postfix-3.6.2/src/util/sdbm.h
+--- postfix-3.6.2/src/util/sdbm.h.3~	2021-07-28 17:19:00.761215473 +0200
++++ postfix-3.6.2/src/util/sdbm.h	2021-07-28 17:19:00.761215473 +0200
 @@ -0,0 +1,97 @@
 +/*++
 +/* NAME
@@ -1093,14 +1108,3 @@
 +#define BADMESS                 /* generate a message for worst case:
 +                                   cannot make room after SPLTMAX splits */
 +#endif /* UTIL_SDBM_H */
---- postfix-3.0.0/src/global/mkmap_sdbm.c.omv~	2015-03-17 09:57:21.031302091 +0100
-+++ postfix-3.0.0/src/global/mkmap_sdbm.c	2015-03-17 09:57:32.442355555 +0100
-@@ -50,7 +50,7 @@
- 
- #ifdef HAS_SDBM
- 
--#include <sdbm.h>
-+#include "../util/sdbm.h"
- 
- typedef struct MKMAP_SDBM {
-     MKMAP   mkmap;			/* parent class */
