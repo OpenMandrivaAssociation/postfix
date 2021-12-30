@@ -1,0 +1,11 @@
+diff -up postfix-3.6.3/src/util/sys_defs.h.omv~ postfix-3.6.3/src/util/sys_defs.h
+--- postfix-3.6.3/src/util/sys_defs.h.omv~	2021-12-30 04:53:40.511984989 +0100
++++ postfix-3.6.3/src/util/sys_defs.h	2021-12-30 04:54:52.717972317 +0100
+@@ -797,6 +797,7 @@ extern int initgroups(const char *, int)
+ #if HAVE_GLIBC_API_VERSION_SUPPORT(2, 4)
+ /* Really 2.3.3 or later, but there's no __GLIBC_MICRO version macro. */
+ #define HAVE_GETIFADDRS
++#define HAS_CLOSEFROM 1
+ #else
+ #define HAS_PROCNET_IFINET6
+ #define _PATH_PROCNET_IFINET6 "/proc/net/if_inet6"
