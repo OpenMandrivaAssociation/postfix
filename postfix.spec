@@ -39,7 +39,7 @@
 
 Summary:	Postfix Mail Transport Agent
 Name:		postfix
-Version:	3.6.5
+Version:	3.7.2
 Release:	1
 License:	IBM Public License
 Group:		System/Servers
@@ -469,8 +469,8 @@ install -m755 auxiliary/qshape/qshape.pl %{buildroot}%{_sbindir}/qshape
 cp man/man1/qshape.1 %{buildroot}%{_mandir}/man1/qshape.1
 
 # systemd
-mkdir -p %buildroot/lib/systemd/system
-install -c -m 644 %SOURCE100 %buildroot/lib/systemd/system/
+mkdir -p %buildroot%{_unitdir}
+install -c -m 644 %SOURCE100 %buildroot%{_unitdir}/
 install -m 755 %{SOURCE101} %{buildroot}%{_sysconfdir}/postfix/aliasesdb
 install -m 755 %{SOURCE102} %{buildroot}%{_sysconfdir}/postfix/chroot-update
 install -d %{buildroot}%{_presetdir}

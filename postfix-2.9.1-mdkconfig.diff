@@ -1,6 +1,6 @@
-diff -up postfix-3.5.0/conf/master.cf.1~ postfix-3.5.0/conf/master.cf
---- postfix-3.5.0/conf/master.cf.1~	2019-12-30 18:02:10.000000000 +0100
-+++ postfix-3.5.0/conf/master.cf	2020-04-03 00:22:54.043886192 +0200
+diff -up postfix-3.7.2/conf/master.cf.1~ postfix-3.7.2/conf/master.cf
+--- postfix-3.7.2/conf/master.cf.1~	2021-06-12 16:25:57.000000000 +0200
++++ postfix-3.7.2/conf/master.cf	2022-06-20 20:18:28.568219526 +0200
 @@ -5,6 +5,9 @@
  #
  # Do not forget to execute "postfix reload" after editing this file.
@@ -11,7 +11,7 @@ diff -up postfix-3.5.0/conf/master.cf.1~ postfix-3.5.0/conf/master.cf
  # ==========================================================================
  # service type  private unpriv  chroot  wakeup  maxproc command + args
  #               (yes)   (yes)   (no)    (never) (100)
-@@ -39,6 +42,8 @@ smtp      inet  n       -       n
+@@ -51,6 +54,8 @@ smtp      inet  n       -       n
  #  -o milter_macro_daemon_name=ORIGINATING
  #628       inet  n       -       n       -       -       qmqpd
  pickup    unix  n       -       n       60      1       pickup
@@ -20,7 +20,7 @@ diff -up postfix-3.5.0/conf/master.cf.1~ postfix-3.5.0/conf/master.cf
  cleanup   unix  n       -       n       -       0       cleanup
  qmgr      unix  n       -       n       300     1       qmgr
  #qmgr     unix  n       -       n       300     1       oqmgr
-@@ -79,7 +84,7 @@ postlog   unix-dgram n  -       n
+@@ -91,7 +96,7 @@ postlog   unix-dgram n  -       n
  # Also specify in main.cf: maildrop_destination_recipient_limit=1
  #
  #maildrop  unix  -       n       n       -       -       pipe
@@ -29,7 +29,7 @@ diff -up postfix-3.5.0/conf/master.cf.1~ postfix-3.5.0/conf/master.cf
  #
  # ====================================================================
  #
-@@ -117,6 +122,7 @@ postlog   unix-dgram n  -       n
+@@ -129,6 +134,7 @@ postlog   unix-dgram n  -       n
  # ====================================================================
  #
  # Other external delivery methods.
@@ -37,7 +37,7 @@ diff -up postfix-3.5.0/conf/master.cf.1~ postfix-3.5.0/conf/master.cf
  #
  #ifmail    unix  -       n       n       -       -       pipe
  #  flags=F user=ftn argv=/usr/lib/ifmail/ifmail -r $nexthop ($recipient)
-@@ -131,3 +137,54 @@ postlog   unix-dgram n  -       n
+@@ -143,3 +149,54 @@ postlog   unix-dgram n  -       n
  #mailman   unix  -       n       n       -       -       pipe
  #  flags=FRX user=list argv=/usr/lib/mailman/bin/postfix-to-mailman.py
  #  ${nexthop} ${user}
@@ -92,9 +92,9 @@ diff -up postfix-3.5.0/conf/master.cf.1~ postfix-3.5.0/conf/master.cf
 +  -o max_use=20
 +#
 +##### END OF CONTENT FILTER CUSTOMIZATIONS #####
-diff -up postfix-3.5.0/conf/postfix-files.1~ postfix-3.5.0/conf/postfix-files
---- postfix-3.5.0/conf/postfix-files.1~	2019-01-29 23:24:42.000000000 +0100
-+++ postfix-3.5.0/conf/postfix-files	2020-04-03 00:16:31.073822297 +0200
+diff -up postfix-3.7.2/conf/postfix-files.1~ postfix-3.7.2/conf/postfix-files
+--- postfix-3.7.2/conf/postfix-files.1~	2022-01-21 19:50:18.000000000 +0100
++++ postfix-3.7.2/conf/postfix-files	2022-06-20 20:18:28.568219526 +0200
 @@ -141,8 +141,6 @@ $command_directory/postqueue:f:root:$set
  $sendmail_path:f:root:-:755
  $newaliases_path:l:$sendmail_path
@@ -120,7 +120,7 @@ diff -up postfix-3.5.0/conf/postfix-files.1~ postfix-3.5.0/conf/postfix-files
  $sample_directory/sample-pgsql-aliases.cf:f:root:-:644:o
  $sample_directory/sample-qmqpd.cf:f:root:-:644:o
  $sample_directory/sample-rate.cf:f:root:-:644:o
-@@ -310,7 +310,6 @@ $readme_directory/PGSQL_README:f:root:-:
+@@ -314,7 +314,6 @@ $readme_directory/POSTSCREEN_3_5_README:
  $readme_directory/POSTSCREEN_README:f:root:-:644
  $readme_directory/QMQP_README:f:root:-:644:o
  $readme_directory/QSHAPE_README:f:root:-:644
@@ -128,9 +128,9 @@ diff -up postfix-3.5.0/conf/postfix-files.1~ postfix-3.5.0/conf/postfix-files
  $readme_directory/RESTRICTION_CLASS_README:f:root:-:644
  $readme_directory/SASL_README:f:root:-:644
  $readme_directory/SCHEDULER_README:f:root:-:644
-diff -up postfix-3.5.0/HISTORY.1~ postfix-3.5.0/HISTORY
---- postfix-3.5.0/HISTORY.1~	2020-03-16 00:15:53.000000000 +0100
-+++ postfix-3.5.0/HISTORY	2020-04-03 00:16:31.076822304 +0200
+diff -up postfix-3.7.2/HISTORY.1~ postfix-3.7.2/HISTORY
+--- postfix-3.7.2/HISTORY.1~	2022-04-28 01:36:44.000000000 +0200
++++ postfix-3.7.2/HISTORY	2022-06-20 20:18:28.571552883 +0200
 @@ -6945,7 +6945,7 @@ Apologies for any names omitted.
  	This involved a further rewrite of the regexp map code.
  	File: util/dict_regexp.c.
@@ -149,9 +149,9 @@ diff -up postfix-3.5.0/HISTORY.1~ postfix-3.5.0/HISTORY
  
  	Workaround: IRIX 6 can't do ioctl FIONREAD on pipes. This
  	breaks the in_flow_delay feature.  File:  util/sys_defs.h.
-diff -up postfix-3.5.0/proto/INSTALL.html.1~ postfix-3.5.0/proto/INSTALL.html
---- postfix-3.5.0/proto/INSTALL.html.1~	2017-03-02 12:38:26.000000000 +0100
-+++ postfix-3.5.0/proto/INSTALL.html	2020-04-03 00:16:31.076822304 +0200
+diff -up postfix-3.7.2/proto/INSTALL.html.1~ postfix-3.7.2/proto/INSTALL.html
+--- postfix-3.7.2/proto/INSTALL.html.1~	2021-12-20 23:11:11.000000000 +0100
++++ postfix-3.7.2/proto/INSTALL.html	2022-06-20 20:18:28.571552883 +0200
 @@ -163,6 +163,7 @@ Linux Slackware 3.x and later <br>
  Linux SuSE 5.x and later <br>
  Linux Ubuntu 4.10 and later<br>
@@ -160,9 +160,9 @@ diff -up postfix-3.5.0/proto/INSTALL.html.1~ postfix-3.5.0/proto/INSTALL.html
  NEXTSTEP 3.x <br>
  NetBSD 1.x and later <br>
  OPENSTEP 4.x <br>
-diff -up postfix-3.5.0/proto/LDAP_README.html.1~ postfix-3.5.0/proto/LDAP_README.html
---- postfix-3.5.0/proto/LDAP_README.html.1~	2015-01-29 23:33:24.000000000 +0100
-+++ postfix-3.5.0/proto/LDAP_README.html	2020-04-03 00:16:31.076822304 +0200
+diff -up postfix-3.7.2/proto/LDAP_README.html.1~ postfix-3.7.2/proto/LDAP_README.html
+--- postfix-3.7.2/proto/LDAP_README.html.1~	2021-12-20 23:11:11.000000000 +0100
++++ postfix-3.7.2/proto/LDAP_README.html	2022-06-20 20:18:28.571552883 +0200
 @@ -63,9 +63,9 @@ package.  </p>
  <p> Note 1: Postfix no longer supports the LDAP version 1 interface.
  </p>
@@ -176,9 +176,9 @@ diff -up postfix-3.5.0/proto/LDAP_README.html.1~ postfix-3.5.0/proto/LDAP_README
  
  <p> You need to have LDAP libraries and include files installed
  somewhere on your system, and you need to configure the Postfix
-diff -up postfix-3.5.0/proto/MYSQL_README.html.1~ postfix-3.5.0/proto/MYSQL_README.html
---- postfix-3.5.0/proto/MYSQL_README.html.1~	2016-10-02 14:17:53.000000000 +0200
-+++ postfix-3.5.0/proto/MYSQL_README.html	2020-04-03 00:16:31.076822304 +0200
+diff -up postfix-3.7.2/proto/MYSQL_README.html.1~ postfix-3.7.2/proto/MYSQL_README.html
+--- postfix-3.7.2/proto/MYSQL_README.html.1~	2021-12-20 23:11:11.000000000 +0100
++++ postfix-3.7.2/proto/MYSQL_README.html	2022-06-20 20:18:28.571552883 +0200
 @@ -38,9 +38,9 @@ code as described in the INSTALL documen
  be required if you build Postfix from a vendor-specific source
  package.  </p>
@@ -192,25 +192,22 @@ diff -up postfix-3.5.0/proto/MYSQL_README.html.1~ postfix-3.5.0/proto/MYSQL_READ
  
  <p> The Postfix MySQL client utilizes the mysql client library,
  which can be obtained from: </p>
-diff -up postfix-3.5.0/proto/PCRE_README.html.1~ postfix-3.5.0/proto/PCRE_README.html
---- postfix-3.5.0/proto/PCRE_README.html.1~	2015-01-29 23:33:24.000000000 +0100
-+++ postfix-3.5.0/proto/PCRE_README.html	2020-04-03 00:16:31.076822304 +0200
-@@ -37,9 +37,9 @@ code as described in the INSTALL documen
- be required if you build Postfix from a vendor-specific source
- package.  </p>
+diff -up postfix-3.7.2/proto/PCRE_README.html.1~ postfix-3.7.2/proto/PCRE_README.html
+--- postfix-3.7.2/proto/PCRE_README.html.1~	2022-06-20 20:18:28.571552883 +0200
++++ postfix-3.7.2/proto/PCRE_README.html	2022-06-20 20:20:06.408931869 +0200
+@@ -32,8 +32,7 @@ itself can be found at http://www.pcre.o
  
--<p> Note: to use pcre with Debian GNU/Linux's Postfix, all you
--need is to install the postfix-pcre package and you're done.  There
--is no need to recompile Postfix. </p>
-+<p> Note: to use pcre with OpenMandriva Lx or Debian GNU/Linux's
-+Postfix, all you need is to install the postfix-pcre package and
-+you're done.  There is no need to recompile Postfix. </p>
+ <h2>Using Postfix packages with PCRE support</h2>
  
- <p> In some future, Postfix will have a plug-in interface for adding
- map types. Until then, you need to compile PCRE support into Postfix.
-diff -up postfix-3.5.0/proto/PGSQL_README.html.1~ postfix-3.5.0/proto/PGSQL_README.html
---- postfix-3.5.0/proto/PGSQL_README.html.1~	2015-01-29 23:33:24.000000000 +0100
-+++ postfix-3.5.0/proto/PGSQL_README.html	2020-04-03 00:16:31.077822307 +0200
+-<p> To use pcre with Debian GNU/Linux's Postfix, or with Fedora or
+-RHEL Postfix, all you
++<p> To use pcre with OpenMandriva Lx's Postfix, all you
+ need is to install the postfix-pcre package and you're done.  There
+ is no need to recompile Postfix. </p>
+ 
+diff -up postfix-3.7.2/proto/PGSQL_README.html.1~ postfix-3.7.2/proto/PGSQL_README.html
+--- postfix-3.7.2/proto/PGSQL_README.html.1~	2021-04-22 01:05:28.000000000 +0200
++++ postfix-3.7.2/proto/PGSQL_README.html	2022-06-20 20:18:28.571552883 +0200
 @@ -38,9 +38,9 @@ code as described in the INSTALL documen
  be required if you build Postfix from a vendor-specific source
  package.  </p>
@@ -224,9 +221,9 @@ diff -up postfix-3.5.0/proto/PGSQL_README.html.1~ postfix-3.5.0/proto/PGSQL_READ
  
  <p> In order to build Postfix with pgsql map support, you specify
  -DHAS_PGSQL, the directory with the PostgreSQL header files, and
-diff -up postfix-3.5.0/README_FILES/INSTALL.1~ postfix-3.5.0/README_FILES/INSTALL
---- postfix-3.5.0/README_FILES/INSTALL.1~	2017-03-02 12:38:51.000000000 +0100
-+++ postfix-3.5.0/README_FILES/INSTALL	2020-04-03 00:16:31.077822307 +0200
+diff -up postfix-3.7.2/README_FILES/INSTALL.1~ postfix-3.7.2/README_FILES/INSTALL
+--- postfix-3.7.2/README_FILES/INSTALL.1~	2021-12-20 23:12:03.000000000 +0100
++++ postfix-3.7.2/README_FILES/INSTALL	2022-06-20 20:18:28.571552883 +0200
 @@ -157,7 +157,7 @@ Randomization):
  (Specify "make makefiles pie=no" to explicitly disable Postfix position-
  independent executable support).
@@ -236,9 +233,9 @@ diff -up postfix-3.5.0/README_FILES/INSTALL.1~ postfix-3.5.0/README_FILES/INSTAL
  and 10, and NetBSD 6 (all with the default system compilers).
  
  Whether the "pie=yes" above has any effect depends on the compiler. Some
-diff -up postfix-3.5.0/README_FILES/LDAP_README.1~ postfix-3.5.0/README_FILES/LDAP_README
---- postfix-3.5.0/README_FILES/LDAP_README.1~	2015-01-29 23:33:49.000000000 +0100
-+++ postfix-3.5.0/README_FILES/LDAP_README	2020-04-03 00:16:31.077822307 +0200
+diff -up postfix-3.7.2/README_FILES/LDAP_README.1~ postfix-3.7.2/README_FILES/LDAP_README
+--- postfix-3.7.2/README_FILES/LDAP_README.1~	2021-12-20 23:12:03.000000000 +0100
++++ postfix-3.7.2/README_FILES/LDAP_README	2022-06-20 20:18:28.571552883 +0200
 @@ -32,9 +32,9 @@ from a vendor-specific source package.
  
  Note 1: Postfix no longer supports the LDAP version 1 interface.
@@ -252,9 +249,9 @@ diff -up postfix-3.5.0/README_FILES/LDAP_README.1~ postfix-3.5.0/README_FILES/LD
  
  You need to have LDAP libraries and include files installed somewhere on your
  system, and you need to configure the Postfix Makefiles accordingly.
-diff -up postfix-3.5.0/README_FILES/MYSQL_README.1~ postfix-3.5.0/README_FILES/MYSQL_README
---- postfix-3.5.0/README_FILES/MYSQL_README.1~	2016-10-02 14:18:10.000000000 +0200
-+++ postfix-3.5.0/README_FILES/MYSQL_README	2020-04-03 00:16:31.077822307 +0200
+diff -up postfix-3.7.2/README_FILES/MYSQL_README.1~ postfix-3.7.2/README_FILES/MYSQL_README
+--- postfix-3.7.2/README_FILES/MYSQL_README.1~	2021-12-20 23:12:03.000000000 +0100
++++ postfix-3.7.2/README_FILES/MYSQL_README	2022-06-20 20:18:28.571552883 +0200
 @@ -21,9 +21,9 @@ These instructions assume that you build
  in the INSTALL document. Some modification may be required if you build Postfix
  from a vendor-specific source package.
@@ -268,25 +265,24 @@ diff -up postfix-3.5.0/README_FILES/MYSQL_README.1~ postfix-3.5.0/README_FILES/M
  
  The Postfix MySQL client utilizes the mysql client library, which can be
  obtained from:
-diff -up postfix-3.5.0/README_FILES/PCRE_README.1~ postfix-3.5.0/README_FILES/PCRE_README
---- postfix-3.5.0/README_FILES/PCRE_README.1~	2015-01-29 23:33:49.000000000 +0100
-+++ postfix-3.5.0/README_FILES/PCRE_README	2020-04-03 00:16:31.077822307 +0200
-@@ -20,9 +20,9 @@ These instructions assume that you build
- in the INSTALL document. Some modification may be required if you build Postfix
- from a vendor-specific source package.
+diff -up postfix-3.7.2/README_FILES/PCRE_README.1~ postfix-3.7.2/README_FILES/PCRE_README
+--- postfix-3.7.2/README_FILES/PCRE_README.1~	2022-06-20 20:18:28.571552883 +0200
++++ postfix-3.7.2/README_FILES/PCRE_README	2022-06-20 20:20:41.005848379 +0200
+@@ -16,9 +16,8 @@ pcre_table(5) manual page. Information a
  
--Note: to use pcre with Debian GNU/Linux's Postfix, all you need is to install
--the postfix-pcre package and you're done. There is no need to recompile
--Postfix.
-+Note: to use pcre with OpenMandriva Lx or Debian GNU/Linux's Postfix, all you
-+need is to install the postfix-pcre package and you're done. There is no need
-+to recompile Postfix.
+ UUssiinngg PPoossttffiixx ppaacckkaaggeess wwiitthh PPCCRREE ssuuppppoorrtt
  
- In some future, Postfix will have a plug-in interface for adding map types.
- Until then, you need to compile PCRE support into Postfix.
-diff -up postfix-3.5.0/README_FILES/PGSQL_README.1~ postfix-3.5.0/README_FILES/PGSQL_README
---- postfix-3.5.0/README_FILES/PGSQL_README.1~	2015-01-29 23:33:49.000000000 +0100
-+++ postfix-3.5.0/README_FILES/PGSQL_README	2020-04-03 00:16:31.077822307 +0200
+-To use pcre with Debian GNU/Linux's Postfix, or with Fedora or RHEL Postfix,
+-all you need is to install the postfix-pcre package and you're done. There is
+-no need to recompile Postfix.
++To use pcre with OpenMandriva's Postfix, all you need is to install the
++postfix-pcre package and you're done. There is no need to recompile Postfix.
+ 
+ BBuuiillddiinngg PPoossttffiixx ffrroomm ssoouurrccee wwiitthh PPCCRREE ssuuppppoorrtt
+ 
+diff -up postfix-3.7.2/README_FILES/PGSQL_README.1~ postfix-3.7.2/README_FILES/PGSQL_README
+--- postfix-3.7.2/README_FILES/PGSQL_README.1~	2021-04-23 00:08:54.000000000 +0200
++++ postfix-3.7.2/README_FILES/PGSQL_README	2022-06-20 20:18:28.571552883 +0200
 @@ -21,9 +21,9 @@ These instructions assume that you build
  in the INSTALL document. Some modification may be required if you build Postfix
  from a vendor-specific source package.
@@ -300,10 +296,10 @@ diff -up postfix-3.5.0/README_FILES/PGSQL_README.1~ postfix-3.5.0/README_FILES/P
  
  In order to build Postfix with pgsql map support, you specify -DHAS_PGSQL, the
  directory with the PostgreSQL header files, and the location of the libpq
-diff -up postfix-3.5.0/src/global/mail_params.h.1~ postfix-3.5.0/src/global/mail_params.h
---- postfix-3.5.0/src/global/mail_params.h.1~	2020-01-26 21:36:42.000000000 +0100
-+++ postfix-3.5.0/src/global/mail_params.h	2020-04-03 00:16:31.078822309 +0200
-@@ -524,11 +524,7 @@ extern bool var_percent_hack;
+diff -up postfix-3.7.2/src/global/mail_params.h.1~ postfix-3.7.2/src/global/mail_params.h
+--- postfix-3.7.2/src/global/mail_params.h.1~	2022-04-09 00:10:07.000000000 +0200
++++ postfix-3.7.2/src/global/mail_params.h	2022-06-20 20:18:28.574886241 +0200
+@@ -548,11 +548,7 @@ extern bool var_percent_hack;
    * Local delivery: alias databases.
    */
  #define VAR_ALIAS_MAPS		"alias_maps"
@@ -315,10 +311,10 @@ diff -up postfix-3.5.0/src/global/mail_params.h.1~ postfix-3.5.0/src/global/mail
  extern char *var_alias_maps;
  
   /*
-diff -up postfix-3.5.0/src/util/sys_defs.h.1~ postfix-3.5.0/src/util/sys_defs.h
---- postfix-3.5.0/src/util/sys_defs.h.1~	2019-10-13 17:32:18.000000000 +0200
-+++ postfix-3.5.0/src/util/sys_defs.h	2020-04-03 00:16:31.078822309 +0200
-@@ -59,7 +59,7 @@
+diff -up postfix-3.7.2/src/util/sys_defs.h.1~ postfix-3.7.2/src/util/sys_defs.h
+--- postfix-3.7.2/src/util/sys_defs.h.1~	2021-12-05 19:59:27.000000000 +0100
++++ postfix-3.7.2/src/util/sys_defs.h	2022-06-20 20:18:28.574886241 +0200
+@@ -61,7 +61,7 @@
  #define ALIAS_DB_MAP   DEF_DB_TYPE ":/etc/mail/aliases"	/* OpenBSD 2.7 */
  #endif
  #ifndef ALIAS_DB_MAP
@@ -327,7 +323,7 @@ diff -up postfix-3.5.0/src/util/sys_defs.h.1~ postfix-3.5.0/src/util/sys_defs.h
  #endif
  #define GETTIMEOFDAY(t)	gettimeofday(t,(struct timezone *) 0)
  #define ROOT_PATH	"/bin:/usr/bin:/sbin:/usr/sbin"
-@@ -233,7 +233,7 @@
+@@ -235,7 +235,7 @@
  #define HAS_DB
  #define HAS_SA_LEN
  #define NATIVE_DB_TYPE	"hash"
@@ -336,7 +332,7 @@ diff -up postfix-3.5.0/src/util/sys_defs.h.1~ postfix-3.5.0/src/util/sys_defs.h
  #define GETTIMEOFDAY(t) gettimeofday(t,(struct timezone *) 0)
  #define ROOT_PATH	"/bin:/usr/bin:/sbin:/usr/sbin"
  #define USE_STATFS
-@@ -290,11 +290,11 @@
+@@ -292,11 +292,11 @@
  /* might be set by makedef */
  #ifdef HAS_DB
  #define NATIVE_DB_TYPE	"hash"
@@ -350,7 +346,7 @@ diff -up postfix-3.5.0/src/util/sys_defs.h.1~ postfix-3.5.0/src/util/sys_defs.h
  #endif
  extern int optind;
  extern char *optarg;
-@@ -762,7 +762,7 @@ extern int initgroups(const char *, int)
+@@ -764,7 +764,7 @@ extern int initgroups(const char *, int)
  #define HAS_FSYNC
  #define HAS_DB
  #define NATIVE_DB_TYPE	"hash"
@@ -359,7 +355,7 @@ diff -up postfix-3.5.0/src/util/sys_defs.h.1~ postfix-3.5.0/src/util/sys_defs.h
  #ifndef NO_NIS
  #define HAS_NIS
  #endif
-@@ -842,7 +842,7 @@ extern int initgroups(const char *, int)
+@@ -847,7 +847,7 @@ extern int initgroups(const char *, int)
  #define HAS_FSYNC
  #define HAS_DB
  #define NATIVE_DB_TYPE	"hash"
@@ -368,7 +364,7 @@ diff -up postfix-3.5.0/src/util/sys_defs.h.1~ postfix-3.5.0/src/util/sys_defs.h
  #ifndef NO_NIS
  #define HAS_NIS
  #endif
-@@ -875,7 +875,7 @@ extern int initgroups(const char *, int)
+@@ -880,7 +880,7 @@ extern int initgroups(const char *, int)
  #define HAS_FSYNC
  #define HAS_DB
  #define NATIVE_DB_TYPE	"hash"
