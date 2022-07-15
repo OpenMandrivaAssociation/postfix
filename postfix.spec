@@ -40,7 +40,7 @@
 Summary:	Postfix Mail Transport Agent
 Name:		postfix
 Version:	3.7.2
-Release:	2
+Release:	3
 License:	IBM Public License
 Group:		System/Servers
 Url:		http://www.postfix.org/
@@ -491,6 +491,10 @@ sed -i -e "/dict_.*\.so/d" %{buildroot}%{_sysconfdir}/postfix/postfix-files
 sed -i -e "/^sample_directory/d" %{buildroot}%{_sysconfdir}/postfix/main.cf
 
 # users/groups
+# WARNING: If you change this here, you also need to change
+# it in the %%pre script. We can't use the usual sysusers_create_package
+# macro because of the dynamic insertions (maildrop_group/queue_directory)
+# at build time.
 mkdir -p %{buildroot}%{_sysusersdir}
 cat >%{buildroot}%{_sysusersdir}/postfix.conf <<EOF
 g %{maildrop_group} 75
@@ -498,6 +502,12 @@ u postfix 73 "Postfix mail system" %{queue_directory}
 EOF
 
 %pre
+# Create user -- WARNING: Always keep in sync with %{_sysusersdir}
+systemd-sysusers --replace=%{_sysusersdir}/postfix.conf - <<EOF
+g %{maildrop_group} 75
+u postfix 73 "Postfix mail system" %{queue_directory}
+EOF
+
 # disable chroot of spawn service in /etc/sysconfig/postfix,
 # but do it only once and only if user did not
 # modify /etc/sysconfig/postfix manually
