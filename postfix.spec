@@ -40,7 +40,7 @@
 Summary:	Postfix Mail Transport Agent
 Name:		postfix
 Version:	3.7.2
-Release:	3
+Release:	4
 License:	IBM Public License
 Group:		System/Servers
 Url:		http://www.postfix.org/
@@ -99,6 +99,8 @@ BuildRequires:	perl-base
 BuildRequires:	sed
 BuildRequires:	pkgconfig(libtirpc)
 BuildRequires:	pkgconfig(icu-uc)
+# For _create_ssl_certificate macro
+BuildRequires:	rpm-helper
 %if %{with sasl}
 BuildRequires:	sasl-devel >= 2.0
 %endif
