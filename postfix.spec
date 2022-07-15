@@ -40,7 +40,7 @@
 Summary:	Postfix Mail Transport Agent
 Name:		postfix
 Version:	3.7.2
-Release:	1
+Release:	2
 License:	IBM Public License
 Group:		System/Servers
 Url:		http://www.postfix.org/
@@ -490,9 +490,14 @@ sed -i -e "/dict_.*\.so/d" %{buildroot}%{_sysconfdir}/postfix/postfix-files
 # the default is /etc/postfix
 sed -i -e "/^sample_directory/d" %{buildroot}%{_sysconfdir}/postfix/main.cf
 
+# users/groups
+mkdir -p %{buildroot}%{_sysusersdir}
+cat >%{buildroot}%{_sysusersdir}/postfix.conf <<EOF
+g %{maildrop_group} 75 "Postfix mail drop"
+u postfix 73 "Postfix mail system" %{queue_directory}
+EOF
+
 %pre
-%_pre_useradd postfix %{queue_directory} /bin/false
-%_pre_groupadd %{maildrop_group} postfix
 # disable chroot of spawn service in /etc/sysconfig/postfix,
 # but do it only once and only if user did not
 # modify /etc/sysconfig/postfix manually
@@ -607,8 +612,6 @@ if [ $1 = 0 ]; then
 fi
 
 %postun
-%_postun_userdel postfix
-%_postun_groupdel %{maildrop_group}
 if [ ! -e %{sendmail_command} ]; then
 	/usr/sbin/update-alternatives --remove sendmail-command %{sendmail_command}
 fi
@@ -627,6 +630,7 @@ fi
 %config(noreplace) %{_sysconfdir}/postfix/transport
 %config(noreplace) %{_sysconfdir}/postfix/virtual
 %config(noreplace) %{_sysconfdir}/postfix/domains
+%{_sysusersdir}/postfix.conf
 %{_sysconfdir}/postfix/chroot-update
 %{_sysconfdir}/postfix/aliasesdb
 %{_sysconfdir}/postfix/makedefs.out
