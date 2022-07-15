@@ -493,7 +493,7 @@ sed -i -e "/^sample_directory/d" %{buildroot}%{_sysconfdir}/postfix/main.cf
 # users/groups
 mkdir -p %{buildroot}%{_sysusersdir}
 cat >%{buildroot}%{_sysusersdir}/postfix.conf <<EOF
-g %{maildrop_group} 75 "Postfix mail drop"
+g %{maildrop_group} 75
 u postfix 73 "Postfix mail system" %{queue_directory}
 EOF
 
