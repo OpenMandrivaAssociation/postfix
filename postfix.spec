@@ -40,7 +40,7 @@
 Summary:	Postfix Mail Transport Agent
 Name:		postfix
 Version:	3.7.2
-Release:	4
+Release:	5
 License:	IBM Public License
 Group:		System/Servers
 Url:		http://www.postfix.org/

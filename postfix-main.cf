@@ -38,3 +38,6 @@ smtpd_use_tls = yes
 smtpd_tls_cert_file = /etc/pki/tls/certs/postfix.pem
 smtpd_tls_key_file = /etc/pki/tls/private/postfix.pem
 smtpd_tls_CAfile = /etc/pki/tls/certs/ca-bundle.crt
+
+smtpd_relay_restrictions = permit_mynetworks,permit_sasl_authenticated
+smtpd_recipient_restrictions = reject_unauth_destination
