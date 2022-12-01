@@ -40,7 +40,7 @@
 Summary:	Postfix Mail Transport Agent
 Name:		postfix
 Version:	3.7.3
-Release:	2
+Release:	3
 License:	IBM Public License
 Group:		System/Servers
 Url:		http://www.postfix.org/
@@ -643,6 +643,11 @@ fi
 %config(noreplace) %{_sysconfdir}/postfix/transport
 %config(noreplace) %{_sysconfdir}/postfix/virtual
 %config(noreplace) %{_sysconfdir}/postfix/domains
+%{_sysconfdir}/postfix/main.cf.default
+%{_sysconfdir}/postfix/main.cf.dist
+%{_sysconfdir}/postfix/main.cf.proto
+%{_sysconfdir}/postfix/bounce.cf.default
+%attr(0644, root, root) %{_sysconfdir}/postfix/master.cf.proto
 %{_sysusersdir}/postfix.conf
 %{_sysconfdir}/postfix/chroot-update
 %{_sysconfdir}/postfix/aliasesdb
@@ -844,11 +849,4 @@ fi
 
 %files config-standalone
 %config(noreplace) %{_sysconfdir}/postfix/main.cf
-# http://archives.mandrivalinux.com/cooker/2005-07/msg01109.php
-%{_sysconfdir}/postfix/main.cf.dist
-%{_sysconfdir}/postfix/main.cf.default
-%{_sysconfdir}/postfix/main.cf.proto
-%{_sysconfdir}/postfix/bounce.cf.default
 %config(noreplace) %{_sysconfdir}/postfix/master.cf
-%attr(0644, root, root) %{_sysconfdir}/postfix/master.cf.proto
-

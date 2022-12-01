@@ -1,5 +1,5 @@
 # Please be sure to read the /usr/share/doc/postfix/README.MDK file
-# to learn about differences from stock postfix to Mandriva package.
+# to learn about differences from stock postfix to OpenMandriva package.
 # This file contains only the parameters changed from a default install
 # see /etc/postfix/main.cf.dist for a commented, fuller version of this file.
 
