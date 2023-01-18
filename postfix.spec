@@ -40,7 +40,7 @@
 Summary:	Postfix Mail Transport Agent
 Name:		postfix
 Version:	3.7.3
-Release:	3
+Release:	4
 License:	IBM Public License
 Group:		System/Servers
 Url:		http://www.postfix.org/
@@ -387,7 +387,7 @@ AUXLIBS=`echo $AUXLIBS|sed -e 's|-fPIE||g'`
   AUXLIBS="${AUXLIBS} -lcdb"
 %endif
 
-export CCARGS AUXLIBS AUXLIBS_PCRE AUXLIBS_LDAP AUXLIBS_MYSQL AUXLIBS_PGSQL OPT DEBUG
+export CCARGS AUXLIBS AUXLIBS_PCRE AUXLIBS_LDAP AUXLIBS_MYSQL AUXLIBS_PGSQL AUXLIBS_SQLITE OPT DEBUG
 export CC=%{__cc}
 export CXX=%{__cxx}
 make -f Makefile.init makefiles dynamicmaps=yes pie=yes \
