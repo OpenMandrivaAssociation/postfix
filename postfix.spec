@@ -39,8 +39,8 @@
 
 Summary:	Postfix Mail Transport Agent
 Name:		postfix
-Version:	3.7.3
-Release:	5
+Version:	3.8.0
+Release:	1
 License:	IBM Public License
 Group:		System/Servers
 Url:		http://www.postfix.org/
@@ -86,7 +86,6 @@ Patch6:		postfix-2.2.4-smtpstone.patch
 Patch7:		postfix-3.1.2-dovecot-delivery.patch
 
 Patch8:		postfix-3.2.4-lib-interdependencies.patch
-Patch9:		postfix-3.7.3-linux-6.x-to-9.x.patch
 
 # systemd integration
 Source100:	postfix.service
