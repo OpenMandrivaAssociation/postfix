@@ -39,7 +39,7 @@
 
 Summary:	Postfix Mail Transport Agent
 Name:		postfix
-Version:	3.8.1
+Version:	3.8.3
 Release:	1
 License:	IBM Public License
 Group:		System/Servers
@@ -198,7 +198,7 @@ This package contains a shared library used by Postfix.
 %package ldap
 Summary:	LDAP map support for Postfix
 Group:		System/Servers
-BuildRequires:	openldap-devel >= 2.1
+BuildRequires:	pkgconfig(ldap)
 Requires:	%{name} = %{EVRD}
 
 %description ldap
