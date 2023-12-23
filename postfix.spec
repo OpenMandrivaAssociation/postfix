@@ -39,7 +39,7 @@
 
 Summary:	Postfix Mail Transport Agent
 Name:		postfix
-Version:	3.8.3
+Version:	3.8.4
 Release:	1
 License:	IBM Public License
 Group:		System/Servers
