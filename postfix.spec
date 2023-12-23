@@ -99,6 +99,8 @@ BuildRequires:	perl-base
 BuildRequires:	sed
 BuildRequires:	pkgconfig(libtirpc)
 BuildRequires:	pkgconfig(icu-uc)
+# For col (used by the doc build process)
+BuildRequires:	util-linux
 # For _create_ssl_certificate macro
 BuildRequires:	rpm-helper
 %if %{with sasl}
