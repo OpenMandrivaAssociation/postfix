@@ -40,7 +40,7 @@
 Summary:	Postfix Mail Transport Agent
 Name:		postfix
 Version:	3.9.0
-Release:	1
+Release:	2
 License:	IBM Public License
 Group:		System/Servers
 Url:		http://www.postfix.org/
@@ -357,8 +357,8 @@ AUXLIBS=`echo $AUXLIBS|sed -e 's|-fPIE||g'`
   AUXLIBS_LDAP="-lldap -llber"
 %endif
 %if %{with pcre}
-  CCARGS="${CCARGS} -DHAS_PCRE"
-  AUXLIBS_PCRE="$(pcre-config --libs)"
+  CCARGS="${CCARGS} -DHAS_PCRE=2 `pcre2-config --cflags`"
+  AUXLIBS_PCRE="$(pcre2-config --libs8)"
 %endif
 %if %{with sqlite}
   CCARGS="${CCARGS} -DHAS_SQLITE `pkg-config --cflags sqlite3`"
