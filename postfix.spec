@@ -211,7 +211,7 @@ This package provides support for LDAP maps in Postfix.
 %package pcre
 Summary:	PCRE map support for Postfix
 Group:		System/Servers
-BuildRequires:	pkgconfig(libpcre)
+BuildRequires:	pkgconfig(libpcre2-8)
 Requires:	%{name} = %{EVRD}
 
 %description pcre
