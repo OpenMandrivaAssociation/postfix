@@ -43,7 +43,7 @@ Version:	3.9.0
 Release:	3
 License:	IBM Public License
 Group:		System/Servers
-Url:		http://www.postfix.org/
+Url:		https://www.postfix.org/
 Source0:	ftp://ftp.porcupine.org/mirrors/postfix-release/official/%{name}-%{version}.tar.gz
 Source1:	ftp://ftp.porcupine.org/mirrors/postfix-release/official/%{name}-%{version}.tar.gz.sig
 Source2:	postfix-main.cf
