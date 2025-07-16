@@ -1,2 +1,3 @@
 sources:
-  postfix-3.10.2.tar.gz: 55c16267e82670b325868ad70a2c76d80f4dec35
+  postfix-3.10.3.tar.gz: 8ca111cb53fff47ba95811d7d2c7ecaf9c3b71cd
+  postfix-3.10.3.tar.gz.sig: 6ee105dfff3c2f88e93cc16f03a268418a9e9382
