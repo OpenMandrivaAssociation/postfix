@@ -92,6 +92,7 @@ Source100:	postfix.service
 Source101:	postfix.aliasesdb
 Source102:	postfix-chroot-update
 
+BuildRequires:	make
 BuildRequires:	db-devel >= 18
 BuildRequires:	gawk
 BuildRequires:	html2text
