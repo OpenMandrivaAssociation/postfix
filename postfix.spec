@@ -93,6 +93,7 @@ Source101:	postfix.aliasesdb
 Source102:	postfix-chroot-update
 
 BuildRequires:	make
+BuildRequires:	m4
 BuildRequires:	db-devel >= 18
 BuildRequires:	gawk
 BuildRequires:	html2text
