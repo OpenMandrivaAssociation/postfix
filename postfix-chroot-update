@@ -1,6 +1,0 @@
-#!/bin/bash
-
-. /etc/sysconfig/postfix
-
-[ "${CHROOT}" = "1" ] && /usr/sbin/postfix-chroot.sh -q check_update
-exit 0

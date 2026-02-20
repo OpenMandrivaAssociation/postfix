@@ -26,7 +26,6 @@
 %bcond_without tls
 %bcond_without ipv6
 %bcond_without cdb
-%bcond_without chroot
 
 # Postfix requires one exlusive uid/gid and a 2nd exclusive gid for its own use.
 %define maildrop_group	postdrop
@@ -40,7 +39,7 @@
 Summary:	Postfix Mail Transport Agent
 Name:		postfix
 Version:	3.10.8
-Release:	1
+Release:	2
 License:	IBM Public License
 Group:		System/Servers
 Url:		https://www.postfix.org/
@@ -56,11 +55,7 @@ Source10:	postfix-README.MDK
 Source11:	postfix-README.MDK.update
 Source12:	postfix-bash-completion
 Source13:	http://www.seaglass.com/postfix/faq.html
-Source14:	postfix-chroot.sh
 Source15:	postfix-smtpd.conf
-
-# Simon J. Mudd stuff
-Source21:	https://ftp.wl0.org/SOURCES/postfinger
 
 # Jim Seymour stuff
 Source25:	http://jimsun.LinxNet.com/misc/postfix-anti-UCE.txt
@@ -90,7 +85,6 @@ Patch8:		postfix-3.2.4-lib-interdependencies.patch
 # systemd integration
 Source100:	postfix.service
 Source101:	postfix.aliasesdb
-Source102:	postfix-chroot-update
 
 BuildRequires:	make
 BuildRequires:	m4
@@ -114,9 +108,6 @@ BuildRequires:	pkgconfig(openssl)
 
 Provides:	mail-server
 Provides:	sendmail-command
-# syslog-ng before this version needed a different chroot script,
-# which was bug-prone
-Conflicts:	syslog-ng < 3.1-0.beta2.2
 # http://archives.mandrivalinux.com/cooker/2005-06/msg01987.php
 Requires(post):	chkconfig
 Requires:	coreutils
@@ -136,7 +127,7 @@ Obsoletes:	%{libxsasl} < %{EVRD}
 
 %description
 Postfix is a Mail Transport Agent (MTA), supporting LDAP, SMTP AUTH (SASL),
-TLS and running in a chroot environment.
+TLS and running in a hardened environment.
 
 Postfix is Wietse Venema's mailer that started life as an alternative
 to the widely-used Sendmail program.
@@ -317,20 +308,6 @@ install -m644 %{SOURCE25} UCE
 install -m644 %{SOURCE26} UCE
 install -m644 %{SOURCE27} UCE
 
-%if %{with chroot}
-cp -p conf/master.cf conf/master.cf.chroot
-awk -v NEVER_CHROOT_PROGRAM='^(proxymap|local|pipe|virtual|spawn)$' \
-	-v NEVER_CHROOT_SERVICE='^cyrus$' '
-		BEGIN                   { IFS="[ \t]+"; OFS="\t"; }
-		/^#/                    { print; next; }
-		/^ /                    { print; next; }
-		$1 ~ NEVER_CHROOT_SERVICE    { print; next; }
-		$8 ~ NEVER_CHROOT_PROGRAM    { print; next; }
-		$5 == "n"               { $5="y"; print $0; next; }
-								{ print; }
-	' conf/master.cf.chroot > conf/master.cf
-%endif
-
 # use sed to fix mantools/postlink for our non posix sed
 #cp -p mantools/postlink mantools/postlink.posix
 #sed -e 's/\[\[:<:\]\]/\\</g; s/\[\[:>:\]\]/\\>/g' mantools/postlink.posix > mantools/postlink
@@ -466,10 +443,6 @@ touch %{buildroot}%{_sysconfdir}/postfix/aliases.db
 
 touch %{buildroot}%{_sysconfdir}/postfix/domains
 
-# install chroot script and postfinger
-install -m 0755 %{SOURCE14} %{buildroot}%{_sbindir}/postfix-chroot.sh
-install -m 0755 %{SOURCE21} %{buildroot}%{_sbindir}/postfinger
-
 # install qshape
 install -m755 auxiliary/qshape/qshape.pl %{buildroot}%{_sbindir}/qshape
 cp man/man1/qshape.1 %{buildroot}%{_mandir}/man1/qshape.1
@@ -478,7 +451,6 @@ cp man/man1/qshape.1 %{buildroot}%{_mandir}/man1/qshape.1
 mkdir -p %buildroot%{_unitdir}
 install -c -m 644 %SOURCE100 %buildroot%{_unitdir}/
 install -m 755 %{SOURCE101} %{buildroot}%{_sysconfdir}/postfix/aliasesdb
-install -m 755 %{SOURCE102} %{buildroot}%{_sysconfdir}/postfix/chroot-update
 install -d %{buildroot}%{_presetdir}
 cat > %{buildroot}%{_presetdir}/86-postfix.preset << EOF
 enable postfix.service
@@ -513,23 +485,6 @@ systemd-sysusers --replace=%{_sysusersdir}/postfix.conf - <<EOF
 g %{maildrop_group} 75
 u postfix 73 "Postfix mail system" %{queue_directory}
 EOF
-
-# disable chroot of spawn service in /etc/sysconfig/postfix,
-# but do it only once and only if user did not
-# modify /etc/sysconfig/postfix manually
-if grep -qs "^NEVER_CHROOT_PROGRAM='^(proxymap|local|pipe|virtual)$'$" /etc/sysconfig/postfix; then
-	if ! grep -qs "^NEVER_CHROOT_PROGRAM='^(proxymap|local|pipe|virtual|spawn)$'$" /usr/sbin/postfix-chroot.sh; then
-		perl -pi -e "s/^NEVER_CHROOT_PROGRAM=.*\$/NEVER_CHROOT_PROGRAM=\'^(proxymap|local|pipe|virtual|spawn)\\\$\'/" /etc/sysconfig/postfix
-	fi
-fi
-# disable some unneeded and potentially harmful nss libraries in
-# /etc/sysconfig/postfix, but do it only once and only if user did not
-# modify /etc/sysconfig/postfix manually
-if grep -qs "^IGNORE_NSS_LIBS='^$'$" /etc/sysconfig/postfix; then
-	if ! grep -qs "^IGNORE_NSS_LIBS='^(mdns.*|ldap|db|wins)$'$" /usr/sbin/postfix-chroot.sh; then
-		perl -pi -e "s/^IGNORE_NSS_LIBS=.*\$/IGNORE_NSS_LIBS=\'^(mdns.*|ldap|db|wins)\\\$\'/" /etc/sysconfig/postfix
-	fi
-fi
 
 %post
 #ensure the db files are created
@@ -576,21 +531,7 @@ done
 %_create_ssl_certificate postfix
 %endif
 
-if [ -e /etc/sysconfig/postfix ]; then
-	%{_sbindir}/postfix-chroot.sh -q update
-else
-%if %{with chroot}
-	%{_sbindir}/postfix-chroot.sh -q enable
-%else
-	%{_sbindir}/postfix-chroot.sh -q create_sysconfig
-%endif
-fi
-
 /usr/sbin/update-alternatives --install %{_sbindir}/sendmail sendmail-command %{sendmail_command} 30 --slave %{_prefix}/lib/sendmail sendmail-command-in_libdir %{sendmail_command}
-
-%triggerin -- glibc setup nss_ldap nss_db nss_wins nss_mdns
-# Generate chroot jails on the fly when needed things are installed/upgraded
-%{_sbindir}/postfix-chroot.sh -q update
 
 %preun
 %systemd_preun %{name}.service
@@ -622,8 +563,7 @@ done
 }
 
 if [ $1 = 0 ]; then
-	# Clean up chroot environment and spool directory
-	%{_sbindir}/postfix-chroot.sh -q remove
+	# Clean up spool directory
 	cd %{queue_directory} && queue_directory_remove || true
 fi
 
@@ -652,7 +592,6 @@ fi
 %{_sysconfdir}/postfix/bounce.cf.default
 %attr(0644, root, root) %{_sysconfdir}/postfix/master.cf.proto
 %{_sysusersdir}/postfix.conf
-%{_sysconfdir}/postfix/chroot-update
 %{_sysconfdir}/postfix/aliasesdb
 %{_sysconfdir}/postfix/makedefs.out
 %config(noreplace) %{_sysconfdir}/postfix/dynamicmaps.cf
@@ -754,8 +693,6 @@ fi
 %attr(0755, root, root) %{_sbindir}/qmqp-source
 %attr(0755, root, root) %{_sbindir}/smtp-sink
 %attr(0755, root, root) %{_sbindir}/smtp-source
-%attr(0755, root, root) %{_sbindir}/postfinger
-%attr(0755, root, root) %{_sbindir}/postfix-chroot.sh
 %attr(0755, root, root) %{_sbindir}/qshape
 %attr(0755, root, root) %{sendmail_command}
 %{_bindir}/mailq
