@@ -18,7 +18,9 @@ RestrictNamespaces=true
 
 # Filesystem
 ProtectHome=true
-ReadWritePaths=/var/spool/postfix /var/lib/postfix /var/lib/sasl2 /srv/mail /var/mail
+# /etc/postfix needs to be writable to refresh hashes
+# on /etc/postfix/aliases and friends
+ReadWritePaths=/var/spool/postfix /var/lib/postfix /var/lib/sasl2 /etc/postfix /srv/mail /var/mail
 PrivateTmp=true
 PrivateDevices=true
 

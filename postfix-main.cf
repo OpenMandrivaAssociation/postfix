@@ -16,6 +16,7 @@ newaliases_path = /usr/bin/newaliases
 mailq_path = /usr/bin/mailq
 queue_directory = /var/spool/postfix
 mail_owner = postfix
+shlib_directory=/usr/lib64/postfix
 
 # User configurable parameters
 

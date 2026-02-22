@@ -1,17 +1,6 @@
 %define _disable_ld_no_undefined 1
 %define major %{nil}
-%define	libdns %mklibname %{name}-dns %{major}
-%define	libglobal %mklibname %{name}-global %{major}
-%define	libmaster %mklibname %{name}-master %{major}
-%define	libutil %mklibname %{name}-util %{major}
-%define	libtls %mklibname %{name}-tls %{major}
-### REMOVED in 3.0.0
-%define	libmilter %mklibname %{name}-milter 1
-### REMOVED in 3.0.0
-%define	libxsasl %mklibname %{name}-xsasl 1
 %define sendmail_command %{_sbindir}/sendmail.postfix
-
-%define post_install_parameters	daemon_directory=%{_libexecdir}/postfix command_directory=%{_sbindir} queue_directory=%{queue_directory} sendmail_path=%{sendmail_command} newaliases_path=%{_bindir}/newaliases mailq_path=%{_bindir}/mailq mail_owner=postfix setgid_group=%{maildrop_group} manpage_directory=%{_mandir} readme_directory=%{_docdir}/%{name}/README_FILES html_directory=%{_docdir}/%{name}/html data_directory=/var/lib/postfix
 
 # use bcond_with if default is disabled
 # use bcond_without if default is enabled
@@ -31,6 +20,8 @@
 %define maildrop_group	postdrop
 %define queue_directory	%{_var}/spool/postfix
 %define postfix_shlib_dir %{_libdir}/postfix
+
+%define post_install_parameters	daemon_directory=%{_libexecdir}/postfix command_directory=%{_sbindir} queue_directory=%{queue_directory} sendmail_path=%{sendmail_command} newaliases_path=%{_bindir}/newaliases mailq_path=%{_bindir}/mailq mail_owner=postfix setgid_group=%{maildrop_group} manpage_directory=%{_mandir} readme_directory=%{_docdir}/%{name}/README_FILES html_directory=%{_docdir}/%{name}/html data_directory=/var/lib/postfix shlib_directory=%{postfix_shlib_dir}
 
 # Macro: %{dynmap_add_cmd <name> [<soname>] [-m]}
 %define dynmap_add_cmd(m) FILE=%{_sysconfdir}/postfix/dynamicmaps.cf; if ! grep -q "^%{1}[[:space:]]" ${FILE}; then echo "%{1}	%{_libdir}/postfix/postfix-%{?2:%{2}}%{?!2:%{1}}.so	dict_%{1}_open%{-m:	mkmap_%{1}_open}" >> ${FILE}; fi;
@@ -122,8 +113,22 @@ Requires(post,preun):	update-alternatives
 Requires(pre):	%{name}-config
 Requires:	%{name}-config >= 2.9.0-1
 
-Obsoletes:	%{libmilter} < %{EVRD}
-Obsoletes:	%{libxsasl} < %{EVRD}
+# Before 2026-02-26, pf 3.10.8-2, after 6.0, we split those internal
+# libraries into separate packages.
+# We no longer do this (the libraries are useless on their
+# own and they're all required by the core postfix binary).
+# FIXME Get rid of the obsoletion once we're reasonably sure all
+# previous users of the package have updated.
+%define	libdns %mklibname %{name}-dns %{major}
+%define	libglobal %mklibname %{name}-global %{major}
+%define	libmaster %mklibname %{name}-master %{major}
+%define	libutil %mklibname %{name}-util %{major}
+%define	libtls %mklibname %{name}-tls %{major}
+Obsoletes:	%{libdns} < %{EVRD}
+Obsoletes:	%{libglobal} < %{EVRD}
+Obsoletes:	%{libmaster} < %{EVRD}
+Obsoletes:	%{libutil} < %{EVRD}
+Obsoletes:	%{libtls} < %{EVRD}
 
 %description
 Postfix is a Mail Transport Agent (MTA), supporting LDAP, SMTP AUTH (SASL),
@@ -139,55 +144,6 @@ This software was formerly known as VMailer. It was released by the end
 of 1998 as the IBM Secure Mailer. From then on it has lived on as Postfix.
 
 PLEASE READ THE %{_defaultdocdir}/%{name}/README.MDK FILE.
-
-%package -n %{libdns}
-Summary:	Shared library required to run Postfix
-Group:		System/Servers
-
-%description -n %{libdns}
-This package contains a shared library used by Postfix.
-
-%package -n %{libglobal}
-Summary:	Shared library required to run Postfix
-Group:		System/Servers
-
-%description -n %{libglobal}
-This package contains a shared library used by Postfix.
-
-%package -n %{libmaster}
-Summary:	Shared library required to run Postfix
-Group:		System/Servers
-
-%description -n %{libmaster}
-This package contains a shared library used by Postfix.
-
-%package -n %{libutil}
-Summary:	Shared library required to run Postfix
-Group:		System/Servers
-
-%description -n %{libutil}
-This package contains a shared library used by Postfix.
-
-%package -n %{libtls}
-Summary:	Shared library required to run Postfix
-Group:		System/Servers
-
-%description -n %{libtls}
-This package contains a shared library used by Postfix.
-
-%package -n %{libmilter}
-Summary:	Shared library required to run Postfix
-Group:		System/Servers
-
-%description -n %{libmilter}
-This package contains a shared library used by Postfix.
-
-%package -n %{libxsasl}
-Summary:	Shared library required to run Postfix
-Group:		System/Servers
-
-%description -n %{libxsasl}
-This package contains a shared library used by Postfix.
 
 %if %{with ldap}
 %package ldap
@@ -292,6 +248,9 @@ cp %{SOURCE2} conf/main.cf
 sed -i \
 's|^\(\s*#define\s\+DEF_SHLIB_DIR\s\+\)"/usr/lib/postfix"|\1"%{_libdir}/postfix"|' \
 src/global/mail_params.h
+%if "%{_mandir}" != "/usr/local/man"
+sed -i -e 's,/usr/local/man,%{_mandir},g' src/global/mail_params.h
+%endif
 
 # ugly hack for 32/64 arches
 if [ %{_lib} != lib ]; then
@@ -368,10 +327,11 @@ AUXLIBS=`echo $AUXLIBS|sed -e 's|-fPIE||g'`
 %endif
 
 export CCARGS AUXLIBS AUXLIBS_PCRE AUXLIBS_LDAP AUXLIBS_MYSQL AUXLIBS_PGSQL AUXLIBS_SQLITE OPT DEBUG
-export CC=%{__cc}
-export CXX=%{__cxx}
+export CC="%{__cc}"
+export CXX="%{__cxx}"
 make -f Makefile.init makefiles dynamicmaps=yes pie=yes \
-	shlib_directory="%{_libdir}" \
+	shlib_directory="%{postfix_shlib_dir}" \
+	%{post_install_parameters} \
 	SHLIB_RPATH="-Wl,-rpath,%{postfix_shlib_dir} %{ldflags}" \
 	OPT="$RPM_OPT_FLAGS -fno-strict-aliasing -Wno-comment" \
 	POSTFIX_INSTALL_OPTS=-keep-build-mtime
@@ -478,6 +438,16 @@ cat >%{buildroot}%{_sysusersdir}/postfix.conf <<EOF
 g %{maildrop_group} 75
 u postfix 73 "Postfix mail system" %{queue_directory}
 EOF
+
+# postfix tries to be super smart and auto-correct values like
+# shlib_directories in /etc/postfix/main.cf if it thinks they're wrong.
+# It thinks they're wrong if a file that is supposed to be there
+# according to /etc/postfix/postfix-files isn't there, and resets to
+# a "safe" default -- %{_libdir} -- which is actually wrong.
+# Files listed in postfix-files may not actually be there because some
+# are plugins that we move to separate packages -- so let's make sure
+# they aren't listed.
+
 
 %pre
 # Create user -- WARNING: Always keep in sync with %{_sysusersdir}
@@ -701,20 +671,10 @@ fi
 %{_mandir}/man1/*
 %{_mandir}/man5/*
 %{_mandir}/man8/*
-
-%files -n %{libdns}
 %{_libdir}/postfix/libpostfix-dns.so
-
-%files -n %{libglobal}
 %{_libdir}/postfix/libpostfix-global.so
-
-%files -n %{libmaster}
 %{_libdir}/postfix/libpostfix-master.so
-
-%files -n %{libutil}
 %{_libdir}/postfix/libpostfix-util.so
-
-%files -n %{libtls}
 %{_libdir}/postfix/libpostfix-tls.so
 
 %if %{with ldap}
