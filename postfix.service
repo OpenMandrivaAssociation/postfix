@@ -15,6 +15,7 @@ LockPersonality=true
 MemoryDenyWriteExecute=true
 RestrictRealtime=true
 RestrictNamespaces=true
+SupplementaryGroups=sasl
 
 # Filesystem
 ProtectHome=true
@@ -23,6 +24,7 @@ ProtectHome=true
 ReadWritePaths=/var/spool/postfix /var/lib/postfix /etc/postfix /srv/mail /var/mail
 # If it's used, we need to talk to it, but it's optional
 ReadWritePaths=-/var/lib/sasl2
+ReadWritePaths=-/run/saslauthd
 PrivateTmp=true
 PrivateDevices=true
 
