@@ -20,7 +20,9 @@ RestrictNamespaces=true
 ProtectHome=true
 # /etc/postfix needs to be writable to refresh hashes
 # on /etc/postfix/aliases and friends
-ReadWritePaths=/var/spool/postfix /var/lib/postfix /var/lib/sasl2 /etc/postfix /srv/mail /var/mail
+ReadWritePaths=/var/spool/postfix /var/lib/postfix /etc/postfix /srv/mail /var/mail
+# If it's used, we need to talk to it, but it's optional
+ReadWritePaths=-/var/lib/sasl2
 PrivateTmp=true
 PrivateDevices=true
 
