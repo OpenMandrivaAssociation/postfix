@@ -29,8 +29,8 @@
 
 Summary:	Postfix Mail Transport Agent
 Name:		postfix
-Version:	3.10.8
-Release:	2
+Version:	3.11.0
+Release:	1
 License:	IBM Public License
 Group:		System/Servers
 Url:		https://www.postfix.org/
@@ -86,6 +86,7 @@ BuildRequires:	perl-base
 BuildRequires:	sed
 BuildRequires:	pkgconfig(libtirpc)
 BuildRequires:	pkgconfig(icu-uc)
+BuildRequires:	pkgconfig(lmdb)
 # For col (used by the doc build process)
 BuildRequires:	util-linux
 # For _create_ssl_certificate macro
@@ -283,12 +284,13 @@ RPM_OPT_FLAGS=`echo $RPM_OPT_FLAGS|sed -e 's|-fPIE||g'`
 
 OPT="$RPM_OPT_FLAGS"
 DEBUG=
-CCARGS="-DNO_NIS"
+CCARGS="-DNO_NIS -DNO_NETINFO -DHAS_EAI -DHAS_DLOPEN -DDEF_COMPATIBILITY_LEVEL=\\\"%(echo %{version}|cut -d. -f1-2)\\\""
 AUXLIBS="%{?ldflags:%ldflags}"
 AUXLIBS=`echo $AUXLIBS|sed -e 's|-fPIE||g'`
 
-# the patch is mixed with SDBM support :(
-  CCARGS="${CCARGS} -DHAS_SDBM -DHAS_DLOPEN"
+# LMDB is mandatory because it's the default for aliases etc. now
+CCARGS="${CCARGS} -DHAS_LMDB -DDEF_DB_TYPE=\\\"lmdb\\\" -DDEF_CACHE_DB_TYPE=\\\"lmdb\\\""
+AUXLIBS_LMDB="$(pkg-config --libs lmdb)"
 
 %if %{with ldap}
   CCARGS="${CCARGS} -DHAS_LDAP"
@@ -325,8 +327,11 @@ AUXLIBS=`echo $AUXLIBS|sed -e 's|-fPIE||g'`
   CCARGS="${CCARGS} -DHAS_CDB"
   AUXLIBS="${AUXLIBS} -lcdb"
 %endif
+%if %{with sdbm}
+  CCARGS="${CCARGS} -DHAS_SDBM"
+%endif
 
-export CCARGS AUXLIBS AUXLIBS_PCRE AUXLIBS_LDAP AUXLIBS_MYSQL AUXLIBS_PGSQL AUXLIBS_SQLITE OPT DEBUG
+export CCARGS AUXLIBS AUXLIBS_PCRE AUXLIBS_LDAP AUXLIBS_LMDB AUXLIBS_MYSQL AUXLIBS_PGSQL AUXLIBS_SQLITE OPT DEBUG
 export CC="%{__cc}"
 export CXX="%{__cxx}"
 make -f Makefile.init makefiles dynamicmaps=yes pie=yes \
@@ -421,8 +426,16 @@ EOF
 #   when called during package installation.
 sed -i -e "s@\(/man[158]/.*\.[158]\):@\1%{_extension}:@" %{buildroot}%{_sysconfdir}/postfix/postfix-files
 
-# remove files that are not in the main package
+# postfix tries to be super smart and auto-correct values like
+# shlib_directories in /etc/postfix/main.cf if it thinks they're wrong.
+# It thinks they're wrong if a file that is supposed to be there
+# according to /etc/postfix/postfix-files isn't there, and resets to
+# a "safe" default -- %{_libdir} -- which is actually wrong.
+# Files listed in postfix-files may not actually be there because some
+# are plugins that we move to separate packages -- so let's make sure
+# they aren't listed.
 sed -i -e "/dict_.*\.so/d" %{buildroot}%{_sysconfdir}/postfix/postfix-files
+sed -i -e "/postfix-.*\.so/d" %{buildroot}%{_sysconfdir}/postfix/postfix-files
 
 # remove sample_directory from main.cf (#15297)
 # the default is /etc/postfix
@@ -439,34 +452,10 @@ g %{maildrop_group} 75
 u postfix 73 "Postfix mail system" %{queue_directory}
 EOF
 
-# postfix tries to be super smart and auto-correct values like
-# shlib_directories in /etc/postfix/main.cf if it thinks they're wrong.
-# It thinks they're wrong if a file that is supposed to be there
-# according to /etc/postfix/postfix-files isn't there, and resets to
-# a "safe" default -- %{_libdir} -- which is actually wrong.
-# Files listed in postfix-files may not actually be there because some
-# are plugins that we move to separate packages -- so let's make sure
-# they aren't listed.
-
-
-%pre
-# Create user -- WARNING: Always keep in sync with %{_sysusersdir}
-systemd-sysusers --replace=%{_sysusersdir}/postfix.conf - <<EOF
-g %{maildrop_group} 75
-u postfix 73 "Postfix mail system" %{queue_directory}
-EOF
-
 %post
 #ensure the db files are created
 %{_sbindir}/postmap /etc/postfix/virtual
 %{_sbindir}/postmap /etc/postfix/domains
-%systemd_post %{name}.service
-
-# we don't have these maps anymore as separate packages/plugins:
-# cidr, tcp and sdbm (2007.0)
-if [ "$1" -eq "2" ]; then
-	sed -i "/^cidr/d;/^sdbm/d;/^tcp/d" %{_sysconfdir}/postfix/dynamicmaps.cf
-fi
 
 # upgrade configuration files if necessary
 %{_sbindir}/postfix \
@@ -475,28 +464,6 @@ fi
 	config_directory=%{_sysconfdir}/postfix \
 	%post_install_parameters
 
-# move previous sasl configuration files to new location if applicable
-# have to go through many loops to prevent damaging user configuration
-# this changed around 2007.0 so it should go away soon
-saslpath=`postconf -h smtpd_sasl_path`
-if [ "${saslpath}" != "${saslpath##*:}" -o "${saslpath}" != "${saslpath##*/usr/lib}" ]; then
-	postconf -e smtpd_sasl_path=smtpd
-fi
-
-for old_smtpd_conf in /etc/postfix/sasl/smtpd.conf %{_libdir}/sasl2/smtpd.conf; do
-	if [ -e ${old_smtpd_conf} ]; then
-		if ! grep -qsve '^\(#.*\|[[:space:]]*\)$' /etc/sasl2/smtpd.conf; then
-			# /etc/sasl2/smtpd.conf missing or just comments
-			if [ -s /etc/sasl2/smtpd.conf ] && [ ! -e /etc/sasl2/smtpd.conf.rpmnew -o /etc/sasl2/smtpd.conf -nt /etc/sasl2/smtpd.conf.rpmnew ]; then
-				mv /etc/sasl2/smtpd.conf /etc/sasl2/smtpd.conf.rpmnew
-			fi
-			mv ${old_smtpd_conf} /etc/sasl2/smtpd.conf
-		else
-			echo "warning: existing ${old_smtpd_conf} will be ignored"
-		fi
-	fi
-done
-
 %if %{with tls}
 %_create_ssl_certificate postfix
 %endif
@@ -504,8 +471,6 @@ done
 /usr/sbin/update-alternatives --install %{_sbindir}/sendmail sendmail-command %{sendmail_command} 30 --slave %{_prefix}/lib/sendmail sendmail-command-in_libdir %{sendmail_command}
 
 %preun
-%systemd_preun %{name}.service
-
 rmqueue() {
 	[ $2 -gt 0 ] || return
 	local i
@@ -541,11 +506,9 @@ fi
 if [ ! -e %{sendmail_command} ]; then
 	/usr/sbin/update-alternatives --remove sendmail-command %{sendmail_command}
 fi
-%systemd_postun_with_restart %{name}.service
 
 %files
 %dir %{_sysconfdir}/postfix
-%config(noreplace) %{_sysconfdir}/sasl2/smtpd.conf
 %config(noreplace) %{_sysconfdir}/postfix/access
 %config(noreplace) %{_sysconfdir}/postfix/aliases
 %ghost %{_sysconfdir}/postfix/aliases.db
@@ -567,7 +530,6 @@ fi
 %config(noreplace) %{_sysconfdir}/postfix/dynamicmaps.cf
 %{_presetdir}/86-postfix.preset
 %attr(0644, root, root) %{_unitdir}/%{name}.service
-%attr(0644, root, root) %config(noreplace) %{_sysconfdir}/pam.d/smtp
 %attr(0755, root, root) %config(noreplace) %{_sysconfdir}/ppp/ip-up.d/postfix
 %attr(0755, root, root) %config(noreplace) %{_sysconfdir}/ppp/ip-down.d/postfix
 %attr(0755, root, root) %config(noreplace) %{_sysconfdir}/resolvconf/update-libc.d/postfix
@@ -622,11 +584,13 @@ fi
 %attr(0755, root, root) %{_libexecdir}/postfix/lmtp
 %attr(0755, root, root) %{_libexecdir}/postfix/local
 %attr(0755, root, root) %{_libexecdir}/postfix/master
+%attr(0755, root, root) %{_libexecdir}/postfix/nbdb_reindexd
 %attr(0755, root, root) %{_libexecdir}/postfix/nqmgr
 %attr(0755, root, root) %{_libexecdir}/postfix/oqmgr
 %attr(0755, root, root) %{_libexecdir}/postfix/pickup
 %attr(0755, root, root) %{_libexecdir}/postfix/pipe
 %attr(0755, root, root) %{_libexecdir}/postfix/postfix-script
+%attr(0755, root, root) %{_libexecdir}/postfix/postfix-non-bdb-script
 %attr(0755, root, root) %{_libexecdir}/postfix/postfix-tls-script
 %attr(0755, root, root) %{_libexecdir}/postfix/postfix-wrapper
 %attr(0755, root, root) %{_libexecdir}/postfix/postlogd
@@ -673,6 +637,7 @@ fi
 %{_mandir}/man8/*
 %{_libdir}/postfix/libpostfix-dns.so
 %{_libdir}/postfix/libpostfix-global.so
+%attr(755, root, root) %{_libdir}/postfix/postfix-lmdb.so
 %{_libdir}/postfix/libpostfix-master.so
 %{_libdir}/postfix/libpostfix-util.so
 %{_libdir}/postfix/libpostfix-tls.so
@@ -750,3 +715,5 @@ fi
 %files config-standalone
 %config(noreplace) %{_sysconfdir}/postfix/main.cf
 %config(noreplace) %{_sysconfdir}/postfix/master.cf
+%attr(0644, root, root) %config(noreplace) %{_sysconfdir}/pam.d/smtp
+%config(noreplace) %{_sysconfdir}/sasl2/smtpd.conf

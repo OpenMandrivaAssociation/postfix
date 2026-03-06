@@ -25,6 +25,15 @@ ReadWritePaths=/var/spool/postfix /var/lib/postfix /etc/postfix /srv/mail /var/m
 # If it's used, we need to talk to it, but it's optional
 ReadWritePaths=-/var/lib/sasl2
 ReadWritePaths=-/run/saslauthd
+# Same with gromox
+ReadWritePaths=-/run/gromox
+# And dovecot
+ReadWritePaths=-/run/dovecot
+# And Cyrus IMAPD
+ReadWritePaths=-/run/cyrus/socket
+# And some filters we may potentially want to talk to
+ReadWritePaths=-/run/rspamd -/run/opendkim -/run/opendmarc -/run/clamav -/run/clamav-milter
+ReadWritePaths=-/run/proxymap
 PrivateTmp=true
 PrivateDevices=true
 
