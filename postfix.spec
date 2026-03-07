@@ -23,14 +23,10 @@
 
 %define post_install_parameters	daemon_directory=%{_libexecdir}/postfix command_directory=%{_sbindir} queue_directory=%{queue_directory} sendmail_path=%{sendmail_command} newaliases_path=%{_bindir}/newaliases mailq_path=%{_bindir}/mailq mail_owner=postfix setgid_group=%{maildrop_group} manpage_directory=%{_mandir} readme_directory=%{_docdir}/%{name}/README_FILES html_directory=%{_docdir}/%{name}/html data_directory=/var/lib/postfix shlib_directory=%{postfix_shlib_dir}
 
-# Macro: %{dynmap_add_cmd <name> [<soname>] [-m]}
-%define dynmap_add_cmd(m) FILE=%{_sysconfdir}/postfix/dynamicmaps.cf; if ! grep -q "^%{1}[[:space:]]" ${FILE}; then echo "%{1}	%{_libdir}/postfix/postfix-%{?2:%{2}}%{?!2:%{1}}.so	dict_%{1}_open%{-m:	mkmap_%{1}_open}" >> ${FILE}; fi;
-%define dynmap_rm_cmd() FILE=%{_sysconfdir}/postfix/dynamicmaps.cf; if [ $1 = 0 -a -s $FILE ]; then  cp -p ${FILE} ${FILE}.$$; grep -v "^%{1}[[:space:]]" ${FILE}.$$ > ${FILE}; rm -f ${FILE}.$$; fi;
-
 Summary:	Postfix Mail Transport Agent
 Name:		postfix
 Version:	3.11.0
-Release:	1
+Release:	2
 License:	IBM Public License
 Group:		System/Servers
 Url:		https://www.postfix.org/
@@ -253,6 +249,9 @@ src/global/mail_params.h
 sed -i -e 's,/usr/local/man,%{_mandir},g' src/global/mail_params.h
 %endif
 
+# Default to the latest and greatest COMPATIBILITY_LEVEL, not the oldest possible
+sed -i -e 's/^#define DEF_COMPAT_LEVEL[[:space:]].*/#define DEF_COMPAT_LEVEL LAST_COMPAT_LEVEL/' src/global/mail_params.h
+
 # ugly hack for 32/64 arches
 if [ %{_lib} != lib ]; then
 	sed -i -e 's@^/usr/lib/@%{_libdir}/@' conf/postfix-files
@@ -284,7 +283,7 @@ RPM_OPT_FLAGS=`echo $RPM_OPT_FLAGS|sed -e 's|-fPIE||g'`
 
 OPT="$RPM_OPT_FLAGS"
 DEBUG=
-CCARGS="-DNO_NIS -DNO_NETINFO -DHAS_EAI -DHAS_DLOPEN -DDEF_COMPATIBILITY_LEVEL=\\\"%(echo %{version}|cut -d. -f1-2)\\\""
+CCARGS="-DNO_NIS -DNO_NETINFO -DHAS_EAI -DHAS_DLOPEN"
 AUXLIBS="%{?ldflags:%ldflags}"
 AUXLIBS=`echo $AUXLIBS|sed -e 's|-fPIE||g'`
 
@@ -421,22 +420,6 @@ cat > %{buildroot}%{_presetdir}/86-postfix.preset << EOF
 enable postfix.service
 EOF
 
-# RPM compresses man pages automatically.
-# - Edit postfix-files to reflect this, so post-install won't get confused
-#   when called during package installation.
-sed -i -e "s@\(/man[158]/.*\.[158]\):@\1%{_extension}:@" %{buildroot}%{_sysconfdir}/postfix/postfix-files
-
-# postfix tries to be super smart and auto-correct values like
-# shlib_directories in /etc/postfix/main.cf if it thinks they're wrong.
-# It thinks they're wrong if a file that is supposed to be there
-# according to /etc/postfix/postfix-files isn't there, and resets to
-# a "safe" default -- %{_libdir} -- which is actually wrong.
-# Files listed in postfix-files may not actually be there because some
-# are plugins that we move to separate packages -- so let's make sure
-# they aren't listed.
-sed -i -e "/dict_.*\.so/d" %{buildroot}%{_sysconfdir}/postfix/postfix-files
-sed -i -e "/postfix-.*\.so/d" %{buildroot}%{_sysconfdir}/postfix/postfix-files
-
 # remove sample_directory from main.cf (#15297)
 # the default is /etc/postfix
 sed -i -e "/^sample_directory/d" %{buildroot}%{_sysconfdir}/postfix/main.cf
@@ -452,7 +435,47 @@ g %{maildrop_group} 75
 u postfix 73 "Postfix mail system" %{queue_directory}
 EOF
 
+# Handle the plugin and file registries
+mkdir -p %{buildroot}%{_sysconfdir}/postfix/postfix-files.d
+rm -f %{buildroot}%{_sysconfdir}/postfix/dynamicmaps.cf
+mkdir -p %{buildroot}%{_sysconfdir}/postfix/dynamicmaps.cf.d
+for i in cdb ldap lmdb mysql pcre pgsql sdbm sqlite; do
+	[ -e %{buildroot}%{_libdir}/postfix/postfix-${i}.so ] || continue
+	grep -h postfix-${i}.so %{buildroot}%{_sysconfdir}/postfix/postfix-files >%{buildroot}%{_sysconfdir}/postfix/postfix-files.d/${i}
+	sed -i -e "/postfix-${i}\.so/d" %{buildroot}%{_sysconfdir}/postfix/postfix-files
+	if nm -D %{buildroot}%{_libdir}/postfix/postfix-${i}.so |grep -q mkmap_${i}_open; then
+		MKMAP="	mkmap_${i}_open"
+	else
+		MKMAP=""
+	fi
+	echo "${i}	%{_libdir}/postfix/postfix-${i}.so	dict_${i}_open${MKMAP}" >%{buildroot}%{_sysconfdir}/postfix/dynamicmaps.cf.d/${i}.cf
+done
+
+# Post-process /etc/postfix/postfix-files some more, postfix can freak
+# out badly if a file mentioned there is "missing".
+# postfix tries to be super smart and auto-correct values like
+# shlib_directories in /etc/postfix/main.cf if it thinks they're wrong.
+# It thinks they're wrong if a file that is supposed to be there
+# according to /etc/postfix/postfix-files isn't there, and resets to
+# a "safe" default -- %{_libdir} -- which is actually wrong.
+# Outside of splitting libraries into separate packages (already
+# handled above), we also kill dynamicmaps.cf in favor of
+# dynamicmaps.cf.d
+sed -i -e "/dynamicmaps.cf:/d" %{buildroot}%{_sysconfdir}/postfix/postfix-files
+# RPM compresses man pages automatically.
+# - Edit postfix-files to reflect this, so post-install won't get confused
+#   when called during package installation.
+sed -i -e "s@\(/man[158]/.*\.[158]\):@\1%{_extension}:@" %{buildroot}%{_sysconfdir}/postfix/postfix-files
+
+
+
 %post
+# remove relic from pre-3.11.0 (OM 6.1 2026/03/07) -
+# used to be a %%config(noreplace) file, is now replaced
+# by /etc/postfix/dynamicmaps.cf.d entries
+rm -f %{_sysconfdir}/postfix/dynamicmaps.cf &>/dev/null
+rm -f %{_sysconfdir}/postfix/dynamicmaps.cf.rpm* &>/dev/null
+
 #ensure the db files are created
 %{_sbindir}/postmap /etc/postfix/virtual
 %{_sbindir}/postmap /etc/postfix/domains
@@ -527,7 +550,6 @@ fi
 %{_sysusersdir}/postfix.conf
 %{_sysconfdir}/postfix/aliasesdb
 %{_sysconfdir}/postfix/makedefs.out
-%config(noreplace) %{_sysconfdir}/postfix/dynamicmaps.cf
 %{_presetdir}/86-postfix.preset
 %attr(0644, root, root) %{_unitdir}/%{name}.service
 %attr(0755, root, root) %config(noreplace) %{_sysconfdir}/ppp/ip-up.d/postfix
@@ -573,6 +595,7 @@ fi
 %doc UCE
 
 %dir %{_libexecdir}/postfix
+%dir %attr(0755, root, root) %{_sysconfdir}/postfix/postfix-files.d
 %attr(0644, root, root) %{_sysconfdir}/postfix/postfix-files
 %attr(0755, root, root) %{_libexecdir}/postfix/anvil
 %attr(0755, root, root) %{_libexecdir}/postfix/bounce
@@ -638,6 +661,9 @@ fi
 %{_libdir}/postfix/libpostfix-dns.so
 %{_libdir}/postfix/libpostfix-global.so
 %attr(755, root, root) %{_libdir}/postfix/postfix-lmdb.so
+%{_sysconfdir}/postfix/postfix-files.d/lmdb
+%dir %{_sysconfdir}/postfix/dynamicmaps.cf.d
+%{_sysconfdir}/postfix/dynamicmaps.cf.d/lmdb.cf
 %{_libdir}/postfix/libpostfix-master.so
 %{_libdir}/postfix/libpostfix-util.so
 %{_libdir}/postfix/libpostfix-tls.so
@@ -645,71 +671,50 @@ fi
 %if %{with ldap}
 %files ldap
 %attr(755, root, root) %{_libdir}/postfix/postfix-ldap.so
-
-%post ldap
-%dynmap_add_cmd ldap
-%postun ldap
-%dynmap_rm_cmd ldap
+%{_sysconfdir}/postfix/dynamicmaps.cf.d/ldap.cf
+%{_sysconfdir}/postfix/postfix-files.d/ldap
 %endif
 
 %if %{with mysql}
 %files mysql
 %attr(755, root, root) %{_libdir}/postfix/postfix-mysql.so
-
-%post mysql
-%dynmap_add_cmd mysql
-%postun mysql
-%dynmap_rm_cmd mysql
+%{_sysconfdir}/postfix/dynamicmaps.cf.d/mysql.cf
+%{_sysconfdir}/postfix/postfix-files.d/mysql
 %endif
 
 %if %{with sdbm}
 %files sdbm
 %attr(755, root, root) %{_libdir}/postfix/postfix-sdbm.so
-
-%post sdbm
-%dynmap_add_cmd sdbm
-%postun sdbm
-%dynmap_rm_cmd sdbm
+%{_sysconfdir}/postfix/dynamicmaps.cf.d/sdbm.cf
+%{_sysconfdir}/postfix/postfix-files.d/sdbm
 %endif
 
 %if %{with pcre}
 %files pcre
 %attr(755, root, root) %{_libdir}/postfix/postfix-pcre.so
-
-%post pcre
-%dynmap_add_cmd pcre
-%postun pcre
-%dynmap_rm_cmd pcre
+%{_sysconfdir}/postfix/dynamicmaps.cf.d/pcre.cf
+%{_sysconfdir}/postfix/postfix-files.d/pcre
 %endif
 
 %if %{with pgsql}
 %files pgsql
 %attr(755, root, root) %{_libdir}/postfix/postfix-pgsql.so
-
-%post pgsql
-%dynmap_add_cmd pgsql
-%postun pgsql
-%dynmap_rm_cmd pgsql
+%{_sysconfdir}/postfix/dynamicmaps.cf.d/pgsql.cf
+%{_sysconfdir}/postfix/postfix-files.d/pgsql
 %endif
 
 %if %{with sqlite}
 %files sqlite
 %attr(755, root, root) %{_libdir}/postfix/postfix-sqlite.so
-
-%post sqlite
-%dynmap_add_cmd sqlite
-%postun sqlite
-%dynmap_rm_cmd sqlite
+%{_sysconfdir}/postfix/dynamicmaps.cf.d/sqlite.cf
+%{_sysconfdir}/postfix/postfix-files.d/sqlite
 %endif
 
 %if %{with cdb}
 %files cdb
 %attr(755, root, root) %{_libdir}/postfix/postfix-cdb.so
-
-%post cdb
-%dynmap_add_cmd cdb -m
-%postun cdb
-%dynmap_rm_cmd cdb
+%{_sysconfdir}/postfix/dynamicmaps.cf.d/cdb.cf
+%{_sysconfdir}/postfix/postfix-files.d/cdb
 %endif
 
 %files config-standalone
