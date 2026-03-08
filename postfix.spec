@@ -21,7 +21,7 @@
 %define queue_directory	%{_var}/spool/postfix
 %define postfix_shlib_dir %{_libdir}/postfix
 
-%define post_install_parameters	daemon_directory=%{_libexecdir}/postfix command_directory=%{_sbindir} queue_directory=%{queue_directory} sendmail_path=%{sendmail_command} newaliases_path=%{_bindir}/newaliases mailq_path=%{_bindir}/mailq mail_owner=postfix setgid_group=%{maildrop_group} manpage_directory=%{_mandir} readme_directory=%{_docdir}/%{name}/README_FILES html_directory=%{_docdir}/%{name}/html data_directory=/var/lib/postfix shlib_directory=%{postfix_shlib_dir}
+%define post_install_parameters	daemon_directory=%{_libexecdir}/postfix command_directory=%{_sbindir} queue_directory=%{queue_directory} sendmail_path=%{sendmail_command} newaliases_path=%{_bindir}/newaliases mailq_path=%{_bindir}/mailq mail_owner=postfix setgid_group=%{maildrop_group} manpage_directory=%{_mandir} readme_directory=%{_docdir}/%{name}/README_FILES html_directory=%{_docdir}/%{name}/html data_directory=/var/lib/postfix shlib_directory=%{postfix_shlib_dir} default_database_type=lmdb
 
 Summary:	Postfix Mail Transport Agent
 Name:		postfix
