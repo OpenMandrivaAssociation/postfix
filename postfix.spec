@@ -25,8 +25,8 @@
 
 Summary:	Postfix Mail Transport Agent
 Name:		postfix
-Version:	3.11.0
-Release:	3
+Version:	3.11.1
+Release:	1
 License:	IBM Public License
 Group:		System/Servers
 Url:		https://www.postfix.org/
@@ -50,7 +50,6 @@ Source26:	http://jimsun.LinxNet.com/misc/header_checks.txt
 Source27:	http://jimsun.LinxNet.com/misc/body_checks.txt
 
 Patch1:		postfix-2.9.1-mdkconfig.diff
-Patch2:		postfix-alternatives-mdk.patch
 Patch3:		postfix-3.6.3-glibc-2.34.patch
 
 # sdbm patch patch split from dynamicmaps one
@@ -96,8 +95,6 @@ BuildRequires:	pkgconfig(openssl)
 
 Provides:	mail-server
 Provides:	sendmail-command
-# http://archives.mandrivalinux.com/cooker/2005-06/msg01987.php
-Requires(post):	chkconfig
 Requires:	coreutils
 Requires:	diffutils
 Requires:	gawk
@@ -106,7 +103,6 @@ Requires(pre,post):	sed
 %if %{with tls}
 Requires(post):	openssl
 %endif
-Requires(post,preun):	update-alternatives
 Requires(pre):	%{name}-config
 Requires:	%{name}-config >= 2.9.0-1
 
@@ -433,6 +429,7 @@ mkdir -p %{buildroot}%{_sysusersdir}
 cat >%{buildroot}%{_sysusersdir}/postfix.conf <<EOF
 g %{maildrop_group} 75
 u postfix 73 "Postfix mail system" %{queue_directory}
+m postfix sasl
 EOF
 
 # Handle the plugin and file registries
@@ -491,8 +488,6 @@ rm -f %{_sysconfdir}/postfix/dynamicmaps.cf.rpm* &>/dev/null
 %_create_ssl_certificate postfix
 %endif
 
-/usr/sbin/update-alternatives --install %{_sbindir}/sendmail sendmail-command %{sendmail_command} 30 --slave %{_prefix}/lib/sendmail sendmail-command-in_libdir %{sendmail_command}
-
 %preun
 rmqueue() {
 	[ $2 -gt 0 ] || return
@@ -523,11 +518,6 @@ done
 if [ $1 = 0 ]; then
 	# Clean up spool directory
 	cd %{queue_directory} && queue_directory_remove || true
-fi
-
-%postun
-if [ ! -e %{sendmail_command} ]; then
-	/usr/sbin/update-alternatives --remove sendmail-command %{sendmail_command}
 fi
 
 %files
