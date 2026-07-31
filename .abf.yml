@@ -1,2 +1,6 @@
 sources:
-  postfix-3.11.4.tar.gz: 30507b07eef307e37df2c2d29370b0a86a36eb10
+  body_checks.txt: db8d40e68a1af18f55466ba5867e23ba81ef4c2e
+  faq.html: a771fd74d6f5ee5621dc9a596b3ec0f42f60ba9d
+  header_checks.txt: 08630d5d86b7d5d8331bf7ecdeb7729451bfc108
+  postfix-3.11.5.tar.gz: dd5e43f718489dd39668923f94b702b4bfce2c91
+  postfix-anti-UCE.txt: fce64856cc6d821a6fabda01215f8cf02e1c9590
