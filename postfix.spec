@@ -25,7 +25,7 @@
 
 Summary:	Postfix Mail Transport Agent
 Name:		postfix
-Version:	3.11.5
+Version:	3.11.6
 Release:	1
 License:	IBM Public License
 Group:		System/Servers
