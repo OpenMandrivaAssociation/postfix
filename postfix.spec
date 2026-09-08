@@ -25,7 +25,7 @@
 
 Summary:	Postfix Mail Transport Agent
 Name:		postfix
-Version:	3.11.6
+Version:	3.11.7
 Release:	1
 License:	IBM Public License
 Group:		System/Servers
@@ -355,6 +355,37 @@ LD_LIBRARY_PATH=$PWD/lib${LD_LIBRARY_PATH:+:}${LD_LIBRARY_PATH} \
 	./src/postconf/postconf -c ./conf/dist -e \
 	%post_install_parameters
 mv conf/dist/main.cf conf/main.cf.dist
+
+# SMTP/map parsing and string handling have complex branching; smtpstone plus
+# postmap/postalias/postconf are a representative admin + protocol profile.
+%pgo
+export LD_LIBRARY_PATH="$PWD/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+postconf=./src/postconf/postconf
+postmap=./src/postmap/postmap
+postalias=./src/postalias/postalias
+[ -x "$postconf" ] || { echo "PGO: postconf missing"; find . -name postconf -type f; exit 1; }
+"$postconf" -d >/dev/null
+train=$(mktemp -d)
+trap 'rm -rf "$train"' EXIT
+printf 'root: root\npostmaster: root\nabuse: root\n' > "$train/aliases"
+"$postalias" "lmdb:$train/aliases"
+printf 'example.com OK\n.example.org REJECT\n' > "$train/access"
+"$postmap" "lmdb:$train/access"
+"$postmap" -q example.com "lmdb:$train/access" >/dev/null || true
+sink=
+source=
+for d in src/smtpstone src/smtpstone/.libs .; do
+	[ -x "$d/smtp-sink" ] && sink="$d/smtp-sink"
+	[ -x "$d/smtp-source" ] && source="$d/smtp-source"
+done
+if [ -n "$sink" ] && [ -n "$source" ]; then
+	"$sink" -c 127.0.0.1:25252 20 >/dev/null 2>&1 &
+	sp=$!
+	sleep 0.3
+	"$source" -s 5 -l 512 -m 30 127.0.0.1:25252 >/dev/null 2>&1 || true
+	kill "$sp" 2>/dev/null || true
+	wait "$sp" 2>/dev/null || true
+fi
 
 %install
 # install postfix into the build root
