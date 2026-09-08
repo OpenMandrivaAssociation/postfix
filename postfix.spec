@@ -363,14 +363,17 @@ postconf=./src/postconf/postconf
 postmap=./src/postmap/postmap
 postalias=./src/postalias/postalias
 [ -x "$postconf" ] || { echo "PGO: postconf missing"; find . -name postconf -type f; exit 1; }
-"$postconf" -d >/dev/null
+"$postconf" -d >/dev/null || true
 train=$(mktemp -d)
 trap 'rm -rf "$train"' EXIT
+# postalias/postmap refuse to run without a config directory
+printf 'queue_directory = %s\ncommand_directory = /usr/bin\n' "$train" > "$train/main.cf"
+: > "$train/master.cf"
 printf 'root: root\npostmaster: root\nabuse: root\n' > "$train/aliases"
-"$postalias" "lmdb:$train/aliases"
+"$postalias" -c "$train" "lmdb:$train/aliases"
 printf 'example.com OK\n.example.org REJECT\n' > "$train/access"
-"$postmap" "lmdb:$train/access"
-"$postmap" -q example.com "lmdb:$train/access" >/dev/null || true
+"$postmap" -c "$train" "lmdb:$train/access"
+"$postmap" -c "$train" -q example.com "lmdb:$train/access" >/dev/null || true
 sink=
 source=
 for d in src/smtpstone src/smtpstone/.libs .; do
