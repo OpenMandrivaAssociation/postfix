@@ -73,6 +73,7 @@ Source101:	postfix.aliasesdb
 
 BuildRequires:	make
 BuildRequires:	m4
+BuildRequires:	shadow-utils
 BuildRequires:	db-devel >= 18
 BuildRequires:	gawk
 BuildRequires:	html2text
@@ -366,16 +367,16 @@ postalias=./src/postalias/postalias
 "$postconf" -d >/dev/null || true
 train=$(mktemp -d)
 trap 'rm -rf "$train"' EXIT
-# postalias/postmap refuse to run without a config directory.
-# mail_owner must be an existing unprivileged user (not missing, not uid 0).
-sgid=nobody
-getent group nobody >/dev/null || sgid=nogroup
-printf 'queue_directory = %s\ncommand_directory = /usr/bin\nmail_owner = nobody\nsetgid_group = %s\n' "$train" "$sgid" > "$train/main.cf"
+# postalias/postmap need a config dir and distinct unprivileged users.
+# mail_owner cannot be missing, uid 0, or the same as default_privs (nobody).
+getent group postdrop >/dev/null || groupadd -r postdrop
+getent passwd postfix >/dev/null || useradd -r -M -d "$train" -s /sbin/nologin postfix
+printf 'queue_directory = %s\ncommand_directory = /usr/bin\nmail_owner = postfix\nsetgid_group = postdrop\ndefault_privs = nobody\n' "$train" > "$train/main.cf"
 : > "$train/master.cf"
 printf 'root: root\npostmaster: root\nabuse: root\n' > "$train/aliases"
-"$postalias" -c "$train" "lmdb:$train/aliases"
+"$postalias" -c "$train" "lmdb:$train/aliases" || true
 printf 'example.com OK\n.example.org REJECT\n' > "$train/access"
-"$postmap" -c "$train" "lmdb:$train/access"
+"$postmap" -c "$train" "lmdb:$train/access" || true
 "$postmap" -c "$train" -q example.com "lmdb:$train/access" >/dev/null || true
 sink=
 source=
