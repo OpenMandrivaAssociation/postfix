@@ -367,8 +367,10 @@ postalias=./src/postalias/postalias
 train=$(mktemp -d)
 trap 'rm -rf "$train"' EXIT
 # postalias/postmap refuse to run without a config directory.
-# mail_owner defaults to "postfix", which does not exist in the buildroot.
-printf 'queue_directory = %s\ncommand_directory = /usr/bin\nmail_owner = root\nsetgid_group = root\n' "$train" > "$train/main.cf"
+# mail_owner must be an existing unprivileged user (not missing, not uid 0).
+sgid=nobody
+getent group nobody >/dev/null || sgid=nogroup
+printf 'queue_directory = %s\ncommand_directory = /usr/bin\nmail_owner = nobody\nsetgid_group = %s\n' "$train" "$sgid" > "$train/main.cf"
 : > "$train/master.cf"
 printf 'root: root\npostmaster: root\nabuse: root\n' > "$train/aliases"
 "$postalias" -c "$train" "lmdb:$train/aliases"
