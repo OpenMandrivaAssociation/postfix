@@ -73,7 +73,6 @@ Source101:	postfix.aliasesdb
 
 BuildRequires:	make
 BuildRequires:	m4
-BuildRequires:	shadow-utils
 BuildRequires:	db-devel >= 18
 BuildRequires:	gawk
 BuildRequires:	html2text
@@ -356,42 +355,9 @@ LD_LIBRARY_PATH=$PWD/lib${LD_LIBRARY_PATH:+:}${LD_LIBRARY_PATH} \
 	%post_install_parameters
 mv conf/dist/main.cf conf/main.cf.dist
 
-# SMTP/map parsing and string handling have complex branching; smtpstone plus
-# postmap/postalias/postconf are a representative admin + protocol profile.
-%pgo
-export LD_LIBRARY_PATH="$PWD/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
-postconf=./src/postconf/postconf
-postmap=./src/postmap/postmap
-postalias=./src/postalias/postalias
-[ -x "$postconf" ] || { echo "PGO: postconf missing"; find . -name postconf -type f; exit 1; }
-"$postconf" -d >/dev/null || true
-train=$(mktemp -d)
-trap 'rm -rf "$train"' EXIT
-# postalias/postmap need a config dir and distinct unprivileged users.
-# mail_owner cannot be missing, uid 0, or the same as default_privs (nobody).
-getent group postdrop >/dev/null || groupadd -r postdrop
-getent passwd postfix >/dev/null || useradd -r -M -d "$train" -s /sbin/nologin postfix
-printf 'queue_directory = %s\ncommand_directory = /usr/bin\nmail_owner = postfix\nsetgid_group = postdrop\ndefault_privs = nobody\n' "$train" > "$train/main.cf"
-: > "$train/master.cf"
-printf 'root: root\npostmaster: root\nabuse: root\n' > "$train/aliases"
-"$postalias" -c "$train" "lmdb:$train/aliases" || true
-printf 'example.com OK\n.example.org REJECT\n' > "$train/access"
-"$postmap" -c "$train" "lmdb:$train/access" || true
-"$postmap" -c "$train" -q example.com "lmdb:$train/access" >/dev/null || true
-sink=
-source=
-for d in src/smtpstone src/smtpstone/.libs .; do
-	[ -x "$d/smtp-sink" ] && sink="$d/smtp-sink"
-	[ -x "$d/smtp-source" ] && source="$d/smtp-source"
-done
-if [ -n "$sink" ] && [ -n "$source" ]; then
-	"$sink" -c 127.0.0.1:25252 20 >/dev/null 2>&1 &
-	sp=$!
-	sleep 0.3
-	"$source" -s 5 -l 512 -m 30 127.0.0.1:25252 >/dev/null 2>&1 || true
-	kill "$sp" 2>/dev/null || true
-	wait "$sp" 2>/dev/null || true
-fi
+# PGO skipped: postalias/postmap require a live mail_owner distinct from
+# default_privs. The buildroot has no postfix user, rejects root, and
+# groupadd/useradd are not usable here.
 
 %install
 # install postfix into the build root
