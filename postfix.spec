@@ -1,6 +1,6 @@
 %define _disable_ld_no_undefined 1
 %define major %{nil}
-%define sendmail_command %{_sbindir}/sendmail.postfix
+%define sendmail_command %{_sbindir}/sendmail
 
 # use bcond_with if default is disabled
 # use bcond_without if default is enabled
@@ -26,7 +26,7 @@
 Summary:	Postfix Mail Transport Agent
 Name:		postfix
 Version:	3.11.7
-Release:	2
+Release:	3
 License:	IBM Public License
 Group:		System/Servers
 Url:		https://www.postfix.org/
