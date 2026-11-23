@@ -3,4 +3,4 @@ sources:
   faq.html: a771fd74d6f5ee5621dc9a596b3ec0f42f60ba9d
   header_checks.txt: 08630d5d86b7d5d8331bf7ecdeb7729451bfc108
   postfix-anti-UCE.txt: fce64856cc6d821a6fabda01215f8cf02e1c9590
-  postfix-3.11.7.tar.gz: 2b51522b073c93a7851245621f41eade3342f4cc
+  postfix-3.11.8.tar.gz: da661dd511e01a0b3706cbde1bf432ad20687ac5
